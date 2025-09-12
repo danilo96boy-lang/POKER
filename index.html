@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
@@ -40,8 +40,6 @@
                     window.setDoc = setDoc;
                     window.serverTimestamp = serverTimestamp;
                     window.getDoc = getDoc;
-                    window.collection = collection; // Expor a função collection
-                    window.addDoc = addDoc; // Expor a função addDoc
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -315,8 +313,6 @@
                 const setDoc = window.setDoc;
                 const serverTimestamp = window.serverTimestamp;
                 const getDoc = window.getDoc;
-                const collection = window.collection;
-                const addDoc = window.addDoc;
 
                 // --- Elementos ---
                 const adminLoginBtn = document.getElementById('admin-login-btn');
@@ -790,7 +786,8 @@
                         if (docSnapshot.exists() && docSnapshot.data().players) {
                             playersData = docSnapshot.data().players;
                         } else {
-                            playersData = initialPlayers.map(name => ({ id: addDoc(collection(db, 'pokerGame', 'gameState', 'players'), { name }).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                            playersData = initialPlayers.map(name => ({ id: doc(gameDocRef).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                            setDoc(gameDocRef, { players: playersData });
                         }
                         
                         playerTableBody.innerHTML = '';
@@ -811,7 +808,7 @@
                 const resetGame = () => {
                     closePasswordModal();
                     openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const resetPlayers = initialPlayers.map(name => ({ id: nanoid(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        const resetPlayers = initialPlayers.map(name => ({ id: doc(doc(db, 'pokerGame', 'gameState')).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
                         
                         const gameDocRef = doc(db, 'pokerGame', 'gameState');
                         await setDoc(gameDocRef, { players: resetPlayers });
@@ -842,22 +839,25 @@
                 passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
 
                 addPlayerBtn.addEventListener('click', async () => {
+                    const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                    const newPlayer = {
+                        id: doc(gameDocRef).id, // Gera um ID único no lado do cliente
+                        name: '',
+                        buyInChecked: false,
+                        rebuysChecked: Array(10).fill(false),
+                        addOnChecked: false,
+                        eliminated: false,
+                        eliminationTimestamp: null
+                    };
+
                     try {
-                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
                         const docSnap = await getDoc(gameDocRef);
-                        const currentPlayers = docSnap.exists() ? docSnap.data().players : [];
+                        let currentPlayers = [];
+                        if (docSnap.exists() && docSnap.data().players) {
+                           currentPlayers = docSnap.data().players;
+                        }
                         
-                        const newPlayer = {
-                            id: doc(collection(db, 'pokerGame', 'gameState')).id,
-                            name: '',
-                            buyInChecked: false,
-                            rebuysChecked: Array(10).fill(false),
-                            addOnChecked: false,
-                            eliminated: false,
-                            eliminationTimestamp: null
-                        };
                         const updatedPlayersData = [...currentPlayers, newPlayer];
-                        
                         await setDoc(gameDocRef, { players: updatedPlayersData });
                         console.log("Novo jogador adicionado e salvo no Firebase.");
                     } catch (error) {
