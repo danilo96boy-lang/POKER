@@ -14,6 +14,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        // Importe a função para gerar IDs únicos
+        import { nanoid } from 'https://cdn.jsdelivr.net/npm/nanoid/nanoid.js';
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
         const firebaseConfig = {
@@ -479,7 +481,6 @@
                     updateChipAvailability();
                 };
 
-                // Funções que interagem com o timer local
                 const runLocalTimer = () => {
                     if (timerState.timeLeft > 0) {
                         timerState.timeLeft--;
@@ -497,7 +498,6 @@
                     timerInterval = null;
                 };
 
-                // Funções de controle do timer que salvam o estado no Firebase
                 const saveTimerStateToFirebase = async (state) => {
                     const stateToSave = {
                         ...state,
@@ -618,6 +618,7 @@
                 const createPlayerRow = (player) => {
                     const tr = document.createElement('tr');
                     tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
+                    tr.dataset.playerId = player.id; // Adiciona o ID do jogador como um atributo de dados
                     
                     let rebuyCheckboxes = '';
                     for(let i = 0; i < 10; i++) {
@@ -694,7 +695,6 @@
                     });
                 };
 
-                // Funções que coletam os dados do DOM
                 const collectDataFromDOM = () => {
                     let currentPlayersData = [];
                     document.querySelectorAll('.player-row').forEach((row) => {
@@ -703,12 +703,12 @@
                         const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
                         const addOnChecked = row.querySelector('.add-on-cb').checked;
                         const eliminated = row.classList.contains('eliminated');
-                        currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
+                        const id = row.dataset.playerId || nanoid(); // Obtém o ID existente ou cria um novo
+                        currentPlayersData.push({ id, name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
                     });
                     return currentPlayersData;
                 };
 
-                // Função central para salvar dados no Firebase
                 const saveStateToFirebase = async () => {
                     if (isUpdatingFromFirebase) return;
 
@@ -788,7 +788,7 @@
                         if (docSnapshot.exists() && docSnapshot.data().players) {
                             playersData = docSnapshot.data().players;
                         } else {
-                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                            playersData = initialPlayers.map(name => ({ id: nanoid(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
                         }
                         
                         playerTableBody.innerHTML = '';
@@ -809,7 +809,7 @@
                 const resetGame = () => {
                     closePasswordModal();
                     openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        const resetPlayers = initialPlayers.map(name => ({ id: nanoid(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
                         
                         const gameDocRef = doc(db, 'pokerGame', 'gameState');
                         await setDoc(gameDocRef, { players: resetPlayers });
@@ -845,7 +845,7 @@
                         const docSnap = await getDoc(gameDocRef);
                         const currentPlayers = docSnap.exists() ? docSnap.data().players : [];
                         
-                        const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                        const newPlayer = { id: nanoid(), name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
                         const updatedPlayersData = [...currentPlayers, newPlayer];
                         
                         await setDoc(gameDocRef, { players: updatedPlayersData });
@@ -858,13 +858,15 @@
                 playerTableBody.addEventListener('click', (event) => {
                     const row = event.target.closest('.player-row');
                     if (!row) return;
-                    const rowIndex = Array.from(playerTableBody.children).indexOf(row);
-                    const player = playersData[rowIndex];
+                    const playerId = row.dataset.playerId;
+                    const playerIndex = playersData.findIndex(p => p.id === playerId);
+                    if (playerIndex === -1) return;
+                    const player = playersData[playerIndex];
 
                     if(event.target.closest('.delete-player-btn')) {
                         const playerName = player.name || 'Jogador sem nome';
                         openModal(`Deseja remover ${playerName} da lista?`, () => {
-                            playersData.splice(rowIndex, 1);
+                            playersData.splice(playerIndex, 1);
                             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
                             closeModal();
                         });
@@ -874,21 +876,37 @@
                     }
                 });
 
-                mainContent.addEventListener('input', async (e) => {
-                    if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
-                        let currentPlayersData = collectDataFromDOM();
-                        let prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                        
-                        if (e.target.matches('.player-name') || e.target.matches('.chip-checkbox')) {
-                            await setDoc(doc(db, 'pokerGame', 'gameState'), { players: currentPlayersData });
+                mainContent.addEventListener('input', (e) => {
+                    const row = e.target.closest('.player-row');
+                    if (!row) return;
+                    const playerId = row.dataset.playerId;
+                    const playerIndex = playersData.findIndex(p => p.id === playerId);
+                    if (playerIndex === -1) return;
+
+                    if (e.target.matches('.chip-checkbox')) {
+                        const isBuyIn = e.target.classList.contains('buy-in-cb');
+                        const isRebuy = e.target.classList.contains('rebuy-cb');
+                        const isAddOn = e.target.classList.contains('add-on-cb');
+
+                        if (isBuyIn) {
+                            playersData[playerIndex].buyInChecked = e.target.checked;
+                        } else if (isRebuy) {
+                            const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target);
+                            playersData[playerIndex].rebuysChecked[rebuyIndex] = e.target.checked;
+                        } else if (isAddOn) {
+                            playersData[playerIndex].addOnChecked = e.target.checked;
                         }
-                        if (e.target.matches('.prize-percent-input')) {
-                            localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                            calculateTotals();
-                        }
+                        setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                    } else if (e.target.matches('.player-name')) {
+                        playersData[playerIndex].name = e.target.value;
+                        setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                    } else if (e.target.matches('.prize-percent-input')) {
+                        const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
+                        localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
+                        calculateTotals();
                     }
                 });
-                
+
                 addPrizeBtn.addEventListener('click', () => {
                     createPrizeField(prizeGrid.children.length + 1);
                     const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
@@ -913,11 +931,8 @@
                 modalCancelBtn.addEventListener('click', closeModal);
                 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
                 
-                window.addEventListener('beforeunload', () => {
-                    // Remove a lógica de salvar o timer do localStorage
-                });
+                window.addEventListener('beforeunload', () => {});
 
-                // Initial Load Logic
                 if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
                     showLoggedInState();
                 } else {
