@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
@@ -31,20 +31,16 @@
             db = getFirestore(app);
             const auth = getAuth(app);
             
+            // Adicionado login anônimo para resolver problemas de permissão
             signInAnonymously(auth)
                 .then(() => {
                     console.log("Firebase inicializado e login anônimo bem-sucedido!");
+                    // Expor funções e db globalmente para o script legado
                     window.db = db;
                     window.doc = doc;
                     window.onSnapshot = onSnapshot;
                     window.setDoc = setDoc;
                     window.serverTimestamp = serverTimestamp;
-                    window.getDoc = getDoc;
-                    window.collection = collection;
-                    window.addDoc = addDoc;
-                    window.deleteDoc = deleteDoc;
-                    window.query = query;
-                    window.getDocs = getDocs;
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -199,9 +195,9 @@
 
         <div id="public-prize-section" class="mb-8">
             <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
-                <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
-                <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
-                </div>
+                 <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
+                 <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                 </div>
             </div>
         </div>
 
@@ -300,6 +296,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log("DOM carregado. Iniciando a aplicação.");
             
+            // Aguarda o DB do firebase estar disponível na window
             const waitForFirebase = setInterval(() => {
                 if (window.db && window.serverTimestamp) {
                     clearInterval(waitForFirebase);
@@ -317,11 +314,6 @@
                 const onSnapshot = window.onSnapshot;
                 const setDoc = window.setDoc;
                 const serverTimestamp = window.serverTimestamp;
-                const getDoc = window.getDoc;
-                const collection = window.collection;
-                const addDoc = window.addDoc;
-                const deleteDoc = window.deleteDoc;
-                const getDocs = window.getDocs;
 
                 // --- Elementos ---
                 const adminLoginBtn = document.getElementById('admin-login-btn');
@@ -364,8 +356,7 @@
                 // --- Constantes e Variáveis de Estado ---
                 const CORRECT_PASSWORD = 'poker';
                 const ACTION_VALUE = 30;
-                // Lista de jogadores fornecida por você
-                const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Miudinho", "Vitor", "Alexandre Costa", "Lucas Costa", "Lucas", "Rodrigo Boy", "Guilherme Lui", "Luiz", "Prado", "Yago"];
+                const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy"];
                 const initialPrizes = [50, 30, 20];
                 const blindLevels = [
                     { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" },
@@ -489,6 +480,7 @@
                     updateChipAvailability();
                 };
 
+                // Funções que interagem com o timer local
                 const runLocalTimer = () => {
                     if (timerState.timeLeft > 0) {
                         timerState.timeLeft--;
@@ -506,6 +498,7 @@
                     timerInterval = null;
                 };
 
+                // Funções de controle do timer que salvam o estado no Firebase
                 const saveTimerStateToFirebase = async (state) => {
                     const stateToSave = {
                         ...state,
@@ -557,6 +550,7 @@
                     setLevel(0);
                 };
 
+                // Ouvinte de eventos do Firebase para o timer
                 const timerDocRef = doc(db, 'pokerGame', 'timerState');
                 onSnapshot(timerDocRef, (docSnapshot) => {
                     if (docSnapshot.exists()) {
@@ -571,9 +565,17 @@
                             timerState = { ...latestState, timeLeft: newTimeLeft };
                             
                             if (timerState.timeLeft <= 0) {
-                                if (latestState.currentLevel === timerState.currentLevel && timerState.currentLevel < blindLevels.length - 1) {
-                                    nextLevel();
+                                // O timer no Firestore já está em 0, a próxima ação (nextLevel) deve ser gerenciada por um único cliente
+                                // para evitar que múltiplos clientes tentem avançar de nível ao mesmo tempo.
+                                if (timerState.currentLevel < blindLevels.length - 1) {
+                                    // Adiciona um pequeno delay para evitar conflitos de gravação
+                                    setTimeout(() => {
+                                        if (latestState.currentLevel === timerState.currentLevel) {
+                                            nextLevel();
+                                        }
+                                    }, 1000); 
                                 } else {
+                                    // Fim do jogo
                                     timerState.isRunning = false;
                                     stopLocalTimer();
                                 }
@@ -593,6 +595,7 @@
                             timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
                         }
                     } else {
+                        // Inicializa o estado se o documento não existir
                         setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
                     }
                     updateTimerDisplay();
@@ -623,12 +626,9 @@
                 });
 
                 // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
-                const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
-
                 const createPlayerRow = (player) => {
                     const tr = document.createElement('tr');
                     tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
-                    tr.dataset.playerId = player.id;
                     
                     let rebuyCheckboxes = '';
                     for(let i = 0; i < 10; i++) {
@@ -705,6 +705,31 @@
                     });
                 };
 
+                const saveData = async () => {
+                    if(isUpdatingFromFirebase) return;
+
+                    let currentPlayersData = [];
+                    document.querySelectorAll('.player-row').forEach((row) => {
+                        const name = row.querySelector('.player-name').value;
+                        const buyInChecked = row.querySelector('.buy-in-cb').checked;
+                        const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
+                        const addOnChecked = row.querySelector('.add-on-cb').checked;
+                        const eliminated = row.classList.contains('eliminated');
+                        currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
+                    });
+                    playersData = currentPlayersData;
+                    
+                    try {
+                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                        await setDoc(gameDocRef, { players: playersData });
+                    } catch (error) {
+                        console.error("Erro ao salvar dados: ", error);
+                    }
+
+                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
+                    localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
+                };
+
                 const calculateTotals = () => {
                     let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
                     
@@ -761,39 +786,15 @@
                 };
 
                 const loadData = () => {
-                    // Garante que o documento "gameState" exista antes de tentar acessar a subcoleção
                     const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                    const playersColRef = collection(gameDocRef, 'players');
-
-                    // Primeiro, verifique se o documento principal existe
-                    getDoc(gameDocRef).then((docSnap) => {
-                        if (!docSnap.exists()) {
-                            console.log("Documento gameState não encontrado. Criando e adicionando jogadores iniciais.");
-                            setDoc(gameDocRef, { initialized: true });
-                            // Adiciona os jogadores iniciais na subcoleção
-                            initialPlayers.forEach(async (name) => {
-                                await addDoc(playersColRef, {
-                                    name,
-                                    buyInChecked: false,
-                                    rebuysChecked: Array(10).fill(false),
-                                    addOnChecked: false,
-                                    eliminated: false,
-                                    eliminationTimestamp: null
-                                });
-                            });
-                        }
-                    }).catch(error => {
-                        console.error("Erro ao verificar o documento gameState: ", error);
-                    });
-
-                    // Em seguida, configure o onSnapshot para a subcoleção
-                    onSnapshot(playersColRef, (querySnapshot) => {
+                    onSnapshot(gameDocRef, (docSnapshot) => {
                         isUpdatingFromFirebase = true;
-                        playersData = [];
-                        querySnapshot.forEach(doc => {
-                            playersData.push({ id: doc.id, ...doc.data() });
-                        });
-
+                        if (docSnapshot.exists() && docSnapshot.data().players) {
+                            playersData = docSnapshot.data().players;
+                        } else {
+                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        }
+                        
                         playerTableBody.innerHTML = '';
                         playersData.forEach(p => createPlayerRow(p));
                         
@@ -803,7 +804,6 @@
                         console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
                     });
 
-                    // Carrega dados de premiação do localStorage
                     prizeGrid.innerHTML = '';
                     const savedPrizeData = localStorage.getItem('pokerPrizeData');
                     const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
@@ -813,28 +813,18 @@
                 const resetGame = () => {
                     closePasswordModal();
                     openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
-                        const playersSnapshot = await getDocs(playersColRef);
-                        playersSnapshot.forEach(async (playerDoc) => {
-                            await deleteDoc(doc(playersColRef, playerDoc.id));
-                        });
+                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
                         
-                        // Recarrega os jogadores iniciais após a deleção
-                        initialPlayers.forEach(async (name) => {
-                            await addDoc(playersColRef, {
-                                name,
-                                buyInChecked: false,
-                                rebuysChecked: Array(10).fill(false),
-                                addOnChecked: false,
-                                eliminated: false,
-                                eliminationTimestamp: null
-                            });
-                        });
-
+                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                        await setDoc(gameDocRef, { players: resetPlayers });
+                        
+                        // Resetar o timer no Firebase
                         const timerDocRef = doc(db, 'pokerGame', 'timerState');
                         await setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
 
                         localStorage.removeItem('pokerPrizeData');
+                        
+                        loadData();
                         closeModal();
                     });
                 };
@@ -854,94 +844,38 @@
                 passwordCancelBtn.addEventListener('click', closePasswordModal);
                 passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
 
-                addPlayerBtn.addEventListener('click', async () => {
-                    const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
-                    
-                    const newPlayer = {
-                        name: '',
-                        buyInChecked: false,
-                        rebuysChecked: Array(10).fill(false),
-                        addOnChecked: false,
-                        eliminated: false,
-                        eliminationTimestamp: null
-                    };
-
-                    try {
-                        await addDoc(playersColRef, newPlayer);
-                        console.log("Novo jogador adicionado e salvo no Firebase.");
-                    } catch (error) {
-                        console.error("Erro ao adicionar jogador: ", error);
-                    }
+                addPlayerBtn.addEventListener('click', () => {
+                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                    playersData.push(newPlayer);
+                    saveData();
                 });
 
-                playerTableBody.addEventListener('click', async (event) => {
+                playerTableBody.addEventListener('click', (event) => {
                     const row = event.target.closest('.player-row');
                     if (!row) return;
-                    const playerId = row.dataset.playerId;
-                    
+                    const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+
                     if(event.target.closest('.delete-player-btn')) {
-                        const player = playersData.find(p => p.id === playerId);
-                        const playerName = player ? player.name : 'Jogador sem nome';
-                        openModal(`Deseja remover ${playerName} da lista?`, async () => {
-                            try {
-                                const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
-                                await deleteDoc(playerDocRef);
-                                console.log(`Jogador ${playerName} removido do Firebase.`);
-                                closeModal();
-                            } catch (error) {
-                                console.error("Erro ao remover jogador: ", error);
-                            }
+                        const playerName = playersData[rowIndex].name || 'Jogador sem nome';
+                        openModal(`Deseja remover ${playerName} da lista?`, () => {
+                            playersData.splice(rowIndex, 1);
+                            saveData();
+                            closeModal();
                         });
                     } else if(event.target.closest('.eliminate-player-btn')) {
-                        const player = playersData.find(p => p.id === playerId);
-                        if (player) {
-                            player.eliminated = !player.eliminated;
-                            const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
-                            await setDoc(playerDocRef, player, { merge: true });
-                        }
+                        const player = playersData[rowIndex];
+                        player.eliminated = !player.eliminated;
+                        saveData();
                     }
                 });
 
-                mainContent.addEventListener('input', async (e) => {
-                    const row = e.target.closest('.player-row');
-                    if (!row) return;
-                    const playerId = row.dataset.playerId;
-                    const player = playersData.find(p => p.id === playerId);
-                    if (!player) return;
-
-                    if (e.target.matches('.chip-checkbox')) {
-                        const isBuyIn = e.target.classList.contains('buy-in-cb');
-                        const isRebuy = e.target.classList.contains('rebuy-cb');
-                        const isAddOn = e.target.classList.contains('add-on-cb');
-
-                        if (isBuyIn) {
-                            player.buyInChecked = e.target.checked;
-                        } else if (isRebuy) {
-                            const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target);
-                            player.rebuysChecked[rebuyIndex] = e.target.checked;
-                        } else if (isAddOn) {
-                            player.addOnChecked = e.target.checked;
-                        }
-                        const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
-                        await setDoc(playerDocRef, player, { merge: true });
-                    } else if (e.target.matches('.player-name')) {
-                        player.name = e.target.value;
-                        const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
-                        await setDoc(playerDocRef, player, { merge: true });
-                    } else if (e.target.matches('.prize-percent-input')) {
-                        const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                        localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                        calculateTotals();
+                mainContent.addEventListener('input', (e) => {
+                    if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
+                        saveData();
                     }
                 });
-
-                addPrizeBtn.addEventListener('click', () => {
-                    createPrizeField(prizeGrid.children.length + 1);
-                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                    localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                    calculateTotals();
-                });
-
+                
+                addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
                 prizeGrid.addEventListener('click', (event) => {
                     const removeBtn = event.target.closest('.remove-prize-btn');
                     if (removeBtn) {
@@ -949,9 +883,7 @@
                         prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
                             label.textContent = `${index + 1}º Lugar`;
                         });
-                        const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                        localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                        calculateTotals();
+                        saveData();
                     }
                 });
 
@@ -959,8 +891,11 @@
                 modalCancelBtn.addEventListener('click', closeModal);
                 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
                 
-                window.addEventListener('beforeunload', () => {});
+                window.addEventListener('beforeunload', () => {
+                    // Remove a lógica de salvar o timer do localStorage
+                });
 
+                // Initial Load Logic
                 if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
                     showLoggedInState();
                 } else {
