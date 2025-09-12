@@ -844,6 +844,7 @@
                 passwordCancelBtn.addEventListener('click', closePasswordModal);
                 passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
 
+                // CORREÇÃO COMEÇA AQUI
                 addPlayerBtn.addEventListener('click', async () => {
                     const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
                     const updatedPlayersData = [...playersData, newPlayer];
@@ -856,6 +857,7 @@
                         console.error("Erro ao adicionar jogador: ", error);
                     }
                 });
+                // CORREÇÃO TERMINA AQUI
 
                 playerTableBody.addEventListener('click', (event) => {
                     const row = event.target.closest('.player-row');
