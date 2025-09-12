@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKER On Jack Tall Back</title>
+    <meta http-equiv="refresh" content="60">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- SDKs DO FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background-color: #032a05;
+            background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%);
+        }
+        h1, h2, h3, button, th {
+            font-family: 'Oswald', sans-serif;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .chip-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .chip-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            position: absolute;
+            opacity: 0;
+        }
+        .chip {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            border: 2px solid #a0aec0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2);
+            position: relative;
+        }
+        .chip::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            border: 1px dashed #a0aec0;
+        }
+        .buy-in-cb + .chip { background-color: #2b6cb0; }
+        .rebuy-cb + .chip { background-color: #c53030; }
+        .add-on-cb + .chip { background-color: #2f855a; }
+        .chip-checkbox:checked + .chip {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2);
+            border-color: #fff;
+        }
+        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
+        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
+        .add-on-cb:checked + .chip { --glow-color: #68d391; }
+        .chip-checkbox:checked + .chip::before {
+            border: 2px solid #fff;
+        }
+        .player-row.eliminated {
+            background-color: rgba(40, 40, 40, 0.5);
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
+            pointer-events: none;
+        }
+        .rebuys-disabled .rebuy-cb,
+        .rebuys-disabled .add-on-cb {
+            pointer-events: none;
+        }
+        .rebuys-disabled .rebuy-cb + .chip,
+        .rebuys-disabled .add-on-cb + .chip {
+            cursor: not-allowed;
+            background-color: #4A5568 !important;
+            opacity: 0.5;
+        }
+        @media (max-width: 640px) {
+            .chip { height: 24px; width: 24px; }
+            .chip::before { height: 16px; width: 16px; }
+        }
+    </style>
+</head>
+<body class="bg-green-900 text-gray-200 min-h-screen">
+
+    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="relative text-center mb-6">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                <span class="text-red-500">♦</span> POKER On Jack Tall Back <span class="text-red-500">♥</span>
+            </h1>
+            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
+            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">Admin</button>
+            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">Sair</button>
+        </header>
+
+        <!-- Temporizador de Blinds -->
+        <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
+            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">Temporizador de Blinds <span id="level-indicator" class="text-yellow-400"></span></h2>
+            <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
+                <div class="sm:text-left">
+                    <p class="text-sm text-yellow-300 uppercase">Nível Atual</p>
+                    <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+                <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
+                    <button id="prev-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Nível Anterior">&lt;&lt;</button>
+                    <span id="timer-display">--:--</span>
+                    <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
+                </div>
+                <div class="sm:text-right">
+                    <p class="text-sm text-yellow-300 uppercase">Próximo Nível</p>
+                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="level-duration" class="text-sm">Duração (min):</label>
+                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                </div>
+                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Iniciar</button>
+                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Reiniciar</button>
+            </div>
+        </div>
+        
+        <!-- Painel de Resumo Público -->
+        <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Jogadores Ativos</h3>
+                <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Buy-ins</h3>
+                <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Rebuys</h3>
+                <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Add-ons</h3>
+                <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+        </div>
+
+        <!-- Seção de Premiação Pública -->
+        <div id="public-prize-section" class="mb-8">
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
+                 <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
+                 <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                 </div>
+            </div>
+        </div>
+
+        <div id="game-controls" class="hidden">
+            <!-- Tabela de Controle dos Jogadores -->
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-yellow-600/30">
+                        <thead class="bg-black/25">
+                            <tr>
+                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">Jogador</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Buy-in</th>
+                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Rebuys</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Add-on</th>
+                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">Total (R$)</th>
+                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
+                        </tbody>
+                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
+                            <tr>
+                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (Ação: R$ 30,00)</td>
+                                <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="grand-total" class="px-2 sm:px-4 py-4 text-right font-bold text-2xl text-yellow-400">R$ 0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
+           
+            <div class="mt-8">
+                <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Premiação ♣</h2>
+                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
+                    </div>
+                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    </div>
+                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center gap-4">
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    Adicionar Jogador
+                </button>
+                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    Resetar Jogo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Login -->
+    <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">Acesso de Administrador</h3>
+            <form id="login-form">
+                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
+                <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <p id="modal-text" class="text-center text-lg mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Senha para Reset -->
+    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">Confirmação de Reset</h3>
+            <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
+            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
+            <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+            <div class="flex justify-center gap-4">
+                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- INICIALIZAÇÃO DO FIREBASE (COM AS CHAVES DO NOVO PROJETO) ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyBmBp8yAcS-EwKgV8I5d86ImhYMNCkHGyI",
+          authDomain: "sitepoker-14390.firebaseapp.com",
+          projectId: "sitepoker-14390",
+          storageBucket: "sitepoker-14390.firebasestorage.app",
+          messagingSenderId: "316670455631",
+          appId: "1:316670455631:web:d5efb577b946666f335f3a"
+        };
+        
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log("Firebase inicializado com sucesso!");
+        } catch (error) {
+            console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
+        }
+        // ------------------------------------
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM carregado. Iniciando a aplicação.");
+            if (!db) {
+                console.error("O banco de dados do Firebase não foi inicializado. A aplicação não pode continuar.");
+                return;
+            }
+
+            // --- Elementos ---
+            const adminLoginBtn = document.getElementById('admin-login-btn');
+            const loginModal = document.getElementById('login-modal');
+            const loginCancelBtn = document.getElementById('login-cancel-btn');
+            const loginForm = document.getElementById('login-form');
+            const passwordInput = document.getElementById('password');
+            const loginError = document.getElementById('login-error');
+            const mainContent = document.getElementById('main-content');
+            const gameControls = document.getElementById('game-controls');
+            const logoutBtn = document.getElementById('logout-btn');
+            const playerTableBody = document.getElementById('player-table-body');
+            const addPlayerBtn = document.getElementById('add-player-btn');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+            const modal = document.getElementById('confirmation-modal');
+            const modalText = document.getElementById('modal-text');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const passwordModal = document.getElementById('password-modal');
+            const passwordInputModal = document.getElementById('password-input-modal');
+            const passwordErrorModal = document.getElementById('password-error-modal');
+            const passwordConfirmBtn = document.getElementById('password-confirm-btn');
+            const passwordCancelBtn = document.getElementById('password-cancel-btn');
+            const prizeGrid = document.getElementById('prize-grid');
+            const publicPrizeGrid = document.getElementById('public-prize-grid');
+            const publicPrizeSection = document.getElementById('public-prize-section');
+            const addPrizeBtn = document.getElementById('add-prize-btn');
+            const percentageWarning = document.getElementById('percentage-warning');
+            const timerDisplay = document.getElementById('timer-display');
+            const currentBlindsDisplay = document.getElementById('current-blinds');
+            const nextBlindsDisplay = document.getElementById('next-blinds');
+            const timerControlButton = document.getElementById('timer-control-btn');
+            const resetTimerButton = document.getElementById('reset-timer-btn');
+            const levelDurationInput = document.getElementById('level-duration');
+            const levelIndicator = document.getElementById('level-indicator');
+            const prevLevelBtn = document.getElementById('prev-level-btn');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const blindsNote = document.getElementById('blinds-note');
+
+            // --- Constantes e Variáveis de Estado ---
+            const CORRECT_PASSWORD = 'poker';
+            const ACTION_VALUE = 30;
+            const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Rodrigo Boy"];
+            const initialPrizes = [50, 30, 20];
+            const blindLevels = [
+                { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, 
+                { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, 
+                { blinds: "600/1200" }, 
+                { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" }, 
+                { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 },
+                { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" }, 
+                { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" },
+                { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" },
+                { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" },
+                { blinds: "25000/50000" }, { blinds: "30000/60000" }, { blinds: "40000/80000" },
+                { blinds: "50000/100000" }
+            ];
+            
+            let confirmCallback = null;
+            let timerInterval = null;
+            let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
+            let playersData = [];
+            let isUpdatingFromFirebase = false;
+
+            // --- LÓGICA DE LOGIN E LOGOUT ---
+            const openLoginModal = () => {
+                passwordInput.value = '';
+                loginError.textContent = '';
+                loginModal.classList.remove('hidden');
+                passwordInput.focus();
+            };
+            const closeLoginModal = () => loginModal.classList.add('hidden');
+            
+            const showLoggedInState = () => {
+                gameControls.classList.remove('hidden');
+                publicPrizeSection.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                adminLoginBtn.classList.add('hidden');
+            };
+
+            const showLoggedOutState = () => {
+                sessionStorage.removeItem('pokerAppLoggedIn');
+                gameControls.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                adminLoginBtn.classList.remove('hidden');
+                publicPrizeSection.classList.remove('hidden');
+            };
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (passwordInput.value === CORRECT_PASSWORD) {
+                    sessionStorage.setItem('pokerAppLoggedIn', 'true');
+                    showLoggedInState();
+                    closeLoginModal();
+                } else {
+                    loginError.textContent = 'Palavra-passe incorreta.';
+                }
+                passwordInput.value = '';
+            });
+            logoutBtn.addEventListener('click', showLoggedOutState);
+            adminLoginBtn.addEventListener('click', openLoginModal);
+            loginCancelBtn.addEventListener('click', closeLoginModal);
+            loginModal.addEventListener('click', (e) => { if(e.target === loginModal) closeLoginModal(); });
+
+            // --- LÓGICA DO TEMPORIZADOR DE BLINDS ---
+            const playWarningSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioContext) return;
+                function beep(frequency, startTime, duration) {
+                    const oscillator = audioContext.createOscillator();
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                    oscillator.connect(audioContext.destination);
+                    oscillator.start(audioContext.currentTime + startTime);
+                    oscillator.stop(audioContext.currentTime + startTime + duration);
+                }
+                beep(1500, 0, 0.2);
+                beep(1500, 0.3, 0.2);
+            };
+
+            const playLevelUpSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.8);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.8);
+            };
+
+            const updateChipAvailability = () => {
+                const rebuysAllowed = timerState.currentLevel < 8;
+                document.body.classList.toggle('rebuys-disabled', !rebuysAllowed);
+            };
+
+            const updateTimerDisplay = () => {
+                const minutes = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timerState.timeLeft % 60).toString().padStart(2, '0');
+                timerDisplay.textContent = `${minutes}:${seconds}`;
+                const currentLevelInfo = blindLevels[timerState.currentLevel];
+                if (currentLevelInfo && currentLevelInfo.isBreak) {
+                    currentBlindsDisplay.textContent = "PAUSA";
+                    blindsNote.textContent = currentLevelInfo.note || '';
+                } else {
+                    currentBlindsDisplay.textContent = currentLevelInfo ? currentLevelInfo.blinds : '--/--';
+                    blindsNote.textContent = currentLevelInfo?.note || '';
+                }
+                let nextBlindLevel = null;
+                for (let i = timerState.currentLevel + 1; i < blindLevels.length; i++) {
+                    if (!blindLevels[i].isBreak) {
+                        nextBlindLevel = blindLevels[i];
+                        break;
+                    }
+                }
+                nextBlindsDisplay.textContent = nextBlindLevel ? nextBlindLevel.blinds : 'Fim';
+                levelIndicator.textContent = `(Nível ${timerState.currentLevel + 1}/${blindLevels.length})`;
+                prevLevelBtn.disabled = timerState.currentLevel === 0;
+                nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1;
+                updateChipAvailability();
+            };
+
+            const saveTimerState = () => localStorage.setItem('pokerTimerState', JSON.stringify(timerState));
+
+            const pauseTimer = () => {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerState.isRunning = false;
+                timerControlButton.textContent = 'Continuar';
+                timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
+                timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
+                saveTimerState();
+            };
+
+            const runTimer = () => {
+                if (timerState.timeLeft === 60) {
+                    playWarningSound();
+                }
+                if (timerState.timeLeft > 0) {
+                    timerState.timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    nextLevel();
+                }
+            };
+            
+            const startTimer = () => {
+                if (timerState.isRunning) return;
+                timerState.isRunning = true;
+                timerControlButton.textContent = 'Pausar';
+                timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
+                timerControlButton.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
+                clearInterval(timerInterval);
+                timerInterval = setInterval(runTimer, 1000);
+                saveTimerState();
+            };
+
+            const setLevel = (levelIndex) => {
+                const newLevelInfo = blindLevels[levelIndex];
+                const newDuration = newLevelInfo.isBreak ? newLevelInfo.duration : parseInt(levelDurationInput.value);
+                timerState.timeLeft = newDuration * 60;
+                timerState.currentLevel = levelIndex;
+                updateTimerDisplay();
+                saveTimerState();
+            };
+            
+            const nextLevel = () => {
+                playLevelUpSound();
+                pauseTimer(); 
+                if (timerState.currentLevel < blindLevels.length - 1) {
+                    setLevel(timerState.currentLevel + 1);
+                    startTimer();
+                }
+            };
+            
+            timerControlButton.addEventListener('click', () => {
+                if (timerState.isRunning) {
+                    pauseTimer();
+                } else {
+                    startTimer();
+                }
+            });
+
+            resetTimerButton.addEventListener('click', () => {
+                pauseTimer();
+                setLevel(0);
+            });
+
+            prevLevelBtn.addEventListener('click', () => {
+                if (timerState.currentLevel > 0) {
+                    pauseTimer();
+                    setLevel(timerState.currentLevel - 1);
+                }
+            });
+
+            nextLevelBtn.addEventListener('click', () => {
+                if (timerState.currentLevel < blindLevels.length - 1) {
+                    pauseTimer();
+                    setLevel(timerState.currentLevel + 1);
+                }
+            });
+            
+            levelDurationInput.addEventListener('change', () => {
+                if (!timerState.isRunning) {
+                    const newLevelInfo = blindLevels[timerState.currentLevel];
+                    if(!newLevelInfo.isBreak) {
+                        timerState.timeLeft = parseInt(levelDurationInput.value) * 60;
+                        updateTimerDisplay();
+                        saveTimerState();
+                    }
+                }
+            });
+
+            // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
+            const createPlayerRow = (player) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
+                
+                let rebuyCheckboxes = '';
+                for(let i = 0; i < 10; i++) {
+                    rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center">
+                        <label class="chip-label">
+                            <input type="checkbox" class="chip-checkbox rebuy-cb" ${player.rebuysChecked[i] ? 'checked' : ''}>
+                            <span class="chip"></span>
+                        </label>
+                    </td>`;
+                }
+                tr.innerHTML = `
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                        <input type="text" placeholder="Nome do Jogador" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                    </td>
+                    <td class="px-1 sm:px-2 py-3 text-center">
+                        <label class="chip-label">
+                            <input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}>
+                            <span class="chip"></span>
+                        </label>
+                    </td>
+                    ${rebuyCheckboxes}
+                    <td class="px-1 sm:px-2 py-3 text-center">
+                        <label class="chip-label">
+                            <input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}>
+                            <span class="chip"></span>
+                        </label>
+                    </td>
+                    <td class="player-total px-2 sm:px-4 py-3 text-right font-medium text-gray-300 whitespace-nowrap">R$ 0,00</td>
+                    <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
+                        <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500 transition-colors" title="Eliminar Jogador">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg>
+                        </button>
+                        <button class="delete-player-btn text-gray-400 hover:text-red-500 transition-colors" title="Remover da Lista">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
+                        </button>
+                    </td>
+                `;
+                if(player.eliminated) {
+                    tr.classList.add('eliminated');
+                    tr.querySelectorAll('input').forEach(i => i.disabled = true);
+                }
+                playerTableBody.appendChild(tr);
+            };
+
+            const createPrizeField = (place, value = 0) => {
+                const prizeItem = document.createElement('div');
+                prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
+                let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
+                prizeItem.innerHTML = `
+                    <label class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</label>
+                    <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
+                    <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
+                    ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
+                `;
+                prizeGrid.appendChild(prizeItem);
+            };
+            
+            const updatePublicPrizes = (grandTotal) => {
+                publicPrizeGrid.innerHTML = '';
+                document.querySelectorAll('.prize-item').forEach((item, index) => {
+                    const place = index + 1;
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    const value = ((grandTotal * percent) / 100).toFixed(2);
+                    let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
+
+                    const prizeDiv = document.createElement('div');
+                    prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
+                    prizeDiv.innerHTML = `
+                        <p class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</p>
+                        <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
+                    `;
+                    publicPrizeGrid.appendChild(prizeDiv);
+                });
+            };
+
+            const saveData = () => {
+                if(isUpdatingFromFirebase) return; 
+
+                let currentPlayersData = [];
+                document.querySelectorAll('.player-row').forEach((row) => {
+                   const name = row.querySelector('.player-name').value;
+                   const buyInChecked = row.querySelector('.buy-in-cb').checked;
+                   const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
+                   const addOnChecked = row.querySelector('.add-on-cb').checked;
+                   const eliminated = row.classList.contains('eliminated');
+                   currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
+                });
+                playersData = currentPlayersData;
+
+                db.collection('pokerGame').doc('gameState').set({ players: playersData })
+                    .catch((error) => console.error("Erro ao salvar dados: ", error));
+
+                const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
+                localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
+            };
+
+            const calculateTotals = () => {
+                let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
+                
+                playersData.forEach(player => {
+                    if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
+                    const rebuysCount = player.rebuysChecked.filter(Boolean).length;
+                    grandTotal += rebuysCount * ACTION_VALUE;
+                    totalRebuys += rebuysCount;
+                    if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
+                });
+
+                document.getElementById('total-buy-ins').textContent = totalBuyIns;
+                document.getElementById('total-rebuys').textContent = totalRebuys;
+                document.getElementById('total-add-ons').textContent = totalAddOns;
+                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+                
+                const activePlayers = playersData.filter(p => !p.eliminated).length;
+                document.getElementById('total-players-summary').textContent = activePlayers;
+                document.getElementById('total-buyins-summary').textContent = totalBuyIns;
+                document.getElementById('total-rebuys-summary').textContent = totalRebuys;
+                document.getElementById('total-addons-summary').textContent = totalAddOns;
+                
+                let totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+
+                document.querySelectorAll('.prize-item').forEach(item => {
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
+                });
+                
+                updatePublicPrizes(grandTotal);
+            };
+            
+            const openModal = (text, onConfirm) => {
+                modalText.textContent = text;
+                confirmCallback = onConfirm;
+                modal.classList.remove('hidden');
+            };
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                confirmCallback = null;
+            };
+
+            const openPasswordModal = () => {
+                passwordInputModal.value = '';
+                passwordErrorModal.textContent = '';
+                passwordModal.classList.remove('hidden');
+                passwordInputModal.focus();
+            };
+            const closePasswordModal = () => {
+                passwordModal.classList.add('hidden');
+            };
+
+            const loadData = () => {
+                db.collection('pokerGame').doc('gameState').onSnapshot((doc) => {
+                    isUpdatingFromFirebase = true;
+                    if (doc.exists && doc.data().players) {
+                        playersData = doc.data().players;
+                    } else {
+                        playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                    }
+                    
+                    playerTableBody.innerHTML = '';
+                    playersData.forEach(p => createPlayerRow(p));
+                    
+                    calculateTotals();
+                    isUpdatingFromFirebase = false;
+
+                }, (error) => {
+                    console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
+                    console.error("Código do Erro:", error.code);
+                    console.error("Mensagem do Erro:", error.message);
+                });
+
+                prizeGrid.innerHTML = '';
+                const savedPrizeData = localStorage.getItem('pokerPrizeData');
+                const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
+                prizesToLoad.forEach((value, index) => createPrizeField(index + 1, value));
+
+                const savedTimerState = localStorage.getItem('pokerTimerState');
+                if (savedTimerState) {
+                    const wasRunning = JSON.parse(savedTimerState).isRunning;
+                    timerState = JSON.parse(savedTimerState);
+                    
+                    levelDurationInput.value = (blindLevels[timerState.currentLevel] && blindLevels[timerState.currentLevel].isBreak) 
+                        ? blindLevels[timerState.currentLevel].duration 
+                        : (parseInt(levelDurationInput.value));
+
+                    timerState.isRunning = false;
+                    if (wasRunning) {
+                       startTimer();
+                    } else {
+                       updateTimerDisplay();
+                    }
+                } else {
+                    updateTimerDisplay();
+                }
+            };
+
+            const resetGame = () => {
+                closePasswordModal();
+                openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', () => {
+                    const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                    db.collection('pokerGame').doc('gameState').set({ players: resetPlayers });
+                    
+                    localStorage.removeItem('pokerPrizeData');
+                    localStorage.removeItem('pokerTimerState');
+                    
+                    loadData();
+                    closeModal();
+                });
+            };
+
+            resetGameBtn.addEventListener('click', openPasswordModal);
+            
+            passwordConfirmBtn.addEventListener('click', () => {
+                if (passwordInputModal.value === CORRECT_PASSWORD) {
+                    resetGame();
+                } else {
+                    passwordErrorModal.textContent = 'Palavra-passe incorreta.';
+                    passwordInputModal.value = '';
+                    passwordInputModal.focus();
+                }
+            });
+
+            passwordCancelBtn.addEventListener('click', closePasswordModal);
+            passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
+
+            addPlayerBtn.addEventListener('click', () => {
+                const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                playersData.push(newPlayer);
+                saveData();
+            });
+
+            playerTableBody.addEventListener('click', (event) => {
+                const row = event.target.closest('.player-row');
+                if (!row) return;
+                const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+
+                if(event.target.closest('.delete-player-btn')) {
+                    const playerName = playersData[rowIndex].name || 'Jogador sem nome';
+                    openModal(`Deseja remover ${playerName} da lista?`, () => {
+                        playersData.splice(rowIndex, 1);
+                        saveData();
+                        closeModal();
+                    });
+                } else if(event.target.closest('.eliminate-player-btn')) {
+                    const player = playersData[rowIndex];
+                    player.eliminated = !player.eliminated;
+                    saveData();
+                }
+            });
+
+            mainContent.addEventListener('input', (e) => {
+                if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
+                    saveData();
+                }
+            });
+            
+            addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
+            prizeGrid.addEventListener('click', (event) => {
+                const removeBtn = event.target.closest('.remove-prize-btn');
+                if (removeBtn) {
+                    removeBtn.closest('.prize-item').remove();
+                    prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
+                        label.textContent = `${index + 1}º Lugar`;
+                    });
+                    saveData();
+                }
+            });
+
+            modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); });
+            modalCancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+            
+            window.addEventListener('beforeunload', () => {
+                if (timerState.isRunning) {
+                    saveTimerState();
+                }
+            });
+
+            // Initial Load Logic
+            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
+                showLoggedInState();
+            } else {
+                showLoggedOutState();
+            }
+            
+            loadData();
+        });
+    </script>
+</body>
+</html>
