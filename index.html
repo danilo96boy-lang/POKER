@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
@@ -43,6 +43,8 @@
                     window.collection = collection;
                     window.addDoc = addDoc;
                     window.deleteDoc = deleteDoc;
+                    window.query = query;
+                    window.getDocs = getDocs;
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -713,20 +715,13 @@
                     return currentPlayersData;
                 };
 
-                const saveStateToFirebase = async () => {
-                    if (isUpdatingFromFirebase) return;
-
-                    const currentPlayersData = collectDataFromDOM();
-                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                    
+                const savePlayerToFirebase = async (player) => {
+                    const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
                     try {
-                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                        await setDoc(gameDocRef, { players: currentPlayersData });
-                        
-                        localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                        console.log("Dados salvos no Firebase.");
+                        await setDoc(doc(playersColRef, player.id), player);
+                        console.log("Jogador salvo no Firebase.");
                     } catch (error) {
-                        console.error("Erro ao salvar dados: ", error);
+                        console.error("Erro ao salvar jogador: ", error);
                     }
                 };
 
@@ -786,17 +781,27 @@
                 };
 
                 const loadData = () => {
-                    const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                    onSnapshot(gameDocRef, (docSnapshot) => {
+                    const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
+                    onSnapshot(playersColRef, (querySnapshot) => {
                         isUpdatingFromFirebase = true;
-                        if (docSnapshot.exists() && docSnapshot.data().players) {
-                            playersData = docSnapshot.data().players;
-                        } else {
-                            // Cria o documento gameState com jogadores iniciais se ele não existir
-                            playersData = initialPlayers.map(name => ({ id: doc(gameDocRef).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
-                            setDoc(gameDocRef, { players: playersData });
+                        playersData = [];
+                        querySnapshot.forEach(doc => {
+                            playersData.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        if (playersData.length === 0) {
+                            initialPlayers.forEach(async (name) => {
+                                await addDoc(playersColRef, {
+                                    name,
+                                    buyInChecked: false,
+                                    rebuysChecked: Array(10).fill(false),
+                                    addOnChecked: false,
+                                    eliminated: false,
+                                    eliminationTimestamp: null
+                                });
+                            });
                         }
-                        
+
                         playerTableBody.innerHTML = '';
                         playersData.forEach(p => createPlayerRow(p));
                         
@@ -815,17 +820,28 @@
                 const resetGame = () => {
                     closePasswordModal();
                     openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const resetPlayers = initialPlayers.map(name => ({ id: doc(doc(db, 'pokerGame', 'gameState')).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
+                        const playersSnapshot = await getDocs(playersColRef);
+                        playersSnapshot.forEach(async (playerDoc) => {
+                            await deleteDoc(doc(playersColRef, playerDoc.id));
+                        });
                         
-                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                        await setDoc(gameDocRef, { players: resetPlayers });
-                        
+                        // Recarrega os jogadores iniciais após a deleção
+                        initialPlayers.forEach(async (name) => {
+                            await addDoc(playersColRef, {
+                                name,
+                                buyInChecked: false,
+                                rebuysChecked: Array(10).fill(false),
+                                addOnChecked: false,
+                                eliminated: false,
+                                eliminationTimestamp: null
+                            });
+                        });
+
                         const timerDocRef = doc(db, 'pokerGame', 'timerState');
                         await setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
 
                         localStorage.removeItem('pokerPrizeData');
-                        
-                        loadData();
                         closeModal();
                     });
                 };
@@ -858,7 +874,6 @@
                     };
 
                     try {
-                        // Adiciona o novo documento à subcoleção 'players'
                         await addDoc(playersColRef, newPlayer);
                         console.log("Novo jogador adicionado e salvo no Firebase.");
                     } catch (error) {
