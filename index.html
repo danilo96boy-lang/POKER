@@ -677,4 +677,232 @@
                     let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
                     prizeItem.innerHTML = `
                         <label class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</label>
-                        <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-
+                        <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
+                        <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
+                        ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
+                    `;
+                    prizeGrid.appendChild(prizeItem);
+                };
+                
+                const updatePublicPrizes = (grandTotal) => {
+                    publicPrizeGrid.innerHTML = '';
+                    document.querySelectorAll('.prize-item').forEach((item, index) => {
+                        const place = index + 1;
+                        const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                        const value = ((grandTotal * percent) / 100).toFixed(2);
+                        let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
+
+                        const prizeDiv = document.createElement('div');
+                        prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
+                        prizeDiv.innerHTML = `
+                            <p class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</p>
+                            <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
+                        `;
+                        publicPrizeGrid.appendChild(prizeDiv);
+                    });
+                };
+
+                const saveData = async () => {
+                    if(isUpdatingFromFirebase) return; 
+
+                    let currentPlayersData = [];
+                    document.querySelectorAll('.player-row').forEach((row) => {
+                      const name = row.querySelector('.player-name').value;
+                      const buyInChecked = row.querySelector('.buy-in-cb').checked;
+                      const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
+                      const addOnChecked = row.querySelector('.add-on-cb').checked;
+                      const eliminated = row.classList.contains('eliminated');
+                      currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
+                    });
+                    playersData = currentPlayersData;
+                    
+                    try {
+                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                        await setDoc(gameDocRef, { players: playersData });
+                    } catch (error) {
+                        console.error("Erro ao salvar dados: ", error);
+                    }
+
+                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
+                    localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
+                };
+
+                const calculateTotals = () => {
+                    let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
+                    
+                    playersData.forEach(player => {
+                        if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
+                        if (player.rebuysChecked) {
+                            const rebuysCount = player.rebuysChecked.filter(Boolean).length;
+                            grandTotal += rebuysCount * ACTION_VALUE;
+                            totalRebuys += rebuysCount;
+                        }
+                        if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
+                    });
+
+                    document.getElementById('total-buy-ins').textContent = totalBuyIns;
+                    document.getElementById('total-rebuys').textContent = totalRebuys;
+                    document.getElementById('total-add-ons').textContent = totalAddOns;
+                    document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+                    
+                    const activePlayers = playersData.filter(p => !p.eliminated).length;
+                    document.getElementById('total-players-summary').textContent = activePlayers;
+                    document.getElementById('total-buyins-summary').textContent = totalBuyIns;
+                    document.getElementById('total-rebuys-summary').textContent = totalRebuys;
+                    document.getElementById('total-addons-summary').textContent = totalAddOns;
+                    
+                    let totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+                    percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+
+                    document.querySelectorAll('.prize-item').forEach(item => {
+                        const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                        item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
+                    });
+                    
+                    updatePublicPrizes(grandTotal);
+                };
+                
+                const openModal = (text, onConfirm) => {
+                    modalText.textContent = text;
+                    confirmCallback = onConfirm;
+                    modal.classList.remove('hidden');
+                };
+                const closeModal = () => {
+                    modal.classList.add('hidden');
+                    confirmCallback = null;
+                };
+
+                const openPasswordModal = () => {
+                    passwordInputModal.value = '';
+                    passwordErrorModal.textContent = '';
+                    passwordModal.classList.remove('hidden');
+                    passwordInputModal.focus();
+                };
+                const closePasswordModal = () => {
+                    passwordModal.classList.add('hidden');
+                };
+
+                const loadData = () => {
+                    const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                    onSnapshot(gameDocRef, (docSnapshot) => {
+                        isUpdatingFromFirebase = true;
+                        if (docSnapshot.exists() && docSnapshot.data().players) {
+                            playersData = docSnapshot.data().players;
+                        } else {
+                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        }
+                        
+                        playerTableBody.innerHTML = '';
+                        playersData.forEach(p => createPlayerRow(p));
+                        
+                        calculateTotals();
+                        isUpdatingFromFirebase = false;
+                    }, (error) => {
+                        console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
+                    });
+
+                    prizeGrid.innerHTML = '';
+                    const savedPrizeData = localStorage.getItem('pokerPrizeData');
+                    const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
+                    prizesToLoad.forEach((value, index) => createPrizeField(index + 1, value));
+                };
+
+                const resetGame = () => {
+                    closePasswordModal();
+                    openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
+                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        
+                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                        await setDoc(gameDocRef, { players: resetPlayers });
+                        
+                        // Resetar o timer no Firebase
+                        const timerDocRef = doc(db, 'pokerGame', 'timerState');
+                        await setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+
+                        localStorage.removeItem('pokerPrizeData');
+                        localStorage.removeItem('pokerTimerState');
+                        
+                        loadData();
+                        closeModal();
+                    });
+                };
+
+                resetGameBtn.addEventListener('click', openPasswordModal);
+                
+                passwordConfirmBtn.addEventListener('click', () => {
+                    if (passwordInputModal.value === CORRECT_PASSWORD) {
+                        resetGame();
+                    } else {
+                        passwordErrorModal.textContent = 'Palavra-passe incorreta.';
+                        passwordInputModal.value = '';
+                        passwordInputModal.focus();
+                    }
+                });
+
+                passwordCancelBtn.addEventListener('click', closePasswordModal);
+                passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
+
+                addPlayerBtn.addEventListener('click', () => {
+                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                    playersData.push(newPlayer);
+                    saveData();
+                });
+
+                playerTableBody.addEventListener('click', (event) => {
+                    const row = event.target.closest('.player-row');
+                    if (!row) return;
+                    const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+
+                    if(event.target.closest('.delete-player-btn')) {
+                        const playerName = playersData[rowIndex].name || 'Jogador sem nome';
+                        openModal(`Deseja remover ${playerName} da lista?`, () => {
+                            playersData.splice(rowIndex, 1);
+                            saveData();
+                            closeModal();
+                        });
+                    } else if(event.target.closest('.eliminate-player-btn')) {
+                        const player = playersData[rowIndex];
+                        player.eliminated = !player.eliminated;
+                        saveData();
+                    }
+                });
+
+                mainContent.addEventListener('input', (e) => {
+                    if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
+                        saveData();
+                    }
+                });
+                
+                addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
+                prizeGrid.addEventListener('click', (event) => {
+                    const removeBtn = event.target.closest('.remove-prize-btn');
+                    if (removeBtn) {
+                        removeBtn.closest('.prize-item').remove();
+                        prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
+                            label.textContent = `${index + 1}º Lugar`;
+                        });
+                        saveData();
+                    }
+                });
+
+                modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); });
+                modalCancelBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+                
+                window.addEventListener('beforeunload', () => {
+                    // A lógica do timer não precisa mais ser salva aqui
+                });
+
+                // Initial Load Logic
+                if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
+                    showLoggedInState();
+                } else {
+                    showLoggedOutState();
+                }
+                
+                loadData();
+            }
+        });
+    </script>
+</body>
+</html>
