@@ -364,7 +364,8 @@
                 // --- Constantes e Variáveis de Estado ---
                 const CORRECT_PASSWORD = 'poker';
                 const ACTION_VALUE = 30;
-                const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Rodrigo Boy"];
+                // Lista de jogadores fornecida por você
+                const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Miudinho", "Vitor", "Alexandre Costa", "Lucas Costa", "Lucas", "Rodrigo Boy", "Guilherme Lui", "Luiz", "Prado", "Yago"];
                 const initialPrizes = [50, 30, 20];
                 const blindLevels = [
                     { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" },
@@ -760,20 +761,16 @@
                 };
 
                 const loadData = () => {
-                    // Crie o documento 'gameState' e a subcoleção 'players' se não existirem
+                    // Garante que o documento "gameState" exista antes de tentar acessar a subcoleção
                     const gameDocRef = doc(db, 'pokerGame', 'gameState');
                     const playersColRef = collection(gameDocRef, 'players');
 
-                    // Observador para a subcoleção de jogadores
-                    onSnapshot(playersColRef, (querySnapshot) => {
-                        isUpdatingFromFirebase = true;
-                        playersData = [];
-                        querySnapshot.forEach(doc => {
-                            playersData.push({ id: doc.id, ...doc.data() });
-                        });
-
-                        // Se a subcoleção estiver vazia, adicione os jogadores iniciais
-                        if (playersData.length === 0) {
+                    // Primeiro, verifique se o documento principal existe
+                    getDoc(gameDocRef).then((docSnap) => {
+                        if (!docSnap.exists()) {
+                            console.log("Documento gameState não encontrado. Criando e adicionando jogadores iniciais.");
+                            setDoc(gameDocRef, { initialized: true });
+                            // Adiciona os jogadores iniciais na subcoleção
                             initialPlayers.forEach(async (name) => {
                                 await addDoc(playersColRef, {
                                     name,
@@ -785,6 +782,17 @@
                                 });
                             });
                         }
+                    }).catch(error => {
+                        console.error("Erro ao verificar o documento gameState: ", error);
+                    });
+
+                    // Em seguida, configure o onSnapshot para a subcoleção
+                    onSnapshot(playersColRef, (querySnapshot) => {
+                        isUpdatingFromFirebase = true;
+                        playersData = [];
+                        querySnapshot.forEach(doc => {
+                            playersData.push({ id: doc.id, ...doc.data() });
+                        });
 
                         playerTableBody.innerHTML = '';
                         playersData.forEach(p => createPlayerRow(p));
@@ -795,7 +803,7 @@
                         console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
                     });
 
-                    // Load Prize data from localStorage
+                    // Carrega dados de premiação do localStorage
                     prizeGrid.innerHTML = '';
                     const savedPrizeData = localStorage.getItem('pokerPrizeData');
                     const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
@@ -811,6 +819,7 @@
                             await deleteDoc(doc(playersColRef, playerDoc.id));
                         });
                         
+                        // Recarrega os jogadores iniciais após a deleção
                         initialPlayers.forEach(async (name) => {
                             await addDoc(playersColRef, {
                                 name,
