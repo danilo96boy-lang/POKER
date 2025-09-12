@@ -12,10 +12,8 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        // Importe a função para gerar IDs únicos
-        import { nanoid } from 'https://cdn.jsdelivr.net/npm/nanoid/nanoid.js';
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
         const firebaseConfig = {
@@ -42,6 +40,8 @@
                     window.setDoc = setDoc;
                     window.serverTimestamp = serverTimestamp;
                     window.getDoc = getDoc;
+                    window.collection = collection; // Expor a função collection
+                    window.addDoc = addDoc; // Expor a função addDoc
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -315,6 +315,8 @@
                 const setDoc = window.setDoc;
                 const serverTimestamp = window.serverTimestamp;
                 const getDoc = window.getDoc;
+                const collection = window.collection;
+                const addDoc = window.addDoc;
 
                 // --- Elementos ---
                 const adminLoginBtn = document.getElementById('admin-login-btn');
@@ -618,7 +620,7 @@
                 const createPlayerRow = (player) => {
                     const tr = document.createElement('tr');
                     tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
-                    tr.dataset.playerId = player.id; // Adiciona o ID do jogador como um atributo de dados
+                    tr.dataset.playerId = player.id;
                     
                     let rebuyCheckboxes = '';
                     for(let i = 0; i < 10; i++) {
@@ -703,7 +705,7 @@
                         const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
                         const addOnChecked = row.querySelector('.add-on-cb').checked;
                         const eliminated = row.classList.contains('eliminated');
-                        const id = row.dataset.playerId || nanoid(); // Obtém o ID existente ou cria um novo
+                        const id = row.dataset.playerId;
                         currentPlayersData.push({ id, name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
                     });
                     return currentPlayersData;
@@ -788,7 +790,7 @@
                         if (docSnapshot.exists() && docSnapshot.data().players) {
                             playersData = docSnapshot.data().players;
                         } else {
-                            playersData = initialPlayers.map(name => ({ id: nanoid(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                            playersData = initialPlayers.map(name => ({ id: addDoc(collection(db, 'pokerGame', 'gameState', 'players'), { name }).id, name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
                         }
                         
                         playerTableBody.innerHTML = '';
@@ -845,7 +847,15 @@
                         const docSnap = await getDoc(gameDocRef);
                         const currentPlayers = docSnap.exists() ? docSnap.data().players : [];
                         
-                        const newPlayer = { id: nanoid(), name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                        const newPlayer = {
+                            id: doc(collection(db, 'pokerGame', 'gameState')).id,
+                            name: '',
+                            buyInChecked: false,
+                            rebuysChecked: Array(10).fill(false),
+                            addOnChecked: false,
+                            eliminated: false,
+                            eliminationTimestamp: null
+                        };
                         const updatedPlayersData = [...currentPlayers, newPlayer];
                         
                         await setDoc(gameDocRef, { players: updatedPlayersData });
@@ -876,7 +886,7 @@
                     }
                 });
 
-                mainContent.addEventListener('input', (e) => {
+                mainContent.addEventListener('input', async (e) => {
                     const row = e.target.closest('.player-row');
                     if (!row) return;
                     const playerId = row.dataset.playerId;
@@ -896,10 +906,10 @@
                         } else if (isAddOn) {
                             playersData[playerIndex].addOnChecked = e.target.checked;
                         }
-                        setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                        await setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }, { merge: true });
                     } else if (e.target.matches('.player-name')) {
                         playersData[playerIndex].name = e.target.value;
-                        setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                        await setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }, { merge: true });
                     } else if (e.target.matches('.prize-percent-input')) {
                         const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
                         localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
