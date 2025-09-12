@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
@@ -43,8 +43,6 @@
                     window.collection = collection;
                     window.addDoc = addDoc;
                     window.deleteDoc = deleteDoc;
-                    window.query = query;
-                    window.getDocs = getDocs;
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -621,6 +619,8 @@
                 });
 
                 // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
+                const playersCollectionRef = collection(db, 'pokerGame', 'gameState', 'players');
+
                 const createPlayerRow = (player) => {
                     const tr = document.createElement('tr');
                     tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
@@ -699,30 +699,6 @@
                         `;
                         publicPrizeGrid.appendChild(prizeDiv);
                     });
-                };
-
-                const collectDataFromDOM = () => {
-                    let currentPlayersData = [];
-                    document.querySelectorAll('.player-row').forEach((row) => {
-                        const name = row.querySelector('.player-name').value;
-                        const buyInChecked = row.querySelector('.buy-in-cb').checked;
-                        const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
-                        const addOnChecked = row.querySelector('.add-on-cb').checked;
-                        const eliminated = row.classList.contains('eliminated');
-                        const id = row.dataset.playerId;
-                        currentPlayersData.push({ id, name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
-                    });
-                    return currentPlayersData;
-                };
-
-                const savePlayerToFirebase = async (player) => {
-                    const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
-                    try {
-                        await setDoc(doc(playersColRef, player.id), player);
-                        console.log("Jogador salvo no Firebase.");
-                    } catch (error) {
-                        console.error("Erro ao salvar jogador: ", error);
-                    }
                 };
 
                 const calculateTotals = () => {
