@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, getDoc, collection, addDoc, deleteDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
@@ -43,6 +43,8 @@
                     window.collection = collection;
                     window.addDoc = addDoc;
                     window.deleteDoc = deleteDoc;
+                    window.query = query;
+                    window.getDocs = getDocs;
                 })
                 .catch((error) => {
                     console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
@@ -319,6 +321,7 @@
                 const collection = window.collection;
                 const addDoc = window.addDoc;
                 const deleteDoc = window.deleteDoc;
+                const getDocs = window.getDocs;
 
                 // --- Elementos ---
                 const adminLoginBtn = document.getElementById('admin-login-btn');
@@ -619,7 +622,7 @@
                 });
 
                 // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
-                const playersCollectionRef = collection(db, 'pokerGame', 'gameState', 'players');
+                const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
 
                 const createPlayerRow = (player) => {
                     const tr = document.createElement('tr');
@@ -757,7 +760,11 @@
                 };
 
                 const loadData = () => {
-                    const playersColRef = collection(db, 'pokerGame', 'gameState', 'players');
+                    // Crie o documento 'gameState' e a subcoleção 'players' se não existirem
+                    const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                    const playersColRef = collection(gameDocRef, 'players');
+
+                    // Observador para a subcoleção de jogadores
                     onSnapshot(playersColRef, (querySnapshot) => {
                         isUpdatingFromFirebase = true;
                         playersData = [];
@@ -765,6 +772,7 @@
                             playersData.push({ id: doc.id, ...doc.data() });
                         });
 
+                        // Se a subcoleção estiver vazia, adicione os jogadores iniciais
                         if (playersData.length === 0) {
                             initialPlayers.forEach(async (name) => {
                                 await addDoc(playersColRef, {
@@ -787,6 +795,7 @@
                         console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
                     });
 
+                    // Load Prize data from localStorage
                     prizeGrid.innerHTML = '';
                     const savedPrizeData = localStorage.getItem('pokerPrizeData');
                     const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
@@ -802,7 +811,6 @@
                             await deleteDoc(doc(playersColRef, playerDoc.id));
                         });
                         
-                        // Recarrega os jogadores iniciais após a deleção
                         initialPlayers.forEach(async (name) => {
                             await addDoc(playersColRef, {
                                 name,
@@ -861,12 +869,10 @@
                     const row = event.target.closest('.player-row');
                     if (!row) return;
                     const playerId = row.dataset.playerId;
-                    const playerIndex = playersData.findIndex(p => p.id === playerId);
-                    if (playerIndex === -1) return;
-                    const player = playersData[playerIndex];
-
+                    
                     if(event.target.closest('.delete-player-btn')) {
-                        const playerName = player.name || 'Jogador sem nome';
+                        const player = playersData.find(p => p.id === playerId);
+                        const playerName = player ? player.name : 'Jogador sem nome';
                         openModal(`Deseja remover ${playerName} da lista?`, async () => {
                             try {
                                 const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
@@ -878,9 +884,12 @@
                             }
                         });
                     } else if(event.target.closest('.eliminate-player-btn')) {
-                        player.eliminated = !player.eliminated;
-                        const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
-                        await setDoc(playerDocRef, player, { merge: true });
+                        const player = playersData.find(p => p.id === playerId);
+                        if (player) {
+                            player.eliminated = !player.eliminated;
+                            const playerDocRef = doc(db, 'pokerGame', 'gameState', 'players', playerId);
+                            await setDoc(playerDocRef, player, { merge: true });
+                        }
                     }
                 });
 
@@ -888,9 +897,8 @@
                     const row = e.target.closest('.player-row');
                     if (!row) return;
                     const playerId = row.dataset.playerId;
-                    const playerIndex = playersData.findIndex(p => p.id === playerId);
-                    if (playerIndex === -1) return;
-                    const player = playersData[playerIndex];
+                    const player = playersData.find(p => p.id === playerId);
+                    if (!player) return;
 
                     if (e.target.matches('.chip-checkbox')) {
                         const isBuyIn = e.target.classList.contains('buy-in-cb');
