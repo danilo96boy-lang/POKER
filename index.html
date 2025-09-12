@@ -1,4 +1,297 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKER On Jack Tall Back</title>
+    <meta http-equiv="refresh" content="60">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    
+        <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+        // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c",
+            authDomain: "pokerti-633ba.firebaseapp.com",
+            projectId: "pokerti-633ba",
+            storageBucket: "pokerti-633ba.firebasestorage.app",
+            messagingSenderId: "883744429166",
+            appId: "1:883744429166:web:7e091d7e8fcae6251c827f"
+        };
+        
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            const auth = getAuth(app);
+            
+            // Adicionado login anônimo para resolver problemas de permissão
+            signInAnonymously(auth)
+                .then(() => {
+                    console.log("Firebase inicializado e login anônimo bem-sucedido!");
+                    // Expor funções e db globalmente para o script legado
+                    window.db = db;
+                    window.doc = doc;
+                    window.onSnapshot = onSnapshot;
+                    window.setDoc = setDoc;
+                    window.serverTimestamp = serverTimestamp;
+                })
+                .catch((error) => {
+                    console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
+                });
+        } catch (error) {
+            console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background-color: #032a05;
+            background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%);
+        }
+        h1, h2, h3, button, th {
+            font-family: 'Oswald', sans-serif;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .chip-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .chip-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            position: absolute;
+            opacity: 0;
+        }
+        .chip {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            border: 2px solid #a0aec0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2);
+            position: relative;
+        }
+        .chip::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            border: 1px dashed #a0aec0;
+        }
+        .buy-in-cb + .chip { background-color: #2b6cb0; }
+        .rebuy-cb + .chip { background-color: #c53030; }
+        .add-on-cb + .chip { background-color: #2f855a; }
+        .chip-checkbox:checked + .chip {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2);
+            border-color: #fff;
+        }
+        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
+        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
+        .add-on-cb:checked + .chip { --glow-color: #68d391; }
+        .chip-checkbox:checked + .chip::before {
+            border: 2px solid #fff;
+        }
+        .player-row.eliminated {
+            background-color: rgba(40, 40, 40, 0.5);
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
+            pointer-events: none;
+        }
+        .rebuys-disabled .rebuy-cb,
+        .rebuys-disabled .add-on-cb {
+            pointer-events: none;
+        }
+        .rebuys-disabled .rebuy-cb + .chip,
+        .rebuys-disabled .add-on-cb + .chip {
+            cursor: not-allowed;
+            background-color: #4A5568 !important;
+            opacity: 0.5;
+        }
+        @media (max-width: 640px) {
+            .chip { height: 24px; width: 24px; }
+            .chip::before { height: 16px; width: 16px; }
+        }
+    </style>
+</head>
+<body class="bg-green-900 text-gray-200 min-h-screen">
+
+    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="relative text-center mb-6">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                <span class="text-red-500">♦</span> POKER On Jack Tall Back <span class="text-red-500">♥</span>
+            </h1>
+            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
+            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">Admin</button>
+            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">Sair</button>
+        </header>
+
+                <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
+            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">Temporizador de Blinds <span id="level-indicator" class="text-yellow-400"></span></h2>
+            <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
+                <div class="sm:text-left">
+                    <p class="text-sm text-yellow-300 uppercase">Nível Atual</p>
+                    <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+                <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
+                    <button id="prev-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Nível Anterior">&lt;&lt;</button>
+                    <span id="timer-display">--:--</span>
+                    <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
+                </div>
+                <div class="sm:text-right">
+                    <p class="text-sm text-yellow-300 uppercase">Próximo Nível</p>
+                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="level-duration" class="text-sm">Duração (min):</label>
+                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                </div>
+                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Iniciar</button>
+                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Reiniciar</button>
+            </div>
+        </div>
+        
+                <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Jogadores Ativos</h3>
+                <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Buy-ins</h3>
+                <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Rebuys</h3>
+                <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Add-ons</h3>
+                <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+        </div>
+
+                <div id="public-prize-section" class="mb-8">
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
+                 <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
+                 <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                 </div>
+            </div>
+        </div>
+
+        <div id="game-controls" class="hidden">
+                        <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-yellow-600/30">
+                        <thead class="bg-black/25">
+                            <tr>
+                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">Jogador</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Buy-in</th>
+                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Rebuys</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Add-on</th>
+                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">Total (R$)</th>
+                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
+                        </tbody>
+                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
+                            <tr>
+                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (Ação: R$ 30,00)</td>
+                                <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="grand-total" class="px-2 sm:px-4 py-4 text-right font-bold text-2xl text-yellow-400">R$ 0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
+            
+            <div class="mt-8">
+                <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Premiação ♣</h2>
+                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
+                    </div>
+                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    </div>
+                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center gap-4">
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    Adicionar Jogador
+                </button>
+                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    Resetar Jogo
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">Acesso de Administrador</h3>
+            <form id="login-form">
+                <input id="password" type="password" autocomplete="current-password" placeholder="Palavra-passe" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
+                <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <p id="modal-text" class="text-center text-lg mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+        <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">Confirmação de Reset</h3>
+            <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
+            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
+            <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+            <div class="flex justify-center gap-4">
+                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
+                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log("DOM carregado. Iniciando a aplicação.");
             
@@ -83,7 +376,6 @@
                 let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
                 let playersData = [];
                 let isUpdatingFromFirebase = false;
-                const timerDocRef = doc(db, 'pokerGame', 'timerState');
 
                 // --- LÓGICA DE LOGIN E LOGOUT ---
                 const openLoginModal = () => {
@@ -193,9 +485,10 @@
                         ...timerState,
                         lastUpdateTime: timerState.isRunning ? serverTimestamp() : null
                     };
-                    await setDoc(timerDocRef, stateToSave, { merge: true });
+                    await setDoc(doc(db, 'pokerGame', 'timerState'), stateToSave, { merge: true });
                 };
 
+                // Funções que interagem com o timer local
                 const runTimer = () => {
                     if (timerState.timeLeft === 60) {
                         playWarningSound();
@@ -282,26 +575,29 @@
                 });
 
                 // Ouvinte de eventos do Firebase para o timer
+                const timerDocRef = doc(db, 'pokerGame', 'timerState');
                 onSnapshot(timerDocRef, (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         const latestState = docSnapshot.data();
-                        
+                       
                         if (latestState.isRunning) {
                             const now = Date.now();
                             const lastUpdate = latestState.lastUpdateTime?.toMillis() || now;
                             const timeElapsed = Math.floor((now - lastUpdate) / 1000);
                             const newTimeLeft = Math.max(0, latestState.timeLeft - timeElapsed);
 
-                            if (newTimeLeft === 0) {
-                                if (latestState.currentLevel < blindLevels.length - 1) {
-                                    if (timerState.currentLevel === latestState.currentLevel) {
-                                        nextLevel();
-                                    }
-                                } else {
-                                    timerState = { ...latestState, timeLeft: newTimeLeft, isRunning: false };
-                                    clearInterval(timerInterval);
-                                    timerInterval = null;
+                            if (newTimeLeft === 0 && latestState.currentLevel < blindLevels.length - 1) {
+                                // Avança o nível para todos, mas só se o nível local for o mesmo que o do firebase
+                                if (timerState.currentLevel === latestState.currentLevel) {
+                                    nextLevel();
                                 }
+                            } else {
+                                timerState = { ...latestState, timeLeft: newTimeLeft };
+                                // Inicia o timer localmente se ainda não estiver rodando
+                                if (!timerInterval) {
+                                    timerInterval = setInterval(runTimer, 1000);
+                                }
+                            }
                         } else {
                             timerState = latestState;
                             clearInterval(timerInterval);
@@ -339,14 +635,14 @@
                                 <input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}>
                                 <span class="chip"></span>
                             </label>
-                        </td>
+                    </td>
                         ${rebuyCheckboxes}
                         <td class="px-1 sm:px-2 py-3 text-center">
                             <label class="chip-label">
                                 <input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}>
                                 <span class="chip"></span>
                             </label>
-                        </td>
+                    </td>
                         <td class="player-total px-2 sm:px-4 py-3 text-right font-medium text-gray-300 whitespace-nowrap">R$ 0,00</td>
                         <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
                             <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500 transition-colors" title="Eliminar Jogador">
