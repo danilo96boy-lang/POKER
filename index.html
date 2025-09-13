@@ -480,7 +480,6 @@
                     updateChipAvailability();
                 };
 
-                // Funções que interagem com o timer local
                 const runLocalTimer = () => {
                     if (timerState.timeLeft > 0) {
                         timerState.timeLeft--;
@@ -498,7 +497,6 @@
                     timerInterval = null;
                 };
 
-                // Funções de controle do timer que salvam o estado no Firebase
                 const saveTimerStateToFirebase = async (state) => {
                     const stateToSave = {
                         ...state,
@@ -550,7 +548,6 @@
                     setLevel(0);
                 };
 
-                // Ouvinte de eventos do Firebase para o timer
                 const timerDocRef = doc(db, 'pokerGame', 'timerState');
                 onSnapshot(timerDocRef, (docSnapshot) => {
                     if (docSnapshot.exists()) {
@@ -565,17 +562,13 @@
                             timerState = { ...latestState, timeLeft: newTimeLeft };
                             
                             if (timerState.timeLeft <= 0) {
-                                // O timer no Firestore já está em 0, a próxima ação (nextLevel) deve ser gerenciada por um único cliente
-                                // para evitar que múltiplos clientes tentem avançar de nível ao mesmo tempo.
                                 if (timerState.currentLevel < blindLevels.length - 1) {
-                                    // Adiciona um pequeno delay para evitar conflitos de gravação
                                     setTimeout(() => {
                                         if (latestState.currentLevel === timerState.currentLevel) {
                                             nextLevel();
                                         }
                                     }, 1000); 
                                 } else {
-                                    // Fim do jogo
                                     timerState.isRunning = false;
                                     stopLocalTimer();
                                 }
@@ -595,7 +588,6 @@
                             timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
                         }
                     } else {
-                        // Inicializa o estado se o documento não existir
                         setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
                     }
                     updateTimerDisplay();
@@ -677,7 +669,7 @@
                 const createPrizeField = (place, value = 0) => {
                     const prizeItem = document.createElement('div');
                     prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
-                    let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
+                    let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
                     prizeItem.innerHTML = `
                         <label class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</label>
                         <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
@@ -693,7 +685,7 @@
                         const place = index + 1;
                         const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
                         const value = ((grandTotal * percent) / 100).toFixed(2);
-                        let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
+                        let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
 
                         const prizeDiv = document.createElement('div');
                         prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
@@ -705,42 +697,49 @@
                     });
                 };
 
+                // ✅ FUNÇÃO SAVEDATA CORRIGIDA
                 const saveData = async () => {
-                    if(isUpdatingFromFirebase) return;
-
-                    let currentPlayersData = [];
-                    document.querySelectorAll('.player-row').forEach((row) => {
-                        const name = row.querySelector('.player-name').value;
-                        const buyInChecked = row.querySelector('.buy-in-cb').checked;
-                        const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
-                        const addOnChecked = row.querySelector('.add-on-cb').checked;
-                        const eliminated = row.classList.contains('eliminated');
-                        currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
-                    });
-                    playersData = currentPlayersData;
-                    
+                    if (isUpdatingFromFirebase) return;
                     try {
                         const gameDocRef = doc(db, 'pokerGame', 'gameState');
+                        // A única coisa que a função deve fazer é salvar o estado atual
+                        // da variável 'playersData' no Firebase.
                         await setDoc(gameDocRef, { players: playersData });
                     } catch (error) {
                         console.error("Erro ao salvar dados: ", error);
                     }
-
+                    // A lógica dos prêmios pode continuar aqui, pois não interfere.
                     const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
                     localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
                 };
 
+
                 const calculateTotals = () => {
                     let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
                     
-                    playersData.forEach(player => {
-                        if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
+                    playersData.forEach((player, index) => {
+                        let playerTotal = 0;
+                        if (player.buyInChecked) { 
+                            grandTotal += ACTION_VALUE; 
+                            totalBuyIns++;
+                            playerTotal += ACTION_VALUE;
+                        }
                         if (player.rebuysChecked) {
                             const rebuysCount = player.rebuysChecked.filter(Boolean).length;
                             grandTotal += rebuysCount * ACTION_VALUE;
                             totalRebuys += rebuysCount;
+                            playerTotal += rebuysCount * ACTION_VALUE;
                         }
-                        if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
+                        if (player.addOnChecked) { 
+                            grandTotal += ACTION_VALUE; 
+                            totalAddOns++;
+                            playerTotal += ACTION_VALUE;
+                        }
+                        // Atualiza o total do jogador na linha da tabela
+                        const row = playerTableBody.children[index];
+                        if (row) {
+                             row.querySelector('.player-total').textContent = `R$ ${playerTotal.toFixed(2)}`;
+                        }
                     });
 
                     document.getElementById('total-buy-ins').textContent = totalBuyIns;
@@ -789,10 +788,10 @@
                     const gameDocRef = doc(db, 'pokerGame', 'gameState');
                     onSnapshot(gameDocRef, (docSnapshot) => {
                         isUpdatingFromFirebase = true;
-                        if (docSnapshot.exists() && docSnapshot.data().players) {
+                        if (docSnapshot.exists() && docSnapshot.data().players && docSnapshot.data().players.length > 0) {
                             playersData = docSnapshot.data().players;
                         } else {
-                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false }));
                         }
                         
                         playerTableBody.innerHTML = '';
@@ -813,7 +812,7 @@
                 const resetGame = () => {
                     closePasswordModal();
                     openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false }));
                         
                         const gameDocRef = doc(db, 'pokerGame', 'gameState');
                         await setDoc(gameDocRef, { players: resetPlayers });
@@ -824,7 +823,7 @@
 
                         localStorage.removeItem('pokerPrizeData');
                         
-                        loadData();
+                        loadData(); // Apenas chame loadData que já reinicia a premiação
                         closeModal();
                     });
                 };
@@ -845,7 +844,7 @@
                 passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
 
                 addPlayerBtn.addEventListener('click', () => {
-                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false };
                     playersData.push(newPlayer);
                     saveData();
                 });
@@ -854,6 +853,7 @@
                     const row = event.target.closest('.player-row');
                     if (!row) return;
                     const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+                    if (rowIndex === -1 || !playersData[rowIndex]) return;
 
                     if(event.target.closest('.delete-player-btn')) {
                         const playerName = playersData[rowIndex].name || 'Jogador sem nome';
@@ -869,13 +869,51 @@
                     }
                 });
 
-                mainContent.addEventListener('input', (e) => {
-                    if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
-                        saveData();
+                // ✅ NOVO LISTENER: Atualiza o array 'playersData' e depois salva.
+                playerTableBody.addEventListener('input', (e) => {
+                    const row = e.target.closest('.player-row');
+                    if (!row) return;
+
+                    const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+                    if (rowIndex === -1 || !playersData[rowIndex]) return;
+
+                    const player = playersData[rowIndex];
+
+                    if (e.target.classList.contains('player-name')) {
+                        player.name = e.target.value;
+                    } else if (e.target.classList.contains('buy-in-cb')) {
+                        player.buyInChecked = e.target.checked;
+                    } else if (e.target.classList.contains('add-on-cb')) {
+                        player.addOnChecked = e.target.checked;
+                    } else if (e.target.classList.contains('rebuy-cb')) {
+                        const rebuyInputs = Array.from(row.querySelectorAll('.rebuy-cb'));
+                        const rebuyIndex = rebuyInputs.indexOf(e.target);
+                        if (rebuyIndex !== -1) {
+                            if (!player.rebuysChecked) { // Garante que o array exista
+                                player.rebuysChecked = Array(10).fill(false);
+                            }
+                            player.rebuysChecked[rebuyIndex] = e.target.checked;
+                        }
                     }
+                    
+                    saveData();
+                    calculateTotals(); // Resposta visual imediata
                 });
                 
-                addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
+                // Listener separado para os prêmios
+                prizeGrid.addEventListener('input', (e) => {
+                     if (e.target.matches('.prize-percent-input')) {
+                         calculateTotals();
+                         saveData();
+                     }
+                });
+                
+                addPrizeBtn.addEventListener('click', () => {
+                    createPrizeField(prizeGrid.children.length + 1)
+                    calculateTotals();
+                    saveData();
+                });
+
                 prizeGrid.addEventListener('click', (event) => {
                     const removeBtn = event.target.closest('.remove-prize-btn');
                     if (removeBtn) {
@@ -883,6 +921,7 @@
                         prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
                             label.textContent = `${index + 1}º Lugar`;
                         });
+                        calculateTotals();
                         saveData();
                     }
                 });
@@ -891,10 +930,6 @@
                 modalCancelBtn.addEventListener('click', closeModal);
                 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
                 
-                window.addEventListener('beforeunload', () => {
-                    // Remove a lógica de salvar o timer do localStorage
-                });
-
                 // Initial Load Logic
                 if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
                     showLoggedInState();
