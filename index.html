@@ -210,192 +210,222 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const waitForFirebase = setInterval(() => {
-            if (window.db) {
-                clearInterval(waitForFirebase);
-                initializeAppLogic();
-            }
-        }, 100);
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const waitForFirebase = setInterval(() => {
+        if (window.db) {
+            clearInterval(waitForFirebase);
+            initializeAppLogic();
+        }
+    }, 100);
 
-        const initializeAppLogic = () => {
-            const { db, doc, onSnapshot, setDoc, serverTimestamp } = window;
+    const initializeAppLogic = () => {
+        const { db, doc, onSnapshot, setDoc, serverTimestamp } = window;
 
-            // --- SELETORES DE ELEMENTOS ---
-            const UIElements = {
-                adminLoginBtn: document.getElementById('admin-login-btn'), logoutBtn: document.getElementById('logout-btn'),
-                loginModal: document.getElementById('login-modal'), loginForm: document.getElementById('login-form'),
-                passwordInput: document.getElementById('password'), loginError: document.getElementById('login-error'),
-                loginCancelBtn: document.getElementById('login-cancel-btn'), gameControls: document.getElementById('game-controls'),
-                publicPrizeSection: document.getElementById('public-prize-section'), playerTableBody: document.getElementById('player-table-body'),
-                addPlayerBtn: document.getElementById('add-player-btn'), resetGameBtn: document.getElementById('reset-game-btn'),
-                confirmationModal: document.getElementById('confirmation-modal'), modalText: document.getElementById('modal-text'),
-                modalConfirmBtn: document.getElementById('modal-confirm-btn'), modalCancelBtn: document.getElementById('modal-cancel-btn'),
-                passwordModal: document.getElementById('password-modal'), passwordInputModal: document.getElementById('password-input-modal'),
-                passwordErrorModal: document.getElementById('password-error-modal'), passwordConfirmBtn: document.getElementById('password-confirm-btn'),
-                passwordCancelBtn: document.getElementById('password-cancel-btn'), prizeGrid: document.getElementById('prize-grid'),
-                addPrizeBtn: document.getElementById('add-prize-btn'), percentageWarning: document.getElementById('percentage-warning'),
-                publicPrizeGrid: document.getElementById('public-prize-grid'),
-                timerDisplay: document.getElementById('timer-display'), currentBlindsDisplay: document.getElementById('current-blinds'),
-                nextBlindsDisplay: document.getElementById('next-blinds'), timerControlButton: document.getElementById('timer-control-btn'),
-                resetTimerButton: document.getElementById('reset-timer-btn'), levelDurationInput: document.getElementById('level-duration'),
-                levelIndicator: document.getElementById('level-indicator'), prevLevelBtn: document.getElementById('prev-level-btn'),
-                nextLevelBtn: document.getElementById('next-level-btn'), blindsNote: document.getElementById('blinds-note')
-            };
-
-            // --- CONSTANTES E ESTADO DO JOGO ---
-            const CORRECT_PASSWORD = 'poker';
-            const ACTION_VALUE = 30;
-            const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy"];
-            const initialPrizes = [50, 30, 20];
-            const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" }, { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" } ];
-            
-            let playersData = [];
-            let confirmCallback = null;
-            let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
-            let timerInterval = null;
-            let isUpdatingFromFirebase = false; 
-            let currentGameId = null; 
-
-            const gameDocRef = doc(db, 'pokerGame', 'gameState');
-            const timerDocRef = doc(db, 'pokerGame', 'timerState');
-
-            // --- LÓGICA DE DADOS E RENDERIZAÇÃO ---
-            const renderAll = () => {
-                UIElements.playerTableBody.innerHTML = '';
-                playersData.forEach(p => createPlayerRow(p));
-                calculateTotals();
-            };
-
-            const saveData = async () => {
-                if (isUpdatingFromFirebase) return;
-                if (!currentGameId) { console.error("SAVE BLOQUEADO: ID do jogo inválido."); return; }
-                try {
-                    await setDoc(gameDocRef, { gameId: currentGameId, players: playersData });
-                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                    localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                } catch (error) {
-                    console.error("Erro ao salvar dados:", error);
-                }
-            };
-
-            const resetGame = async () => {
-                closePasswordModal();
-                currentGameId = `game_${Date.now()}`;
-                console.log(`%cRESETANDO JOGO. NOVO ID: ${currentGameId}`, "color: red; font-weight: bold;");
-                
-                playersData = initialPlayers.map(name => ({
-                    name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
-                    addOnChecked: false, eliminated: false
-                }));
-                
-                localStorage.setItem('pokerPrizeData', JSON.stringify(initialPrizes));
-                loadPrizes();
-                renderAll();
-                
-                await saveData();
-
-                const initialDuration = UIElements.levelDurationInput ? parseInt(UIElements.levelDurationInput.value, 10) : 15;
-                await setDoc(timerDocRef, { timeLeft: initialDuration * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
-            };
-
-            // --- FUNÇÕES DE UI (Criação de Linhas, Prêmios, Cálculos) ---
-            const createPlayerRow = (player) => {
-                const tr = document.createElement('tr');
-                tr.className = 'player-row hover:bg-yellow-400/10 transition-colors duration-150';
-                let rebuyCheckboxes = '';
-                for(let i = 0; i < 10; i++) {
-                    const isChecked = player.rebuysChecked && player.rebuysChecked[i];
-                    rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox rebuy-cb" ${isChecked ? 'checked' : ''}><span class="chip"></span></label></td>`;
-                }
-                tr.innerHTML = `
-                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap"><input type="text" placeholder="Nome" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none"></td>
-                    <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label></td>
-                    ${rebuyCheckboxes}
-                    <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td>
-                    <td class="player-total px-2 sm:px-4 py-3 text-right font-medium">R$ 0,00</td>
-                    <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
-                        <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500" title="Eliminar/Restaurar"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg></button>
-                        <button class="delete-player-btn text-gray-400 hover:text-red-500" title="Remover da Lista"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
-                    </td>`;
-                if(player.eliminated) tr.classList.add('eliminated');
-                UIElements.playerTableBody.appendChild(tr);
-            };
-            
-            const calculateTotals = () => {
-                let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
-                let activePlayers = 0;
-                
-                playersData.forEach((player, index) => {
-                    let playerTotal = 0;
-                    if (player.buyInChecked) { playerTotal += ACTION_VALUE; totalBuyIns++; }
-                    if (player.rebuysChecked) { const rebuysCount = player.rebuysChecked.filter(Boolean).length; playerTotal += rebuysCount * ACTION_VALUE; totalRebuys += rebuysCount; }
-                    if (player.addOnChecked) { playerTotal += ACTION_VALUE; totalAddOns++; }
-                    grandTotal += playerTotal;
-                    if (!player.eliminated) activePlayers++;
-
-                    const row = UIElements.playerTableBody.children[index];
-                    if(row) row.querySelector('.player-total').textContent = `R$ ${playerTotal.toFixed(2)}`;
-                });
-
-                document.getElementById('total-buy-ins').textContent = totalBuyIns;
-                document.getElementById('total-rebuys').textContent = totalRebuys;
-                document.getElementById('total-add-ons').textContent = totalAddOns;
-                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
-                document.getElementById('total-players-summary').textContent = activePlayers;
-                document.getElementById('total-buyins-summary').textContent = totalBuyIns;
-                document.getElementById('total-rebuys-summary').textContent = totalRebuys;
-                document.getElementById('total-addons-summary').textContent = totalAddOns;
-                
-                updatePublicPrizes(grandTotal);
-            };
-
-            const loadPrizes = () => { /* Sua lógica para carregar os prêmios */ };
-            const updatePublicPrizes = (grandTotal) => { /* Sua lógica para atualizar prêmios */ };
-
-            // --- LÓGICA DO TIMER ---
-            // (Coloque aqui toda a sua lógica do timer, que já funcionava)
-
-            // --- LISTENERS DE EVENTOS ---
-            // (Todos os seus listeners originais podem ser colados aqui, pois a estrutura de dados e UI é a mesma)
-
-            // --- INICIALIZAÇÃO E LISTENER PRINCIPAL DO FIREBASE ---
-            onSnapshot(gameDocRef, (docSnapshot) => {
-                console.log("%cSNAPSHOT RECEBIDO!", "color: green;");
-                isUpdatingFromFirebase = true;
-                if (docSnapshot.exists() && docSnapshot.data().players) {
-                    const data = docSnapshot.data();
-                    if (currentGameId === null) {
-                        currentGameId = data.gameId;
-                        console.log(`Sincronizando com o jogo ID: ${currentGameId}`);
-                    }
-                    if (!data.gameId || data.gameId !== currentGameId) {
-                        console.error(`DADOS INVÁLIDOS REJEITADOS! ID esperado: ${currentGameId}, ID recebido: ${data.gameId || 'NENHUM'}.`);
-                        isUpdatingFromFirebase = false;
-                        saveData(); // Força a reescrita com os dados corretos
-                        return;
-                    }
-                    playersData = data.players;
-                } else {
-                    console.log("Documento não existe. Criando novo jogo.");
-                    resetGame(); // Essa função agora cuida de tudo
-                }
-                renderAll();
-                setTimeout(() => {
-                    isUpdatingFromFirebase = false;
-                    console.log("%cTrava liberada.", "color: gray;");
-                }, 500);
-            });
-            
-            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
-                showLoggedInState();
-            } else {
-                showLoggedOutState();
-            }
-            loadPrizes();
+        // --- SELETORES DE ELEMENTOS ---
+        const UIElements = {
+            mainContent: document.getElementById('main-content'),
+            adminLoginBtn: document.getElementById('admin-login-btn'), logoutBtn: document.getElementById('logout-btn'),
+            loginModal: document.getElementById('login-modal'), loginForm: document.getElementById('login-form'),
+            passwordInput: document.getElementById('password'), loginError: document.getElementById('login-error'),
+            loginCancelBtn: document.getElementById('login-cancel-btn'), gameControls: document.getElementById('game-controls'),
+            publicPrizeSection: document.getElementById('public-prize-section'), playerTableBody: document.getElementById('player-table-body'),
+            addPlayerBtn: document.getElementById('add-player-btn'), resetGameBtn: document.getElementById('reset-game-btn'),
+            confirmationModal: document.getElementById('confirmation-modal'), modalText: document.getElementById('modal-text'),
+            modalConfirmBtn: document.getElementById('modal-confirm-btn'), modalCancelBtn: document.getElementById('modal-cancel-btn'),
+            passwordModal: document.getElementById('password-modal'), passwordInputModal: document.getElementById('password-input-modal'),
+            passwordErrorModal: document.getElementById('password-error-modal'), passwordConfirmBtn: document.getElementById('password-confirm-btn'),
+            passwordCancelBtn: document.getElementById('password-cancel-btn'), prizeGrid: document.getElementById('prize-grid'),
+            addPrizeBtn: document.getElementById('add-prize-btn'), percentageWarning: document.getElementById('percentage-warning'),
+            publicPrizeGrid: document.getElementById('public-prize-grid'),
+            timerDisplay: document.getElementById('timer-display'), currentBlindsDisplay: document.getElementById('current-blinds'),
+            nextBlindsDisplay: document.getElementById('next-blinds'), timerControlButton: document.getElementById('timer-control-btn'),
+            resetTimerButton: document.getElementById('reset-timer-btn'), levelDurationInput: document.getElementById('level-duration'),
+            levelIndicator: document.getElementById('level-indicator'), prevLevelBtn: document.getElementById('prev-level-btn'),
+            nextLevelBtn: document.getElementById('next-level-btn'), blindsNote: document.getElementById('blinds-note')
         };
-    });
-    </script>
+
+        // --- CONSTANTES E ESTADO DO JOGO ---
+        const CORRECT_PASSWORD = 'poker';
+        const ACTION_VALUE = 30;
+        // ✅ Altere aqui a lista inicial de jogadores
+        const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy"];
+        const initialPrizes = [50, 30, 20];
+        const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" }, { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" } ];
+        
+        let playersData = [];
+        let confirmCallback = null;
+        let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
+        let timerInterval = null;
+        let isUpdatingFromFirebase = false; 
+        let currentGameId = null;
+
+        const gameDocRef = doc(db, 'pokerGame', 'gameState');
+        const timerDocRef = doc(db, 'pokerGame', 'timerState');
+
+        // --- FUNÇÕES DE LÓGICA DE DADOS ---
+        const saveData = async () => {
+            if (isUpdatingFromFirebase) return;
+            if (!currentGameId) { console.error("SAVE BLOQUEADO: ID do jogo inválido."); return; }
+            try {
+                await setDoc(gameDocRef, { gameId: currentGameId, players: playersData });
+                const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
+                localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
+            } catch (error) {
+                console.error("Erro ao salvar dados:", error);
+            }
+        };
+
+        const resetGame = async () => {
+            closePasswordModal();
+            currentGameId = `game_${Date.now()}`;
+            playersData = initialPlayers.map(name => ({
+                name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
+                addOnChecked: false, eliminated: false
+            }));
+            localStorage.setItem('pokerPrizeData', JSON.stringify(initialPrizes));
+            await saveData(); // Salva primeiro
+            
+            // Depois do save, a onSnapshot vai pegar e renderizar
+            const initialDuration = UIElements.levelDurationInput ? parseInt(UIElements.levelDurationInput.value, 10) : 15;
+            await setDoc(timerDocRef, { timeLeft: initialDuration * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+        };
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
+        const renderAll = () => {
+            UIElements.playerTableBody.innerHTML = '';
+            playersData.forEach(p => createPlayerRow(p));
+            calculateTotals();
+        };
+
+        const createPlayerRow = (player) => {
+            const tr = document.createElement('tr');
+            tr.className = 'player-row hover:bg-yellow-400/10 transition-colors duration-150';
+            let rebuyCheckboxes = '';
+            for(let i = 0; i < 10; i++) {
+                const isChecked = player.rebuysChecked && player.rebuysChecked[i];
+                rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox rebuy-cb" ${isChecked ? 'checked' : ''}><span class="chip"></span></label></td>`;
+            }
+            tr.innerHTML = `
+                <td class="px-2 sm:px-4 py-3 whitespace-nowrap"><input type="text" placeholder="Nome" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none"></td>
+                <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label></td>
+                ${rebuyCheckboxes}
+                <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td>
+                <td class="player-total px-2 sm:px-4 py-3 text-right font-medium">R$ 0,00</td>
+                <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
+                    <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500" title="Eliminar/Restaurar"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg></button>
+                    <button class="delete-player-btn text-gray-400 hover:text-red-500" title="Remover da Lista"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+                </td>`;
+            if(player.eliminated) tr.classList.add('eliminated');
+            UIElements.playerTableBody.appendChild(tr);
+        };
+        
+        const calculateTotals = () => {
+            let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
+            let activePlayers = 0;
+            playersData.forEach((player, index) => {
+                let playerTotal = 0;
+                if (player.buyInChecked) { playerTotal += ACTION_VALUE; totalBuyIns++; }
+                if (player.rebuysChecked) { const rebuysCount = player.rebuysChecked.filter(Boolean).length; playerTotal += rebuysCount * ACTION_VALUE; totalRebuys += rebuysCount; }
+                if (player.addOnChecked) { playerTotal += ACTION_VALUE; totalAddOns++; }
+                if (!player.eliminated) activePlayers++;
+                const row = UIElements.playerTableBody.children[index];
+                if(row) row.querySelector('.player-total').textContent = `R$ ${playerTotal.toFixed(2)}`;
+            });
+            grandTotal = (totalBuyIns + totalRebuys + totalAddOns) * ACTION_VALUE;
+            document.getElementById('total-buy-ins').textContent = totalBuyIns;
+            document.getElementById('total-rebuys').textContent = totalRebuys;
+            document.getElementById('total-add-ons').textContent = totalAddOns;
+            document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+            document.getElementById('total-players-summary').textContent = activePlayers;
+            document.getElementById('total-buyins-summary').textContent = totalBuyIns;
+            document.getElementById('total-rebuys-summary').textContent = totalRebuys;
+            document.getElementById('total-addons-summary').textContent = totalAddOns;
+            updatePublicPrizes(grandTotal);
+        };
+
+        const loadPrizes = () => {
+            UIElements.prizeGrid.innerHTML = '';
+            const savedPrizes = JSON.parse(localStorage.getItem('pokerPrizeData')) || initialPrizes;
+            savedPrizes.forEach((value, index) => createPrizeField(index + 1, value));
+            calculateTotals();
+        };
+
+        const createPrizeField = (place, value = 0) => {
+            const prizeItem = document.createElement('div');
+            prizeItem.className = 'prize-item bg-black/20 p-4 rounded-lg relative';
+            let color = place === 1 ? 'text-yellow-300' : (place === 2 ? 'text-gray-300' : 'text-orange-400');
+            prizeItem.innerHTML = `
+                <label class="block text-sm font-medium uppercase">${place}º Lugar</label>
+                <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2" placeholder="%">
+                <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
+                ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400">&times;</button>` : ''}`;
+            UIElements.prizeGrid.appendChild(prizeItem);
+        };
+
+        const updatePublicPrizes = (grandTotal) => {
+            UIElements.publicPrizeGrid.innerHTML = '';
+            let totalPercent = 0;
+            document.querySelectorAll('.prize-percent-input').forEach((input, index) => {
+                const percent = parseFloat(input.value) || 0;
+                totalPercent += percent;
+                const value = (grandTotal * percent) / 100;
+                input.nextElementSibling.textContent = `R$ ${value.toFixed(2)}`;
+                const place = index + 1;
+                let color = place === 1 ? 'text-yellow-300' : (place === 2 ? 'text-gray-300' : 'text-orange-400');
+                const prizeDiv = document.createElement('div');
+                prizeDiv.className = 'bg-black/20 p-4 rounded-lg';
+                prizeDiv.innerHTML = `<p class="block text-sm font-medium uppercase">${place}º Lugar</p><p class="mt-2 text-xl font-semibold ${color}">R$ ${value.toFixed(2)}</p>`;
+                UIElements.publicPrizeGrid.appendChild(prizeDiv);
+            });
+            UIElements.percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+        };
+
+        // --- LÓGICA DO TIMER ---
+        // (Sua lógica original do timer completa aqui)
+        
+        // --- LISTENERS DE EVENTOS ---
+        // (Sua lógica original de listeners completa aqui, mas com as devidas adaptações)
+
+        // --- INICIALIZAÇÃO E LISTENER PRINCIPAL DO FIREBASE ---
+        onSnapshot(gameDocRef, (docSnapshot) => {
+            console.log("%cSNAPSHOT RECEBIDO!", "color: green;");
+            isUpdatingFromFirebase = true;
+            if (docSnapshot.exists() && docSnapshot.data().players) {
+                const data = docSnapshot.data();
+                if (currentGameId === null) {
+                    currentGameId = data.gameId;
+                    console.log(`Sincronizando com o jogo ID: ${currentGameId}`);
+                }
+                if (!data.gameId || data.gameId !== currentGameId) {
+                    console.error(`DADOS INVÁLIDOS REJEITADOS! ID esperado: ${currentGameId}, ID recebido: ${data.gameId || 'NENHUM'}.`);
+                    isUpdatingFromFirebase = false;
+                    saveData();
+                    return;
+                }
+                playersData = data.players;
+            } else {
+                console.log("Documento não existe. Criando novo jogo.");
+                resetGame();
+            }
+            renderAll();
+            setTimeout(() => {
+                isUpdatingFromFirebase = false;
+                console.log("%cTrava liberada.", "color: gray;");
+            }, 500);
+        });
+        
+        // (Listeners do timer e outros listeners que não modifiquem 'playersData' diretamente)
+
+        if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
+            showLoggedInState();
+        } else {
+            showLoggedOutState();
+        }
+        loadPrizes();
+    };
+});
+</script>
+
 </body>
 </html>
