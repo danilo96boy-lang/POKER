@@ -11,7 +11,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -30,88 +30,45 @@
             
             signInAnonymously(auth)
                 .then(() => {
-                    console.log("Firebase inicializado e login anônimo bem-sucedido!");
+                    console.log("Firebase inicializado!");
                     window.db = db;
                     window.doc = doc;
                     window.onSnapshot = onSnapshot;
                     window.setDoc = setDoc;
-                    window.deleteDoc = deleteDoc; // Adicionado para a função de reset
-                    window.serverTimestamp = serverTimestamp;
                 })
-                .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error));
+                .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO:", error));
         } catch (error) {
             console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
         }
     </script>
 
     <style>
-        /* Estilos CSS permanecem os mesmos */
-        body { font-family: 'Roboto Condensed', sans-serif; background-color: #032a05; background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%); }
+        /* Seus estilos aqui... */
+        body { font-family: 'Roboto Condensed', sans-serif; background-color: #032a05; background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%); color: #e5e7eb; }
         h1, h2, h3, button, th { font-family: 'Oswald', sans-serif; }
-        .modal-overlay { transition: opacity 0.3s ease; }
-        .chip-label { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-        .chip-checkbox { appearance: none; -webkit-appearance: none; position: absolute; opacity: 0; }
-        .chip { height: 28px; width: 28px; border-radius: 50%; background-color: #4a5568; border: 2px solid #a0aec0; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2); position: relative; }
-        .chip::before { content: ''; position: absolute; height: 18px; width: 18px; border-radius: 50%; border: 1px dashed #a0aec0; }
-        .buy-in-cb + .chip { background-color: #2b6cb0; }
-        .rebuy-cb + .chip { background-color: #c53030; }
-        .add-on-cb + .chip { background-color: #2f855a; }
-        .chip-checkbox:checked + .chip { transform: scale(1.1); box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2); border-color: #fff; }
-        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
-        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
-        .add-on-cb:checked + .chip { --glow-color: #68d391; }
-        .chip-checkbox:checked + .chip::before { border: 2px solid #fff; }
         .player-row.eliminated { background-color: rgba(40, 40, 40, 0.5); text-decoration: line-through; color: #9ca3af; }
-        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox { pointer-events: none; }
     </style>
 </head>
-<body class="bg-green-900 text-gray-200 min-h-screen">
+<body class="min-h-screen">
 
-    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="relative text-center mb-6">
-            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                <span class="text-red-500">♦</span> POKER On Jack Tall Back <span class="text-red-500">♥</span>
-            </h1>
-            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
-            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">Admin</button>
-            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">Sair</button>
-        </header>
-
-        <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
-            </div>
+    <div id="main-content" class="container mx-auto p-4">
+        <h1 class="text-4xl text-center font-bold mb-6 text-white">POKER On Jack Tall Back</h1>
         
-        <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            </div>
-
-        <div id="public-prize-section" class="mb-8">
-            </div>
-
-        <div id="game-controls" class="hidden">
-            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-yellow-600/30">
-                        <thead class="bg-black/25">
-                            <tr>
-                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">Jogador</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Buy-in</th>
-                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Rebuys</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Add-on</th>
-                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">Total (R$)</th>
-                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Ações</th>
+        <div id="game-controls">
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-black/30">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-yellow-300">Jogador</th>
                             </tr>
-                        </thead>
-                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
+                    </thead>
+                    <tbody id="player-table-body">
                         </tbody>
-                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
-                           </tfoot>
-                    </table>
-                </div>
+                </table>
             </div>
-            <div class="mt-8">
-                </div>
             <div class="mt-8 flex justify-center gap-4">
-                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">Resetar Jogo</button>
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg">Adicionar Jogador</button>
+                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg">Resetar Jogo (com Senha)</button>
             </div>
         </div>
     </div>
@@ -126,160 +83,133 @@
             }, 100);
 
             const initializeAppLogic = () => {
-                const { db, doc, onSnapshot, setDoc, deleteDoc } = window;
+                const { db, doc, onSnapshot, setDoc } = window;
 
-                // --- CONSTANTES E ESTADO DO JOGO ---
                 const CORRECT_PASSWORD = 'poker';
-                const ACTION_VALUE = 30;
-                
-                // ✅ ESTA É A LISTA QUE VOCÊ DEVE ATUALIZAR
                 const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy", "Jogador 14", "Jogador 15", "Jogador 16"];
                 
                 let playersData = [];
-                // ✅ TRAVA DE SEGURANÇA MELHORADA
                 let isUpdatingFromFirebase = false;
+                // ✅ VARIÁVEL PARA GUARDAR A VERSÃO ATUAL DO JOGO
+                let currentGameId = null;
 
-                // --- REFERÊNCIAS DE DOCUMENTOS ---
                 const gameDocRef = doc(db, 'pokerGame', 'gameState');
 
-                // --- SELETORES DE ELEMENTOS ---
                 const playerTableBody = document.getElementById('player-table-body');
                 const addPlayerBtn = document.getElementById('add-player-btn');
                 const resetGameBtn = document.getElementById('reset-game-btn');
-                // Adicione outros seletores conforme necessário
-
-                // --- FUNÇÕES PRINCIPAIS ---
-
+                
                 const saveData = async () => {
-                    // ✅ A trava impede o envio de dados enquanto o app está processando uma atualização vinda do Firebase
                     if (isUpdatingFromFirebase) {
                         console.log("%cSAVE BLOQUEADO: Atualização do Firebase em progresso.", "color: orange;");
                         return;
                     }
-                    console.log("%cSALVANDO DADOS...", "color: blue;", playersData);
+                    if (!currentGameId) {
+                        console.error("SAVE BLOQUEADO: ID do jogo inválido. Não é seguro salvar.");
+                        return;
+                    }
+                    console.log(`%cSALVANDO DADOS PARA O JOGO ${currentGameId}...`, "color: blue;", playersData);
                     try {
-                        await setDoc(gameDocRef, { players: playersData });
+                        // Sempre salva os dados junto com a assinatura/ID do jogo
+                        await setDoc(gameDocRef, { 
+                            gameId: currentGameId,
+                            players: playersData 
+                        });
                     } catch (error) {
-                        console.error("Erro ao salvar dados no Firebase: ", error);
+                        console.error("Erro ao salvar dados:", error);
                     }
                 };
                 
                 const renderPlayers = () => {
-                    console.log("Renderizando jogadores na tela:", playersData.length);
                     playerTableBody.innerHTML = '';
-                    playersData.forEach(player => createPlayerRow(player));
-                    // calculateTotals(); // Chame sua função de cálculo aqui
-                };
-
-                const createPlayerRow = (player) => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'player-row hover:bg-yellow-400/10 transition-colors duration-150';
-                    if (player.eliminated) {
-                        tr.classList.add('eliminated');
+                    if (playersData.length === 0) {
+                        playerTableBody.innerHTML = '<tr><td class="p-4 text-center">Nenhum jogador...</td></tr>';
+                        return;
                     }
-                    // Simplificado para o exemplo, você pode usar seu innerHTML completo aqui
-                    tr.innerHTML = `
-                        <td class="px-2 sm:px-4 py-3 whitespace-nowrap"><input type="text" value="${player.name}" class="player-name w-full bg-transparent p-1"></td>
-                        <td class="px-1 sm:px-2 py-3 text-center"><input type="checkbox" class="buy-in-cb" ${player.buyInChecked ? 'checked' : ''}></td>
-                        <td colspan="10">...</td>
-                        <td class="px-1 sm:px-2 py-3 text-center"><input type="checkbox" class="add-on-cb" ${player.addOnChecked ? 'checked' : ''}></td>
-                        <td>R$ 0,00</td>
-                        <td>Ações</td>`;
-                    playerTableBody.appendChild(tr);
+                    playersData.forEach(player => {
+                        const tr = document.createElement('tr');
+                        tr.className = `player-row ${player.eliminated ? 'eliminated' : ''}`;
+                        tr.innerHTML = `<td class="border px-4 py-2"><input type="text" value="${player.name}" class="bg-transparent w-full"></td>`;
+                        playerTableBody.appendChild(tr);
+                    });
                 };
 
                 const resetGame = async () => {
-                    console.log("%cRESETANDO O JOGO com a lista do código...", "color: red; font-weight: bold;");
+                    // ✅ GERA UMA NOVA ASSINATURA ÚNICA PARA O NOVO JOGO
+                    currentGameId = `game_${Date.now()}`;
+                    console.log(`%cRESETANDO JOGO. NOVO ID DO JOGO: ${currentGameId}`, "color: red; font-weight: bold;");
                     
-                    // Prepara os novos dados
-                    const newPlayers = initialPlayers.map(name => ({
-                        name: name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
-                        addOnChecked: false, eliminated: false
-                    }));
+                    playersData = initialPlayers.map(name => ({ name, eliminated: false }));
                     
-                    // Define localmente PRIMEIRO
-                    playersData = newPlayers;
-                    
-                    // Renderiza a UI imediatamente com os dados locais
                     renderPlayers();
                     
-                    // Envia os dados para o Firebase
-                    try {
-                        await setDoc(gameDocRef, { players: playersData });
-                        console.log("Reset concluído e enviado para o Firebase.");
-                    } catch (error) {
-                        console.error("Erro ao resetar o jogo no Firebase:", error);
-                    }
+                    // Salva os novos dados com a nova assinatura
+                    await saveData();
                 };
 
-
-                // --- LISTENERS DE EVENTOS ---
-
                 addPlayerBtn.addEventListener('click', () => {
-                    if (isUpdatingFromFirebase) {
-                        console.warn("Ação de adicionar bloqueada por atualização em progresso.");
-                        return;
-                    }
-                    console.log("Adicionando novo jogador...");
-                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false };
-                    playersData.push(newPlayer);
-                    renderPlayers(); // Atualiza a UI
-                    saveData(); // Salva o novo estado
+                    if (isUpdatingFromFirebase) return;
+                    playersData.push({ name: 'Novo Jogador', eliminated: false });
+                    renderPlayers();
+                    saveData();
                 });
                 
                 resetGameBtn.addEventListener('click', () => {
-                    // Adicione seu modal de confirmação aqui
-                    const confirmReset = confirm("TEM CERTEZA? Isso vai apagar o jogo atual e começar um novo com a lista de jogadores do código.");
-                    const confirmPassword = prompt("Digite a senha de admin para confirmar:");
-
-                    if (confirmReset && confirmPassword === CORRECT_PASSWORD) {
+                    const password = prompt("Para resetar o jogo, digite a senha de administrador:");
+                    if (password === CORRECT_PASSWORD) {
                         resetGame();
-                    } else if (confirmPassword !== null) {
+                    } else if (password !== null) {
                         alert("Senha incorreta.");
                     }
                 });
 
-                // Listener de input na tabela (delegado)
-                playerTableBody.addEventListener('input', (e) => {
-                     if (isUpdatingFromFirebase) return; // Proteção extra
-                     // Sua lógica para atualizar nome, checkboxes, etc.
-                     // ...
-                     // Ao final da sua lógica, chame:
-                     // calculateTotals();
-                     // saveData();
-                });
+                // --- LISTENER PRINCIPAL DO FIREBASE (COM LÓGICA ANTI-FANTASMA) ---
 
-
-                // --- INICIALIZAÇÃO E LISTENER PRINCIPAL DO FIREBASE ---
-
-                console.log("Iniciando listener do Firebase...");
                 onSnapshot(gameDocRef, (docSnapshot) => {
                     console.log("%cSNAPSHOT RECEBIDO!", "color: green;");
-                    // ATIVA A TRAVA
                     isUpdatingFromFirebase = true;
 
-                    if (docSnapshot.exists() && docSnapshot.data().players) {
-                        console.log("Documento existe. Carregando", docSnapshot.data().players.length, "jogadores do Firebase.");
-                        playersData = docSnapshot.data().players;
+                    if (docSnapshot.exists()) {
+                        const data = docSnapshot.data();
+
+                        // ✅ LÓGICA DE VALIDAÇÃO DA ASSINATURA
+                        if (currentGameId === null) {
+                            // Se é o primeiro carregamento, confiamos nos dados e guardamos o ID
+                            currentGameId = data.gameId;
+                            console.log(`Primeiro carregamento. Sincronizando com o jogo ID: ${currentGameId}`);
+                        }
+
+                        // Se os dados do Firebase não têm a assinatura ou ela é diferente da que esperamos,
+                        // são dados de um cliente fantasma.
+                        if (!data.gameId || data.gameId !== currentGameId) {
+                            console.error(`DADOS INVÁLIDOS REJEITADOS! ID esperado: ${currentGameId}, ID recebido: ${data.gameId || 'NENHUM'}. Isso provavelmente é de um cliente fantasma.`);
+                            console.warn("Forçando o reenvio dos dados corretos para sobrescrever os dados inválidos...");
+                            
+                            // Libera a trava e força o envio dos dados corretos que estão na memória
+                            isUpdatingFromFirebase = false;
+                            saveData(); 
+                            
+                            // Interrompe o processamento destes dados inválidos
+                            return; 
+                        }
+
+                        console.log(`Dados válidos recebidos para o jogo ${currentGameId}. Carregando ${data.players.length} jogadores.`);
+                        playersData = data.players || [];
+
                     } else {
-                        console.log("Documento não existe. Chamando resetGame() para criar um novo jogo.");
+                        console.log("Documento não existe. Criando um novo jogo do zero.");
                         resetGame();
                     }
                     
                     renderPlayers();
 
-                    // LIBERA A TRAVA após um pequeno intervalo para garantir que a renderização termine
                     setTimeout(() => {
                         isUpdatingFromFirebase = false;
-                        console.log("%cTrava liberada. Pronto para receber input do usuário.", "color: gray;");
-                    }, 500); // Aumentei para 500ms por segurança
+                        console.log("%cTrava liberada.", "color: gray;");
+                    }, 500);
                 });
-
-                // Lógica de login/logout e visibilidade dos controles
-                // ...
             };
         });
     </script>
-
 </body>
 </html>
