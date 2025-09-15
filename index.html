@@ -1,8 +1,288 @@
-<script type="module">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKER On Jack Tall Back</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background-color: #032a05;
+            background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%);
+        }
+        h1, h2, h3, button, th {
+            font-family: 'Oswald', sans-serif;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .chip-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .chip-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            position: absolute;
+            opacity: 0;
+        }
+        .chip {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            border: 2px solid #a0aec0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2);
+            position: relative;
+        }
+        .chip::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            border: 1px dashed #a0aec0;
+        }
+        .buy-in-cb + .chip { background-color: #2b6cb0; }
+        .rebuy-cb + .chip { background-color: #c53030; }
+        .add-on-cb + .chip { background-color: #2f855a; }
+        .chip-checkbox:checked + .chip {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2);
+            border-color: #fff;
+        }
+        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
+        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
+        .add-on-cb:checked + .chip { --glow-color: #68d391; }
+        .chip-checkbox:checked + .chip::before {
+            border: 2px solid #fff;
+        }
+        .player-row.eliminated {
+            background-color: rgba(40, 40, 40, 0.5);
+            color: #9ca3af;
+        }
+        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
+            pointer-events: none;
+        }
+        .player-row.eliminated .player-name {
+             text-decoration: line-through;
+        }
+        .elimination-rank {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #f59e0b; /* amber-500 */
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+        .rebuys-disabled .rebuy-cb,
+        .rebuys-disabled .add-on-cb {
+            pointer-events: none;
+        }
+        .rebuys-disabled .rebuy-cb + .chip,
+        .rebuys-disabled .add-on-cb + .chip {
+            cursor: not-allowed;
+            background-color: #4A5568 !important;
+            opacity: 0.5;
+        }
+        @media (max-width: 640px) {
+            .chip { height: 24px; width: 24px; }
+            .chip::before { height: 16px; width: 16px; }
+        }
+    </style>
+</head>
+<body class="bg-green-900 text-gray-200 min-h-screen">
+
+    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="relative text-center mb-6">
+            <button id="mute-btn" class="absolute top-0 left-0 bg-gray-700 hover:bg-gray-800 text-white font-bold p-2 rounded-full shadow-lg border-2 border-gray-400 transition-transform transform hover:scale-105" title="Ativar/Desativar Som">
+                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.89l.706.706z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
+                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="hidden" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                <span class="text-red-500">♦</span> POKER ON JACK TALL BACK <span class="text-red-500">♥</span>
+            </h1>
+            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
+            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">ADMIN</button>
+            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">SAIR</button>
+        </header>
+
+        <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
+            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">TEMPORIZADOR DE BLINDS <span id="level-indicator" class="text-yellow-400"></span></h2>
+            <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
+                <div class="sm:text-left">
+                    <p class="text-sm text-yellow-300 uppercase">NÍVEL ATUAL</p>
+                    <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+                <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
+                    <button id="prev-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Nível Anterior">&lt;&lt;</button>
+                    <span id="timer-display">--:--</span>
+                    <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
+                </div>
+                <div class="sm:text-right">
+                    <p class="text-sm text-yellow-300 uppercase">PRÓXIMO NÍVEL</p>
+                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="level-duration" class="text-sm">Duração (min):</label>
+                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                </div>
+                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">INICIAR</button>
+                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">REINICIAR</button>
+            </div>
+        </div>
+        
+        <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">JOGADORES ATIVOS</h3>
+                <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL BUY-INS</h3>
+                <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL REBUYS</h3>
+                <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL ADD-ONS</h3>
+                <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
+            </div>
+        </div>
+
+        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row flex-wrap justify-center items-start gap-8">
+            <div id="public-prize-section" class="w-full lg:max-w-lg">
+                <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ PREMIAÇÃO ♣</h2>
+                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                     </div>
+                </div>
+            </div>
+            <div id="final-standings-section" class="w-full lg:max-w-lg">
+                 <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 CLASSIFICAÇÃO FINAL 🏆</h2>
+                     <ul id="standings-list" class="space-y-2 text-center">
+                        </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-controls" class="hidden">
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-yellow-600/30">
+                        <thead class="bg-black/25">
+                            <tr>
+                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">JOGADOR</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">BUY-IN</th>
+                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">REBUYS</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">ADD-ON</th>
+                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">TOTAL (R$)</th>
+                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
+                        </tbody>
+                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
+                            <tr>
+                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (AÇÃO: R$ 30,00)</td>
+                                <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
+                                <td id="grand-total" class="px-2 sm:px-4 py-4 text-right font-bold text-2xl text-yellow-400">R$ 0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
+            
+            <div class="mt-8">
+                <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ CONFIGURAR PREMIAÇÃO ♣</h2>
+                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
+                    </div>
+                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    </div>
+                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center gap-4">
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    ADICIONAR JOGADOR
+                </button>
+                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
+                    RESETAR JOGO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">ACESSO DE ADMINISTRADOR</h3>
+            <form id="login-form">
+                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
+                <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">ENTRAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <p id="modal-text" class="text-center text-lg mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
+            <h3 class="text-lg font-bold text-center mb-4">CONFIRMAÇÃO DE RESET</h3>
+            <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
+            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
+            <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
+            <div class="flex justify-center gap-4">
+                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
         // --- IMPORTS DO FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE ---
         const firebaseConfig = {
@@ -169,7 +449,7 @@
                 if(startFreq) {
                     oscillator.frequency.exponentialRampToValueAtTime(frequency, audioContext.currentTime + (duration * 0.7));
                 }
-                gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Reduced volume slightly
                 gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
@@ -189,7 +469,6 @@
             });
             
             // --- LÓGICA DO TEMPORIZADOR DE BLINDS ---
-            // (Nenhuma alteração nesta seção)
             const updateChipAvailability = () => {
                 const rebuysAllowed = timerState.currentLevel < 8;
                 document.body.classList.toggle('rebuys-disabled', !rebuysAllowed);
@@ -449,7 +728,6 @@
                     const player = playersData[rowIndex];
                     player.eliminated = !player.eliminated;
                     player.eliminationTimestamp = player.eliminated ? serverTimestamp() : null;
-                    console.log('Eliminating player', rowIndex, player);
                     saveData();
                 }
             });
