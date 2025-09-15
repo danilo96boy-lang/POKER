@@ -116,19 +116,19 @@
                 <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="hidden" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
             </button>
             <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                <span class="text-red-500">♦</span> POKER On Jack Tall Back <span class="text-red-500">♥</span>
+                <span class="text-red-500">♦</span> POKER ON JACK TALL BACK <span class="text-red-500">♥</span>
             </h1>
             <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
-            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">Admin</button>
-            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">Sair</button>
+            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">ADMIN</button>
+            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">SAIR</button>
         </header>
 
         <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
-            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">Temporizador de Blinds <span id="level-indicator" class="text-yellow-400"></span></h2>
+            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">TEMPORIZADOR DE BLINDS <span id="level-indicator" class="text-yellow-400"></span></h2>
             <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
                 <div class="sm:text-left">
-                    <p class="text-sm text-yellow-300 uppercase">Nível Atual</p>
+                    <p class="text-sm text-yellow-300 uppercase">NÍVEL ATUAL</p>
                     <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
                 </div>
                 <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
@@ -137,7 +137,7 @@
                     <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
                 </div>
                 <div class="sm:text-right">
-                    <p class="text-sm text-yellow-300 uppercase">Próximo Nível</p>
+                    <p class="text-sm text-yellow-300 uppercase">PRÓXIMO NÍVEL</p>
                     <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
                 </div>
             </div>
@@ -146,41 +146,41 @@
                     <label for="level-duration" class="text-sm">Duração (min):</label>
                     <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
                 </div>
-                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Iniciar</button>
-                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Reiniciar</button>
+                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">INICIAR</button>
+                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">REINICIAR</button>
             </div>
         </div>
         
         <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Jogadores Ativos</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">JOGADORES ATIVOS</h3>
                 <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Buy-ins</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL BUY-INS</h3>
                 <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Rebuys</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL REBUYS</h3>
                 <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Add-ons</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL ADD-ONS</h3>
                 <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
             </div>
         </div>
 
-        <div id="public-info-section" class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div id="public-prize-section">
+        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row flex-wrap justify-center items-start gap-8">
+            <div id="public-prize-section" class="w-full lg:max-w-lg">
                 <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ PREMIAÇÃO ♣</h2>
                      <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
                      </div>
                 </div>
             </div>
-            <div id="final-standings-section">
+            <div id="final-standings-section" class="w-full lg:max-w-lg">
                  <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 Classificação Final 🏆</h2>
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 CLASSIFICAÇÃO FINAL 🏆</h2>
                      <ul id="standings-list" class="space-y-2 text-center">
                         </ul>
                 </div>
@@ -193,19 +193,19 @@
                     <table class="min-w-full divide-y divide-yellow-600/30">
                         <thead class="bg-black/25">
                             <tr>
-                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">Jogador</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Buy-in</th>
-                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Rebuys</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Add-on</th>
-                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">Total (R$)</th>
-                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">Ações</th>
+                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">JOGADOR</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">BUY-IN</th>
+                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">REBUYS</th>
+                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">ADD-ON</th>
+                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">TOTAL (R$)</th>
+                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">AÇÕES</th>
                             </tr>
                         </thead>
                         <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
                         </tbody>
                         <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
                             <tr>
-                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (Ação: R$ 30,00)</td>
+                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (AÇÃO: R$ 30,00)</td>
                                 <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
                                 <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
                                 <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
@@ -221,7 +221,7 @@
             <div class="mt-8">
                 <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Configurar Premiação ♣</h2>
+                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ CONFIGURAR PREMIAÇÃO ♣</h2>
                         <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
                     </div>
                     <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
@@ -232,10 +232,10 @@
 
             <div class="mt-8 flex justify-center gap-4">
                 <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    Adicionar Jogador
+                    ADICIONAR JOGADOR
                 </button>
                 <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    Resetar Jogo
+                    RESETAR JOGO
                 </button>
             </div>
         </div>
@@ -243,13 +243,13 @@
 
     <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">Acesso de Administrador</h3>
+            <h3 class="text-lg font-bold text-center mb-4">ACESSO DE ADMINISTRADOR</h3>
             <form id="login-form">
                 <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
                 <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
                 <div class="flex justify-center gap-4">
-                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">Entrar</button>
+                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">ENTRAR</button>
                 </div>
             </form>
         </div>
@@ -259,21 +259,21 @@
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
             <p id="modal-text" class="text-center text-lg mb-6"></p>
             <div class="flex justify-center gap-4">
-                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
             </div>
         </div>
     </div>
 
     <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">Confirmação de Reset</h3>
+            <h3 class="text-lg font-bold text-center mb-4">CONFIRMAÇÃO DE RESET</h3>
             <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
             <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
             <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
             <div class="flex justify-center gap-4">
-                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
             </div>
         </div>
     </div>
@@ -538,7 +538,7 @@
                 }
                 let nextBlindLevel = blindLevels.find((level, index) => index > timerState.currentLevel && !level.isBreak);
                 nextBlindsDisplay.textContent = nextBlindLevel ? nextBlindLevel.blinds : 'Fim';
-                levelIndicator.textContent = `(Nível ${timerState.currentLevel + 1}/${blindLevels.length})`;
+                levelIndicator.textContent = `(NÍVEL ${timerState.currentLevel + 1}/${blindLevels.length})`;
                 prevLevelBtn.disabled = timerState.currentLevel === 0;
                 nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1;
                 updateChipAvailability();
@@ -620,14 +620,14 @@
                         
                         if (!timerInterval) {
                             timerInterval = setInterval(runLocalTimer, 1000);
-                            timerControlButton.textContent = 'Pausar';
+                            timerControlButton.textContent = 'PAUSAR';
                             timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
                             timerControlButton.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
                         }
                     } else {
                         timerState = latestState;
                         stopLocalTimer();
-                        timerControlButton.textContent = 'Iniciar';
+                        timerControlButton.textContent = 'INICIAR';
                         timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
                         timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
                     }
@@ -702,7 +702,7 @@
                 prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
                 let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
                 prizeItem.innerHTML = `
-                    <label class="block text-sm font-medium uppercase">${place}º Lugar</label>
+                    <label class="block text-sm font-medium uppercase">${place}º LUGAR</label>
                     <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
                     <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
                     ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
@@ -725,7 +725,7 @@
                     const prizeDiv = document.createElement('div');
                     prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
                     prizeDiv.innerHTML = `
-                        <p class="block text-sm font-medium uppercase">${place}º Lugar</p>
+                        <p class="block text-sm font-medium uppercase">${place}º LUGAR</p>
                         <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
                     `;
                     publicPrizeGrid.appendChild(prizeDiv);
@@ -947,7 +947,7 @@
                 if (removeBtn) {
                     removeBtn.closest('.prize-item').remove();
                     prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
-                        label.textContent = `${index + 1}º Lugar`;
+                        label.textContent = `${index + 1}º LUGAR`;
                     });
                     saveData();
                 }
