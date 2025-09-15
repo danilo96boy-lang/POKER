@@ -9,47 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-
-        // --- INICIALIZAÇÃO DO FIREBASE (COM AS SUAS CHAVES) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c",
-            authDomain: "pokerti-633ba.firebaseapp.com",
-            projectId: "pokerti-633ba",
-            storageBucket: "pokerti-633ba.firebasestorage.app",
-            messagingSenderId: "883744429166",
-            appId: "1:883744429166:web:7e091d7e8fcae6251c827f"
-        };
-        
-        let db;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            const auth = getAuth(app);
-            
-            // Adicionado login anônimo para resolver problemas de permissão
-            signInAnonymously(auth)
-                .then(() => {
-                    console.log("Firebase inicializado e login anônimo bem-sucedido!");
-                    // Expor funções e db globalmente para o script legado
-                    window.db = db;
-                    window.doc = doc;
-                    window.onSnapshot = onSnapshot;
-                    window.setDoc = setDoc;
-                    window.serverTimestamp = serverTimestamp;
-                })
-                .catch((error) => {
-                    console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error);
-                });
-
-        } catch (error) {
-            console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
-        }
-    </script>
-
     <style>
         body {
             font-family: 'Roboto Condensed', sans-serif;
@@ -111,11 +70,26 @@
         }
         .player-row.eliminated {
             background-color: rgba(40, 40, 40, 0.5);
-            text-decoration: line-through;
             color: #9ca3af;
         }
         .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
             pointer-events: none;
+        }
+        .player-row.eliminated .player-name {
+             text-decoration: line-through;
+        }
+        .elimination-rank {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #f59e0b; /* amber-500 */
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
         }
         .rebuys-disabled .rebuy-cb,
         .rebuys-disabled .add-on-cb {
@@ -137,6 +111,10 @@
 
     <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="relative text-center mb-6">
+            <button id="mute-btn" class="absolute top-0 left-0 bg-gray-700 hover:bg-gray-800 text-white font-bold p-2 rounded-full shadow-lg border-2 border-gray-400 transition-transform transform hover:scale-105" title="Ativar/Desativar Som">
+                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.89l.706.706z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
+                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="hidden" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
             <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
                 <span class="text-red-500">♦</span> POKER On Jack Tall Back <span class="text-red-500">♥</span>
             </h1>
@@ -192,11 +170,20 @@
             </div>
         </div>
 
-        <div id="public-prize-section" class="mb-8">
-            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
-                 <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
-                 <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
-                 </div>
+        <div id="public-info-section" class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div id="public-prize-section">
+                <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ Premiação ♣</h2>
+                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                     </div>
+                </div>
+            </div>
+            <div id="final-standings-section">
+                 <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
+                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 Classificação Final 🏆</h2>
+                     <ul id="standings-list" class="space-y-2 text-center">
+                        </ul>
+                </div>
             </div>
         </div>
 
@@ -234,7 +221,7 @@
             <div class="mt-8">
                 <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Premiação ♣</h2>
+                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Configurar Premiação ♣</h2>
                         <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
                     </div>
                     <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
@@ -291,619 +278,675 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM carregado. Iniciando a aplicação.");
+    <script type="module">
+        // --- IMPORTS DO FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+        // --- INICIALIZAÇÃO DO FIREBASE ---
+        // ATENÇÃO: É altamente recomendável mover estas chaves para variáveis de ambiente
+        // e implementar Regras de Segurança no Firestore para proteger seus dados.
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c",
+            authDomain: "pokerti-633ba.firebaseapp.com",
+            projectId: "pokerti-633ba",
+            storageBucket: "pokerti-633ba.firebasestorage.app",
+            messagingSenderId: "883744429166",
+            appId: "1:883744429166:web:7e091d7e8fcae6251c827f"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
             
-            // Aguarda o DB do firebase estar disponível na window
-            const waitForFirebase = setInterval(() => {
-                if (window.db && window.serverTimestamp) {
-                    clearInterval(waitForFirebase);
-                    initializeAppLogic();
+            // Login anônimo para permitir leitura por todos os usuários
+            signInAnonymously(auth)
+                .then(() => {
+                    console.log("Firebase inicializado. Sessão de leitura anônima criada.");
+                    // Inicia a lógica principal da aplicação
+                    initializeAppLogic(db, auth);
+                })
+                .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO:", error));
+
+        } catch (error) {
+            console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
+        }
+
+        // --- LÓGICA PRINCIPAL DA APLICAÇÃO ---
+        const initializeAppLogic = (db, auth) => {
+            
+            // --- CONSTANTES ---
+            const CORRECT_PASSWORD = 'poker'; // MANTER APENAS PARA FINS DE COMPATIBILIDADE TEMPORÁRIA
+            const ACTION_VALUE = 30;
+            const DB_COLLECTION = 'pokerGame';
+            const GAME_STATE_DOC_ID = 'gameState';
+            const TIMER_STATE_DOC_ID = 'timerState';
+            const PRIZE_CONFIG_DOC_ID = 'prizeConfig';
+            const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Rodrigo Boy", "Lucas Costa", "Alexandre Costa", "Prado", "Raphinha", "NJ", "NJ2", "NJ3"];
+            const initialPrizes = [50, 30, 20];
+            const blindLevels = [
+                { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" },
+                { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" },
+                { blinds: "600/1200" },
+                { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" },
+                { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 },
+                { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" },
+                { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" },
+                { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" },
+                { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" },
+                { blinds: "25000/50000" }, { blinds: "30000/60000" }, { blinds: "40000/80000" },
+                { blinds: "50000/100000" }
+            ];
+
+            // --- REFERÊNCIAS DE DOCUMENTOS NO FIREBASE ---
+            const gameStateDocRef = doc(db, DB_COLLECTION, GAME_STATE_DOC_ID);
+            const timerStateDocRef = doc(db, DB_COLLECTION, TIMER_STATE_DOC_ID);
+            const prizeConfigDocRef = doc(db, DB_COLLECTION, PRIZE_CONFIG_DOC_ID);
+
+            // --- ELEMENTOS DO DOM ---
+            const adminLoginBtn = document.getElementById('admin-login-btn');
+            const loginModal = document.getElementById('login-modal');
+            const loginCancelBtn = document.getElementById('login-cancel-btn');
+            const loginForm = document.getElementById('login-form');
+            const passwordInput = document.getElementById('password');
+            const loginError = document.getElementById('login-error');
+            const mainContent = document.getElementById('main-content');
+            const gameControls = document.getElementById('game-controls');
+            const logoutBtn = document.getElementById('logout-btn');
+            const playerTableBody = document.getElementById('player-table-body');
+            const addPlayerBtn = document.getElementById('add-player-btn');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+            const modal = document.getElementById('confirmation-modal');
+            const modalText = document.getElementById('modal-text');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const passwordModal = document.getElementById('password-modal');
+            const passwordInputModal = document.getElementById('password-input-modal');
+            const passwordErrorModal = document.getElementById('password-error-modal');
+            const passwordConfirmBtn = document.getElementById('password-confirm-btn');
+            const passwordCancelBtn = document.getElementById('password-cancel-btn');
+            const prizeGrid = document.getElementById('prize-grid');
+            const publicPrizeGrid = document.getElementById('public-prize-grid');
+            const publicInfoSection = document.getElementById('public-info-section');
+            const addPrizeBtn = document.getElementById('add-prize-btn');
+            const percentageWarning = document.getElementById('percentage-warning');
+            const timerDisplay = document.getElementById('timer-display');
+            const currentBlindsDisplay = document.getElementById('current-blinds');
+            const nextBlindsDisplay = document.getElementById('next-blinds');
+            const timerControlButton = document.getElementById('timer-control-btn');
+            const resetTimerButton = document.getElementById('reset-timer-btn');
+            const levelDurationInput = document.getElementById('level-duration');
+            const levelIndicator = document.getElementById('level-indicator');
+            const prevLevelBtn = document.getElementById('prev-level-btn');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const blindsNote = document.getElementById('blinds-note');
+            const standingsList = document.getElementById('standings-list');
+            const finalStandingsSection = document.getElementById('final-standings-section');
+            const muteBtn = document.getElementById('mute-btn');
+            const soundOnIcon = document.getElementById('sound-on-icon');
+            const soundOffIcon = document.getElementById('sound-off-icon');
+
+            // --- VARIÁVEIS DE ESTADO ---
+            let confirmCallback = null;
+            let timerInterval = null;
+            let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
+            let playersData = [];
+            let isUpdatingFromFirebase = false;
+            let isMuted = localStorage.getItem('pokerMuted') === 'true';
+
+            // --- LÓGICA DE LOGIN E LOGOUT ---
+            const openLoginModal = () => {
+                passwordInput.value = '';
+                loginError.textContent = '';
+                loginModal.classList.remove('hidden');
+                passwordInput.focus();
+            };
+            const closeLoginModal = () => loginModal.classList.add('hidden');
+            
+            const showLoggedInState = () => {
+                gameControls.classList.remove('hidden');
+                publicInfoSection.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                adminLoginBtn.classList.add('hidden');
+                sessionStorage.setItem('pokerAppLoggedIn', 'true');
+            };
+
+            const showLoggedOutState = () => {
+                sessionStorage.removeItem('pokerAppLoggedIn');
+                gameControls.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                adminLoginBtn.classList.remove('hidden');
+                publicInfoSection.classList.remove('hidden');
+            };
+
+            // ATENÇÃO: A lógica abaixo é INSEGURA. O ideal é usar o Firebase Auth.
+            // Exemplo de como seria com Firebase Auth:
+            // loginForm.addEventListener('submit', async (e) => {
+            //     e.preventDefault();
+            //     const email = "seu-email-de-admin@exemplo.com"; // Pegar de um input de email
+            //     const password = passwordInput.value;
+            //     try {
+            //         await signInWithEmailAndPassword(auth, email, password);
+            //         // o onAuthStateChanged vai cuidar de mostrar a tela de admin
+            //         closeLoginModal();
+            //     } catch (error) {
+            //         loginError.textContent = 'Email ou senha incorretos.';
+            //     }
+            // });
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (passwordInput.value === CORRECT_PASSWORD) {
+                    showLoggedInState();
+                    closeLoginModal();
+                } else {
+                    loginError.textContent = 'Palavra-passe incorreta.';
                 }
-            }, 100);
+                passwordInput.value = '';
+            });
 
-            const initializeAppLogic = () => {
-                if (!window.db) {
-                    console.error("O banco de dados do Firebase não foi inicializado. A aplicação não pode continuar.");
-                    return;
+            logoutBtn.addEventListener('click', showLoggedOutState);
+            adminLoginBtn.addEventListener('click', openLoginModal);
+            loginCancelBtn.addEventListener('click', closeLoginModal);
+            loginModal.addEventListener('click', (e) => { if(e.target === loginModal) closeLoginModal(); });
+
+            // --- LÓGICA DE SOM ---
+            const updateMuteButton = () => {
+                if (isMuted) {
+                    soundOnIcon.classList.add('hidden');
+                    soundOffIcon.classList.remove('hidden');
+                } else {
+                    soundOnIcon.classList.remove('hidden');
+                    soundOffIcon.classList.add('hidden');
                 }
-                const db = window.db;
-                const doc = window.doc;
-                const onSnapshot = window.onSnapshot;
-                const setDoc = window.setDoc;
-                const serverTimestamp = window.serverTimestamp;
+            };
 
-                // --- Elementos ---
-                const adminLoginBtn = document.getElementById('admin-login-btn');
-                const loginModal = document.getElementById('login-modal');
-                const loginCancelBtn = document.getElementById('login-cancel-btn');
-                const loginForm = document.getElementById('login-form');
-                const passwordInput = document.getElementById('password');
-                const loginError = document.getElementById('login-error');
-                const mainContent = document.getElementById('main-content');
-                const gameControls = document.getElementById('game-controls');
-                const logoutBtn = document.getElementById('logout-btn');
-                const playerTableBody = document.getElementById('player-table-body');
-                const addPlayerBtn = document.getElementById('add-player-btn');
-                const resetGameBtn = document.getElementById('reset-game-btn');
-                const modal = document.getElementById('confirmation-modal');
-                const modalText = document.getElementById('modal-text');
-                const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-                const modalCancelBtn = document.getElementById('modal-cancel-btn');
-                const passwordModal = document.getElementById('password-modal');
-                const passwordInputModal = document.getElementById('password-input-modal');
-                const passwordErrorModal = document.getElementById('password-error-modal');
-                const passwordConfirmBtn = document.getElementById('password-confirm-btn');
-                const passwordCancelBtn = document.getElementById('password-cancel-btn');
-                const prizeGrid = document.getElementById('prize-grid');
-                const publicPrizeGrid = document.getElementById('public-prize-grid');
-                const publicPrizeSection = document.getElementById('public-prize-section');
-                const addPrizeBtn = document.getElementById('add-prize-btn');
-                const percentageWarning = document.getElementById('percentage-warning');
-                const timerDisplay = document.getElementById('timer-display');
-                const currentBlindsDisplay = document.getElementById('current-blinds');
-                const nextBlindsDisplay = document.getElementById('next-blinds');
-                const timerControlButton = document.getElementById('timer-control-btn');
-                const resetTimerButton = document.getElementById('reset-timer-btn');
-                const levelDurationInput = document.getElementById('level-duration');
-                const levelIndicator = document.getElementById('level-indicator');
-                const prevLevelBtn = document.getElementById('prev-level-btn');
-                const nextLevelBtn = document.getElementById('next-level-btn');
-                const blindsNote = document.getElementById('blinds-note');
-
-                // --- Constantes e Variáveis de Estado ---
-                const CORRECT_PASSWORD = 'poker';
-                const ACTION_VALUE = 30;
-                const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Rodrigo Boy",  "Lucas Costa", "Alexandre Costa", "Prado", "Raphinha", "NJ", "NJ2", "NJ3"];
-                const initialPrizes = [50, 30, 20];
-                const blindLevels = [
-                    { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" },
-                    { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" },
-                    { blinds: "600/1200" },
-                    { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" },
-                    { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 },
-                    { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" },
-                    { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" },
-                    { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" },
-                    { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" },
-                    { blinds: "25000/50000" }, { blinds: "30000/60000" }, { blinds: "40000/80000" },
-                    { blinds: "50000/100000" }
-                ];
-                
-                let confirmCallback = null;
-                let timerInterval = null;
-                let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false };
-                let playersData = [];
-                let isUpdatingFromFirebase = false;
-
-                // --- LÓGICA DE LOGIN E LOGOUT ---
-                const openLoginModal = () => {
-                    passwordInput.value = '';
-                    loginError.textContent = '';
-                    loginModal.classList.remove('hidden');
-                    passwordInput.focus();
-                };
-                const closeLoginModal = () => loginModal.classList.add('hidden');
-                
-                const showLoggedInState = () => {
-                    gameControls.classList.remove('hidden');
-                    publicPrizeSection.classList.add('hidden');
-                    logoutBtn.classList.remove('hidden');
-                    adminLoginBtn.classList.add('hidden');
-                };
-
-                const showLoggedOutState = () => {
-                    sessionStorage.removeItem('pokerAppLoggedIn');
-                    gameControls.classList.add('hidden');
-                    logoutBtn.classList.add('hidden');
-                    adminLoginBtn.classList.remove('hidden');
-                    publicPrizeSection.classList.remove('hidden');
-                };
-
-                loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    if (passwordInput.value === CORRECT_PASSWORD) {
-                        sessionStorage.setItem('pokerAppLoggedIn', 'true');
-                        showLoggedInState();
-                        closeLoginModal();
-                    } else {
-                        loginError.textContent = 'Palavra-passe incorreta.';
-                    }
-                    passwordInput.value = '';
-                });
-                logoutBtn.addEventListener('click', showLoggedOutState);
-                adminLoginBtn.addEventListener('click', openLoginModal);
-                loginCancelBtn.addEventListener('click', closeLoginModal);
-                loginModal.addEventListener('click', (e) => { if(e.target === loginModal) closeLoginModal(); });
-
-                // --- LÓGICA DO TEMPORIZADOR DE BLINDS (AGORA SINCRONIZADA) ---
-                const playWarningSound = () => {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    if (!audioContext) return;
-                    function beep(frequency, startTime, duration) {
-                        const oscillator = audioContext.createOscillator();
-                        oscillator.type = 'triangle';
-                        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                        oscillator.connect(audioContext.destination);
-                        oscillator.start(audioContext.currentTime + startTime);
-                        oscillator.stop(audioContext.currentTime + startTime + duration);
-                    }
-                    beep(1500, 0, 0.2);
-                    beep(1500, 0.3, 0.2);
-                };
-
-                const playLevelUpSound = () => {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    if (!audioContext) return;
+            const playWarningSound = () => {
+                if (isMuted) return;
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioContext) return;
+                function beep(frequency, startTime, duration) {
                     const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    oscillator.type = 'square';
-                    oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.8);
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.8);
-                };
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                    oscillator.connect(audioContext.destination);
+                    oscillator.start(audioContext.currentTime + startTime);
+                    oscillator.stop(audioContext.currentTime + startTime + duration);
+                }
+                beep(1500, 0, 0.2);
+                beep(1500, 0.3, 0.2);
+            };
 
-                const updateChipAvailability = () => {
-                    const rebuysAllowed = timerState.currentLevel < 8;
-                    document.body.classList.toggle('rebuys-disabled', !rebuysAllowed);
-                };
+            const playLevelUpSound = () => {
+                if (isMuted) return;
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.8);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.8);
+            };
 
-                const updateTimerDisplay = () => {
-                    const minutes = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
-                    const seconds = (timerState.timeLeft % 60).toString().padStart(2, '0');
-                    timerDisplay.textContent = `${minutes}:${seconds}`;
-                    const currentLevelInfo = blindLevels[timerState.currentLevel];
-                    if (currentLevelInfo && currentLevelInfo.isBreak) {
-                        currentBlindsDisplay.textContent = "PAUSA";
-                        blindsNote.textContent = currentLevelInfo.note || '';
-                    } else {
-                        currentBlindsDisplay.textContent = currentLevelInfo ? currentLevelInfo.blinds : '--/--';
-                        blindsNote.textContent = currentLevelInfo?.note || '';
+            muteBtn.addEventListener('click', () => {
+                isMuted = !isMuted;
+                localStorage.setItem('pokerMuted', isMuted);
+                updateMuteButton();
+            });
+            
+
+            // --- LÓGICA DO TEMPORIZADOR DE BLINDS (SINCRONIZADO) ---
+            const updateChipAvailability = () => {
+                const rebuysAllowed = timerState.currentLevel < 8;
+                document.body.classList.toggle('rebuys-disabled', !rebuysAllowed);
+            };
+
+            const updateTimerDisplay = () => {
+                const minutes = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timerState.timeLeft % 60).toString().padStart(2, '0');
+                timerDisplay.textContent = `${minutes}:${seconds}`;
+                const currentLevelInfo = blindLevels[timerState.currentLevel];
+                if (currentLevelInfo && currentLevelInfo.isBreak) {
+                    currentBlindsDisplay.textContent = "PAUSA";
+                    blindsNote.textContent = currentLevelInfo.note || '';
+                } else {
+                    currentBlindsDisplay.textContent = currentLevelInfo ? currentLevelInfo.blinds : '--/--';
+                    blindsNote.textContent = currentLevelInfo?.note || '';
+                }
+                let nextBlindLevel = blindLevels.find((level, index) => index > timerState.currentLevel && !level.isBreak);
+                nextBlindsDisplay.textContent = nextBlindLevel ? nextBlindLevel.blinds : 'Fim';
+                levelIndicator.textContent = `(Nível ${timerState.currentLevel + 1}/${blindLevels.length})`;
+                prevLevelBtn.disabled = timerState.currentLevel === 0;
+                nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1;
+                updateChipAvailability();
+            };
+
+            const runLocalTimer = () => {
+                if (timerState.timeLeft > 0) {
+                    timerState.timeLeft--;
+                    updateTimerDisplay();
+                    if (timerState.timeLeft === 60) {
+                        playWarningSound();
                     }
-                    let nextBlindLevel = null;
-                    for (let i = timerState.currentLevel + 1; i < blindLevels.length; i++) {
-                        if (!blindLevels[i].isBreak) {
-                            nextBlindLevel = blindLevels[i];
-                            break;
-                        }
-                    }
-                    nextBlindsDisplay.textContent = nextBlindLevel ? nextBlindLevel.blinds : 'Fim';
-                    levelIndicator.textContent = `(Nível ${timerState.currentLevel + 1}/${blindLevels.length})`;
-                    prevLevelBtn.disabled = timerState.currentLevel === 0;
-                    nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1;
-                    updateChipAvailability();
-                };
-
-                // Funções que interagem com o timer local
-                const runLocalTimer = () => {
-                    if (timerState.timeLeft > 0) {
-                        timerState.timeLeft--;
-                        updateTimerDisplay();
-                        if (timerState.timeLeft === 60) {
-                            playWarningSound();
-                        }
-                    } else {
+                } else {
+                    // Apenas o admin deve poder avançar o nível para evitar condições de corrida
+                    if(sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
                         nextLevel();
                     }
+                }
+            };
+
+            const stopLocalTimer = () => {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            };
+
+            const saveTimerStateToFirebase = async (state) => {
+                const stateToSave = { ...state, lastUpdateTime: state.isRunning ? serverTimestamp() : null };
+                await setDoc(timerStateDocRef, stateToSave, { merge: true });
+            };
+
+            const startTimer = () => {
+                if (timerState.isRunning) return;
+                timerState.isRunning = true;
+                saveTimerStateToFirebase(timerState);
+            };
+
+            const pauseTimer = () => {
+                if (!timerState.isRunning) return;
+                timerState.isRunning = false;
+                saveTimerStateToFirebase(timerState);
+            };
+            
+            const setLevel = (levelIndex) => {
+                const newLevelInfo = blindLevels[levelIndex];
+                const duration = newLevelInfo.isBreak ? newLevelInfo.duration : parseInt(levelDurationInput.value);
+                timerState = {
+                    currentLevel: levelIndex,
+                    timeLeft: duration * 60,
+                    isRunning: timerState.isRunning
                 };
+                saveTimerStateToFirebase(timerState);
+            };
 
-                const stopLocalTimer = () => {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                };
-
-                // Funções de controle do timer que salvam o estado no Firebase
-                const saveTimerStateToFirebase = async (state) => {
-                    const stateToSave = {
-                        ...state,
-                        lastUpdateTime: state.isRunning ? serverTimestamp() : null
-                    };
-                    await setDoc(doc(db, 'pokerGame', 'timerState'), stateToSave, { merge: true });
-                };
-
-                const startTimer = () => {
-                    if (timerState.isRunning) return;
-                    timerState.isRunning = true;
-                    saveTimerStateToFirebase(timerState);
-                };
-
-                const pauseTimer = () => {
-                    if (!timerState.isRunning) return;
-                    timerState.isRunning = false;
-                    saveTimerStateToFirebase(timerState);
-                };
-                
-                const setLevel = (levelIndex) => {
-                    const newLevelInfo = blindLevels[levelIndex];
-                    const duration = newLevelInfo.isBreak ? newLevelInfo.duration : parseInt(levelDurationInput.value);
-                    timerState = {
-                        currentLevel: levelIndex,
-                        timeLeft: duration * 60,
-                        isRunning: timerState.isRunning
-                    };
-                    saveTimerStateToFirebase(timerState);
-                };
-
-                const nextLevel = () => {
-                    playLevelUpSound();
-                    if (timerState.currentLevel < blindLevels.length - 1) {
-                        setLevel(timerState.currentLevel + 1);
-                    } else {
-                        pauseTimer();
-                    }
-                };
-                
-                const prevLevel = () => {
-                    if (timerState.currentLevel > 0) {
-                        setLevel(timerState.currentLevel - 1);
-                    }
-                };
-
-                const resetTimer = () => {
-                    pauseTimer();
-                    setLevel(0);
-                };
-
-                // Ouvinte de eventos do Firebase para o timer
-                const timerDocRef = doc(db, 'pokerGame', 'timerState');
-                onSnapshot(timerDocRef, (docSnapshot) => {
-                    if (docSnapshot.exists()) {
-                        const latestState = docSnapshot.data();
-                        
-                        if (latestState.isRunning) {
-                            const now = Date.now();
-                            const lastUpdate = latestState.lastUpdateTime?.toMillis() || now;
-                            const timeElapsed = Math.floor((now - lastUpdate) / 1000);
-                            const newTimeLeft = Math.max(0, latestState.timeLeft - timeElapsed);
-
-                            timerState = { ...latestState, timeLeft: newTimeLeft };
-                            
-                            if (timerState.timeLeft <= 0) {
-                                // O timer no Firestore já está em 0, a próxima ação (nextLevel) deve ser gerenciada por um único cliente
-                                // para evitar que múltiplos clientes tentem avançar de nível ao mesmo tempo.
-                                if (timerState.currentLevel < blindLevels.length - 1) {
-                                    // Adiciona um pequeno delay para evitar conflitos de gravação
-                                    setTimeout(() => {
-                                        if (latestState.currentLevel === timerState.currentLevel) {
-                                            nextLevel();
-                                        }
-                                    }, 1000); 
-                                } else {
-                                    // Fim do jogo
-                                    timerState.isRunning = false;
-                                    stopLocalTimer();
-                                }
-                            }
-
-                            if (!timerInterval) {
-                                timerInterval = setInterval(runLocalTimer, 1000);
-                                timerControlButton.textContent = 'Pausar';
-                                timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
-                                timerControlButton.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
-                            }
-                        } else {
-                            timerState = latestState;
-                            stopLocalTimer();
-                            timerControlButton.textContent = 'Iniciar';
-                            timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
-                            timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
-                        }
-                    } else {
-                        // Inicializa o estado se o documento não existir
-                        setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
-                    }
-                    updateTimerDisplay();
-                }, (error) => {
-                    console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
-                });
-                
-                timerControlButton.addEventListener('click', () => {
-                    if (timerState.isRunning) {
-                        pauseTimer();
-                    } else {
-                        startTimer();
-                    }
-                });
-                
-                resetTimerButton.addEventListener('click', resetTimer);
-                prevLevelBtn.addEventListener('click', prevLevel);
-                nextLevelBtn.addEventListener('click', nextLevel);
-                levelDurationInput.addEventListener('change', () => {
-                    if (!timerState.isRunning) {
-                        const newLevelInfo = blindLevels[timerState.currentLevel];
-                        if(!newLevelInfo.isBreak) {
-                            timerState.timeLeft = parseInt(levelDurationInput.value) * 60;
-                            updateTimerDisplay();
-                            saveTimerStateToFirebase(timerState);
-                        }
-                    }
-                });
-
-                // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
-                const createPlayerRow = (player) => {
-                    const tr = document.createElement('tr');
-                    tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
-                    
-                    let rebuyCheckboxes = '';
-                    for(let i = 0; i < 10; i++) {
-                        const isChecked = player.rebuysChecked && player.rebuysChecked[i];
-                        rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center">
-                            <label class="chip-label">
-                                <input type="checkbox" class="chip-checkbox rebuy-cb" ${isChecked ? 'checked' : ''}>
-                                <span class="chip"></span>
-                            </label>
-                        </td>`;
-                    }
-                    tr.innerHTML = `
-                        <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <input type="text" placeholder="Nome do Jogador" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none focus:ring-1 focus:ring-yellow-500">
-                        </td>
-                        <td class="px-1 sm:px-2 py-3 text-center">
-                            <label class="chip-label">
-                                <input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}>
-                                <span class="chip"></span>
-                            </label>
-                        </td>
-                        ${rebuyCheckboxes}
-                        <td class="px-1 sm:px-2 py-3 text-center">
-                            <label class="chip-label">
-                                <input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}>
-                                <span class="chip"></span>
-                            </label>
-                        </td>
-                        <td class="player-total px-2 sm:px-4 py-3 text-right font-medium text-gray-300 whitespace-nowrap">R$ 0,00</td>
-                        <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
-                            <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500 transition-colors" title="Eliminar Jogador">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg>
-                            </button>
-                            <button class="delete-player-btn text-gray-400 hover:text-red-500 transition-colors" title="Remover da Lista">
-                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
-                            </button>
-                        </td>
-                    `;
-                    if(player.eliminated) {
-                        tr.classList.add('eliminated');
-                        tr.querySelectorAll('input').forEach(i => i.disabled = true);
-                    }
-                    playerTableBody.appendChild(tr);
-                };
-
-                const createPrizeField = (place, value = 0) => {
-                    const prizeItem = document.createElement('div');
-                    prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
-                    let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
-                    prizeItem.innerHTML = `
-                        <label class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</label>
-                        <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
-                        <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
-                        ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
-                    `;
-                    prizeGrid.appendChild(prizeItem);
-                };
-                
-                const updatePublicPrizes = (grandTotal) => {
-                    publicPrizeGrid.innerHTML = '';
-                    document.querySelectorAll('.prize-item').forEach((item, index) => {
-                        const place = index + 1;
-                        const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
-                        const value = ((grandTotal * percent) / 100).toFixed(2);
-                        let color = place === 1 ? 'text-yellow-300' : place === 3 ? 'text-orange-400' : 'text-gray-300';
-
-                        const prizeDiv = document.createElement('div');
-                        prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
-                        prizeDiv.innerHTML = `
-                            <p class="block text-sm font-medium text-gray-300 uppercase">${place}º Lugar</p>
-                            <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
-                        `;
-                        publicPrizeGrid.appendChild(prizeDiv);
-                    });
-                };
-
-                const saveData = async () => {
-                    if(isUpdatingFromFirebase) return;
-
-                    let currentPlayersData = [];
-                    document.querySelectorAll('.player-row').forEach((row) => {
-                        const name = row.querySelector('.player-name').value;
-                        const buyInChecked = row.querySelector('.buy-in-cb').checked;
-                        const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
-                        const addOnChecked = row.querySelector('.add-on-cb').checked;
-                        const eliminated = row.classList.contains('eliminated');
-                        currentPlayersData.push({ name, buyInChecked, rebuysChecked, addOnChecked, eliminated });
-                    });
-                    playersData = currentPlayersData;
-                    
-                    try {
-                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                        await setDoc(gameDocRef, { players: playersData });
-                    } catch (error) {
-                        console.error("Erro ao salvar dados: ", error);
-                    }
-
-                    const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
-                    localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
-                };
-
-                const calculateTotals = () => {
-                    let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
-                    
-                    playersData.forEach(player => {
-                        if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
-                        if (player.rebuysChecked) {
-                            const rebuysCount = player.rebuysChecked.filter(Boolean).length;
-                            grandTotal += rebuysCount * ACTION_VALUE;
-                            totalRebuys += rebuysCount;
-                        }
-                        if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
-                    });
-
-                    document.getElementById('total-buy-ins').textContent = totalBuyIns;
-                    document.getElementById('total-rebuys').textContent = totalRebuys;
-                    document.getElementById('total-add-ons').textContent = totalAddOns;
-                    document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
-                    
-                    const activePlayers = playersData.filter(p => !p.eliminated).length;
-                    document.getElementById('total-players-summary').textContent = activePlayers;
-                    document.getElementById('total-buyins-summary').textContent = totalBuyIns;
-                    document.getElementById('total-rebuys-summary').textContent = totalRebuys;
-                    document.getElementById('total-addons-summary').textContent = totalAddOns;
-                    
-                    let totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
-                    percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
-
-                    document.querySelectorAll('.prize-item').forEach(item => {
-                        const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
-                        item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
-                    });
-                    
-                    updatePublicPrizes(grandTotal);
-                };
-                
-                const openModal = (text, onConfirm) => {
-                    modalText.textContent = text;
-                    confirmCallback = onConfirm;
-                    modal.classList.remove('hidden');
-                };
-                const closeModal = () => {
-                    modal.classList.add('hidden');
-                    confirmCallback = null;
-                };
-
-                const openPasswordModal = () => {
-                    passwordInputModal.value = '';
-                    passwordErrorModal.textContent = '';
-                    passwordModal.classList.remove('hidden');
-                    passwordInputModal.focus();
-                };
-                const closePasswordModal = () => {
-                    passwordModal.classList.add('hidden');
-                };
-
-                const loadData = () => {
-                    const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                    onSnapshot(gameDocRef, (docSnapshot) => {
-                        isUpdatingFromFirebase = true;
-                        if (docSnapshot.exists() && docSnapshot.data().players) {
-                            playersData = docSnapshot.data().players;
-                        } else {
-                            playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
-                        }
-                        
-                        playerTableBody.innerHTML = '';
-                        playersData.forEach(p => createPlayerRow(p));
-                        
-                        calculateTotals();
-                        isUpdatingFromFirebase = false;
-                    }, (error) => {
-                        console.error("ERRO DETALHADO AO OUVIR DADOS (onSnapshot):", error);
-                    });
-
-                    prizeGrid.innerHTML = '';
-                    const savedPrizeData = localStorage.getItem('pokerPrizeData');
-                    const prizesToLoad = savedPrizeData ? JSON.parse(savedPrizeData) : initialPrizes;
-                    prizesToLoad.forEach((value, index) => createPrizeField(index + 1, value));
-                };
-
-                const resetGame = () => {
-                    closePasswordModal();
-                    openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
-                        
-                        const gameDocRef = doc(db, 'pokerGame', 'gameState');
-                        await setDoc(gameDocRef, { players: resetPlayers });
-                        
-                        // Resetar o timer no Firebase
-                        const timerDocRef = doc(db, 'pokerGame', 'timerState');
-                        await setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
-
-                        localStorage.removeItem('pokerPrizeData');
-                        
-                        loadData();
-                        closeModal();
-                    });
-                };
-
-                resetGameBtn.addEventListener('click', openPasswordModal);
-                
-                passwordConfirmBtn.addEventListener('click', () => {
-                    if (passwordInputModal.value === CORRECT_PASSWORD) {
-                        resetGame();
-                    } else {
-                        passwordErrorModal.textContent = 'Palavra-passe incorreta.';
-                        passwordInputModal.value = '';
-                        passwordInputModal.focus();
-                    }
-                });
-
-                passwordCancelBtn.addEventListener('click', closePasswordModal);
-                passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
-
-                addPlayerBtn.addEventListener('click', () => {
-                    const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
-                    playersData.push(newPlayer);
-                    saveData();
-                });
-
-                playerTableBody.addEventListener('click', (event) => {
-                    const row = event.target.closest('.player-row');
-                    if (!row) return;
-                    const rowIndex = Array.from(playerTableBody.children).indexOf(row);
-
-                    if(event.target.closest('.delete-player-btn')) {
-                        const playerName = playersData[rowIndex].name || 'Jogador sem nome';
-                        openModal(`Deseja remover ${playerName} da lista?`, () => {
-                            playersData.splice(rowIndex, 1);
-                            saveData();
-                            closeModal();
-                        });
-                    } else if(event.target.closest('.eliminate-player-btn')) {
-                        const player = playersData[rowIndex];
-                        player.eliminated = !player.eliminated;
-                        saveData();
-                    }
-                });
-
-                mainContent.addEventListener('input', (e) => {
-                    if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
-                        saveData();
-                    }
-                });
-                
-                addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
-                prizeGrid.addEventListener('click', (event) => {
-                    const removeBtn = event.target.closest('.remove-prize-btn');
-                    if (removeBtn) {
-                        removeBtn.closest('.prize-item').remove();
-                        prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
-                            label.textContent = `${index + 1}º Lugar`;
-                        });
-                        saveData();
-                    }
-                });
-
-                modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); });
-                modalCancelBtn.addEventListener('click', closeModal);
-                modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-                
-                window.addEventListener('beforeunload', () => {
-                    // Remove a lógica de salvar o timer do localStorage
-                });
-
-                // Initial Load Logic
-                if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
-                    showLoggedInState();
+            const nextLevel = () => {
+                playLevelUpSound();
+                if (timerState.currentLevel < blindLevels.length - 1) {
+                    setLevel(timerState.currentLevel + 1);
                 } else {
-                    showLoggedOutState();
+                    pauseTimer();
+                }
+            };
+            
+            const prevLevel = () => { if (timerState.currentLevel > 0) setLevel(timerState.currentLevel - 1); };
+            const resetTimer = () => { pauseTimer(); setLevel(0); };
+
+            onSnapshot(timerStateDocRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const latestState = docSnapshot.data();
+                    
+                    if (latestState.isRunning) {
+                        const now = Date.now();
+                        const lastUpdate = latestState.lastUpdateTime?.toMillis() || now;
+                        const timeElapsed = Math.floor((now - lastUpdate) / 1000);
+                        const newTimeLeft = Math.max(0, latestState.timeLeft - timeElapsed);
+                        timerState = { ...latestState, timeLeft: newTimeLeft };
+                        
+                        if (!timerInterval) {
+                            timerInterval = setInterval(runLocalTimer, 1000);
+                            timerControlButton.textContent = 'Pausar';
+                            timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
+                            timerControlButton.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
+                        }
+                    } else {
+                        timerState = latestState;
+                        stopLocalTimer();
+                        timerControlButton.textContent = 'Iniciar';
+                        timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
+                        timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
+                    }
+                } else {
+                    setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+                }
+                updateTimerDisplay();
+            }, (error) => console.error("Erro ao ouvir dados do timer:", error));
+            
+            timerControlButton.addEventListener('click', () => timerState.isRunning ? pauseTimer() : startTimer());
+            resetTimerButton.addEventListener('click', resetTimer);
+            prevLevelBtn.addEventListener('click', prevLevel);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            levelDurationInput.addEventListener('change', () => {
+                if (!timerState.isRunning) {
+                    const newLevelInfo = blindLevels[timerState.currentLevel];
+                    if(!newLevelInfo.isBreak) {
+                        timerState.timeLeft = parseInt(levelDurationInput.value) * 60;
+                        updateTimerDisplay();
+                        saveTimerStateToFirebase(timerState);
+                    }
+                }
+            });
+
+
+            // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
+            const createPlayerRow = (player, rank) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
+                
+                let rebuyCheckboxes = '';
+                for(let i = 0; i < 10; i++) {
+                    const isChecked = player.rebuysChecked && player.rebuysChecked[i];
+                    rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center">
+                        <label class="chip-label">
+                            <input type="checkbox" class="chip-checkbox rebuy-cb" ${isChecked ? 'checked' : ''}>
+                            <span class="chip"></span>
+                        </label>
+                    </td>`;
+                }
+                tr.innerHTML = `
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap flex items-center">
+                        ${player.eliminated && rank ? `<span class="elimination-rank">${rank}º</span>` : ''}
+                        <input type="text" placeholder="Nome do Jogador" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                    </td>
+                    <td class="px-1 sm:px-2 py-3 text-center">
+                        <label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label>
+                    </td>
+                    ${rebuyCheckboxes}
+                    <td class="px-1 sm:px-2 py-3 text-center">
+                        <label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label>
+                    </td>
+                    <td class="player-total px-2 sm:px-4 py-3 text-right font-medium text-gray-300 whitespace-nowrap">R$ 0,00</td>
+                    <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
+                        <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500 transition-colors" title="${player.eliminated ? 'Restaurar Jogador' : 'Eliminar Jogador'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg>
+                        </button>
+                        <button class="delete-player-btn text-gray-400 hover:text-red-500 transition-colors" title="Remover da Lista">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
+                        </button>
+                    </td>
+                `;
+                if(player.eliminated) {
+                    tr.classList.add('eliminated');
+                    tr.querySelectorAll('input').forEach(i => i.disabled = true);
+                }
+                playerTableBody.appendChild(tr);
+            };
+
+            const createPrizeField = (place, value = 0) => {
+                const prizeItem = document.createElement('div');
+                prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
+                let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
+                prizeItem.innerHTML = `
+                    <label class="block text-sm font-medium uppercase">${place}º Lugar</label>
+                    <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
+                    <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
+                    ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
+                `;
+                prizeGrid.appendChild(prizeItem);
+            };
+            
+            const updatePublicPrizes = (grandTotal) => {
+                publicPrizeGrid.innerHTML = '';
+                const prizeInputs = document.querySelectorAll('.prize-item');
+                if (prizeInputs.length === 0) {
+                    publicPrizeGrid.innerHTML = '<p class="col-span-full text-gray-400">Premiação não definida.</p>';
+                    return;
+                }
+                prizeInputs.forEach((item, index) => {
+                    const place = index + 1;
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    const value = ((grandTotal * percent) / 100).toFixed(2);
+                    let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
+                    const prizeDiv = document.createElement('div');
+                    prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
+                    prizeDiv.innerHTML = `
+                        <p class="block text-sm font-medium uppercase">${place}º Lugar</p>
+                        <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
+                    `;
+                    publicPrizeGrid.appendChild(prizeDiv);
+                });
+            };
+
+            const savePrizeDataToFirebase = async () => {
+                const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => parseFloat(input.value) || 0);
+                await setDoc(prizeConfigDocRef, { percentages: prizePercentages });
+            };
+
+            const saveData = async () => {
+                if(isUpdatingFromFirebase) return;
+                
+                let currentPlayersData = [];
+                document.querySelectorAll('.player-row').forEach((row, index) => {
+                    const name = row.querySelector('.player-name').value;
+                    const buyInChecked = row.querySelector('.buy-in-cb').checked;
+                    const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
+                    const addOnChecked = row.querySelector('.add-on-cb').checked;
+                    
+                    const existingData = playersData[index] || {};
+                    currentPlayersData.push({ 
+                        ...existingData,
+                        name, buyInChecked, rebuysChecked, addOnChecked,
+                        eliminated: row.classList.contains('eliminated')
+                    });
+                });
+                
+                try {
+                    await setDoc(gameStateDocRef, { players: currentPlayersData });
+                    await savePrizeDataToFirebase();
+                } catch (error) {
+                    console.error("Erro ao salvar dados: ", error);
+                }
+            };
+            
+            const calculateAndRenderStandings = () => {
+                const eliminatedPlayers = playersData
+                    .map((p, index) => ({...p, originalIndex: index})) // Manter o índice original
+                    .filter(p => p.eliminated && p.eliminationTimestamp);
+
+                if (eliminatedPlayers.length === 0) {
+                    standingsList.innerHTML = '<li class="text-gray-400">Nenhum jogador eliminado ainda.</li>';
+                    finalStandingsSection.classList.add('hidden');
+                    return;
                 }
                 
-                loadData();
+                finalStandingsSection.classList.remove('hidden');
+                
+                eliminatedPlayers.sort((a, b) => a.eliminationTimestamp.toMillis() - b.eliminationTimestamp.toMillis());
+                
+                standingsList.innerHTML = '';
+                const totalPlayers = playersData.length;
+                eliminatedPlayers.forEach((player, index) => {
+                    const rank = totalPlayers - index;
+                    const li = document.createElement('li');
+                    li.className = 'text-lg';
+                    li.innerHTML = `<span class="font-bold">${rank}º</span> - ${player.name}`;
+                    standingsList.appendChild(li);
+                });
+            };
+
+            const calculateTotals = () => {
+                let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
+                
+                playersData.forEach(player => {
+                    if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
+                    if (player.rebuysChecked) {
+                        const rebuysCount = player.rebuysChecked.filter(Boolean).length;
+                        grandTotal += rebuysCount * ACTION_VALUE;
+                        totalRebuys += rebuysCount;
+                    }
+                    if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
+                });
+
+                document.getElementById('total-buy-ins').textContent = totalBuyIns;
+                document.getElementById('total-rebuys').textContent = totalRebuys;
+                document.getElementById('total-add-ons').textContent = totalAddOns;
+                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+                
+                const activePlayers = playersData.filter(p => !p.eliminated).length;
+                document.getElementById('total-players-summary').textContent = activePlayers;
+                document.getElementById('total-buyins-summary').textContent = totalBuyIns;
+                document.getElementById('total-rebuys-summary').textContent = totalRebuys;
+                document.getElementById('total-addons-summary').textContent = totalAddOns;
+                
+                let totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+
+                document.querySelectorAll('.prize-item').forEach(item => {
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
+                });
+                
+                updatePublicPrizes(grandTotal);
+                calculateAndRenderStandings();
+            };
+
+            const openModal = (text, onConfirm) => {
+                modalText.textContent = text;
+                confirmCallback = onConfirm;
+                modal.classList.remove('hidden');
+            };
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                confirmCallback = null;
+            };
+
+            const openPasswordModal = () => {
+                passwordInputModal.value = '';
+                passwordErrorModal.textContent = '';
+                passwordModal.classList.remove('hidden');
+                passwordInputModal.focus();
+            };
+            const closePasswordModal = () => passwordModal.classList.add('hidden');
+
+            const loadData = () => {
+                // Ouvinte para os dados do jogo (jogadores)
+                onSnapshot(gameStateDocRef, (docSnapshot) => {
+                    isUpdatingFromFirebase = true;
+                    if (docSnapshot.exists() && docSnapshot.data().players) {
+                        playersData = docSnapshot.data().players;
+                    } else {
+                        playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                    }
+                    
+                    playerTableBody.innerHTML = '';
+                    const eliminatedSorted = playersData
+                        .map((p, index) => ({ ...p, originalIndex: index }))
+                        .filter(p => p.eliminated && p.eliminationTimestamp)
+                        .sort((a, b) => a.eliminationTimestamp.toMillis() - b.eliminationTimestamp.toMillis());
+
+                    const rankMap = new Map();
+                    eliminatedSorted.forEach((p, i) => {
+                        rankMap.set(p.originalIndex, playersData.length - i);
+                    });
+
+                    playersData.forEach((p, index) => createPlayerRow(p, rankMap.get(index)));
+                    
+                    calculateTotals();
+                    isUpdatingFromFirebase = false;
+                }, (error) => console.error("Erro ao ouvir dados do jogo:", error));
+
+                // Ouvinte para a configuração de prêmios
+                onSnapshot(prizeConfigDocRef, (docSnapshot) => {
+                    prizeGrid.innerHTML = '';
+                    const prizesToLoad = (docSnapshot.exists() && docSnapshot.data().percentages) ? docSnapshot.data().percentages : initialPrizes;
+                    prizesToLoad.forEach((value, index) => createPrizeField(index + 1, value));
+                    calculateTotals(); // Recalcular totais com os novos percentuais
+                }, (error) => console.error("Erro ao ouvir dados de premiação:", error));
+            };
+
+            const resetGame = () => {
+                closePasswordModal();
+                openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
+                    const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                    
+                    await setDoc(gameStateDocRef, { players: resetPlayers });
+                    await setDoc(prizeConfigDocRef, { percentages: initialPrizes });
+                    await setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+                    
+                    loadData(); // Re-carrega os dados iniciais
+                    closeModal();
+                });
+            };
+
+            resetGameBtn.addEventListener('click', openPasswordModal);
+            
+            passwordConfirmBtn.addEventListener('click', () => {
+                if (passwordInputModal.value === CORRECT_PASSWORD) {
+                    resetGame();
+                } else {
+                    passwordErrorModal.textContent = 'Palavra-passe incorreta.';
+                    passwordInputModal.value = '';
+                    passwordInputModal.focus();
+                }
+            });
+
+            passwordCancelBtn.addEventListener('click', closePasswordModal);
+            passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
+
+            addPlayerBtn.addEventListener('click', () => {
+                const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
+                playersData.push(newPlayer);
+                saveData();
+            });
+
+            playerTableBody.addEventListener('click', (event) => {
+                const row = event.target.closest('.player-row');
+                if (!row) return;
+                const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+                const player = playersData[rowIndex];
+
+                if(event.target.closest('.delete-player-btn')) {
+                    const playerName = player.name || 'Jogador sem nome';
+                    openModal(`Deseja remover ${playerName} da lista?`, () => {
+                        playersData.splice(rowIndex, 1);
+                        saveData();
+                        closeModal();
+                    });
+                } else if(event.target.closest('.eliminate-player-btn')) {
+                    player.eliminated = !player.eliminated;
+                    player.eliminationTimestamp = player.eliminated ? serverTimestamp() : null;
+                    saveData();
+                }
+            });
+
+            mainContent.addEventListener('input', (e) => {
+                if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
+                    // Adiciona um pequeno delay para evitar salvar a cada dígito digitado
+                    setTimeout(() => saveData(), 500);
+                }
+            });
+            
+            addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
+            prizeGrid.addEventListener('click', (event) => {
+                const removeBtn = event.target.closest('.remove-prize-btn');
+                if (removeBtn) {
+                    removeBtn.closest('.prize-item').remove();
+                    prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
+                        label.textContent = `${index + 1}º Lugar`;
+                    });
+                    saveData();
+                }
+            });
+
+            modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); });
+            modalCancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+            
+            // --- LÓGICA DE CARREGAMENTO INICIAL ---
+            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
+                showLoggedInState();
+            } else {
+                showLoggedOutState();
             }
-        });
+            updateMuteButton();
+            loadData();
+        };
     </script>
 </body>
 </html>
