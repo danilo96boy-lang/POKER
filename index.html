@@ -127,6 +127,11 @@
             background-color: #4A5568 !important;
             opacity: 0.5;
         }
+        /* Regra CSS Adicionada */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         @media (max-width: 640px) {
             .chip { height: 24px; width: 24px; }
             .chip::before { height: 16px; width: 16px; }
@@ -564,17 +569,13 @@
                             timerState = { ...latestState, timeLeft: newTimeLeft };
                             
                             if (timerState.timeLeft <= 0) {
-                                // O timer no Firestore já está em 0, a próxima ação (nextLevel) deve ser gerenciada por um único cliente
-                                // para evitar que múltiplos clientes tentem avançar de nível ao mesmo tempo.
                                 if (timerState.currentLevel < blindLevels.length - 1) {
-                                    // Adiciona um pequeno delay para evitar conflitos de gravação
                                     setTimeout(() => {
                                         if (latestState.currentLevel === timerState.currentLevel) {
                                             nextLevel();
                                         }
                                     }, 1000); 
                                 } else {
-                                    // Fim do jogo
                                     timerState.isRunning = false;
                                     stopLocalTimer();
                                 }
@@ -594,7 +595,6 @@
                             timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
                         }
                     } else {
-                        // Inicializa o estado se o documento não existir
                         setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
                     }
                     updateTimerDisplay();
@@ -666,9 +666,13 @@
                             </button>
                         </td>
                     `;
+                    // LÓGICA CORRIGIDA AQUI
                     if(player.eliminated) {
                         tr.classList.add('eliminated');
+                        // Desativa todos os inputs (checkboxes e nome)
                         tr.querySelectorAll('input').forEach(i => i.disabled = true);
+                        // Desativa APENAS o botão de remover (lixeira)
+                        tr.querySelector('.delete-player-btn').disabled = true;
                     }
                     playerTableBody.appendChild(tr);
                 };
@@ -817,7 +821,6 @@
                         const gameDocRef = doc(db, 'pokerGame', 'gameState');
                         await setDoc(gameDocRef, { players: resetPlayers });
                         
-                        // Resetar o timer no Firebase
                         const timerDocRef = doc(db, 'pokerGame', 'timerState');
                         await setDoc(timerDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
 
@@ -890,9 +893,7 @@
                 modalCancelBtn.addEventListener('click', closeModal);
                 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
                 
-                window.addEventListener('beforeunload', () => {
-                    // Remove a lógica de salvar o timer do localStorage
-                });
+                window.addEventListener('beforeunload', () => {});
 
                 // Initial Load Logic
                 if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
