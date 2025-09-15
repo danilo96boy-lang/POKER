@@ -395,6 +395,7 @@
             let playersData = [];
             let isUpdatingFromFirebase = false;
             let isMuted = localStorage.getItem('pokerMuted') === 'true';
+            let saveDataTimeout = null;
 
             // --- LÓGICA DE LOGIN E LOGOUT ---
             const openLoginModal = () => {
@@ -738,28 +739,13 @@
             };
 
             const saveData = async () => {
-                if(isUpdatingFromFirebase) return;
-                
-                let currentPlayersData = [];
-                document.querySelectorAll('.player-row').forEach((row, index) => {
-                    const name = row.querySelector('.player-name').value;
-                    const buyInChecked = row.querySelector('.buy-in-cb').checked;
-                    const rebuysChecked = Array.from(row.querySelectorAll('.rebuy-cb')).map(cb => cb.checked);
-                    const addOnChecked = row.querySelector('.add-on-cb').checked;
-                    
-                    const existingData = playersData[index] || {};
-                    currentPlayersData.push({ 
-                        ...existingData,
-                        name, buyInChecked, rebuysChecked, addOnChecked,
-                        eliminated: row.classList.contains('eliminated')
-                    });
-                });
-                
+                if (isUpdatingFromFirebase) return;
                 try {
-                    await setDoc(gameStateDocRef, { players: currentPlayersData });
-                    await savePrizeDataToFirebase();
+                    // Salva o estado atual da lista playersData diretamente
+                    await setDoc(gameStateDocRef, { players: playersData });
+                    console.log("Dados dos jogadores salvos com sucesso.");
                 } catch (error) {
-                    console.error("Erro ao salvar dados: ", error);
+                    console.error("Erro ao salvar dados dos jogadores: ", error);
                 }
             };
             
@@ -918,6 +904,8 @@
                 const row = event.target.closest('.player-row');
                 if (!row) return;
                 const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+                if (rowIndex === -1 || !playersData[rowIndex]) return;
+                
                 const player = playersData[rowIndex];
 
                 if(event.target.closest('.delete-player-btn')) {
@@ -935,13 +923,44 @@
             });
 
             mainContent.addEventListener('input', (e) => {
-                if (e.target.matches('.chip-checkbox, .player-name, .prize-percent-input')) {
-                    // Adiciona um pequeno delay para evitar salvar a cada dígito digitado
-                    setTimeout(() => saveData(), 500);
+                clearTimeout(saveDataTimeout);
+
+                if (e.target.matches('.prize-percent-input')) {
+                    saveDataTimeout = setTimeout(savePrizeDataToFirebase, 800);
+                    return;
                 }
+
+                const row = e.target.closest('.player-row');
+                if (!row) return;
+
+                const rowIndex = Array.from(playerTableBody.children).indexOf(row);
+                if (rowIndex === -1 || !playersData[rowIndex]) return;
+
+                const player = playersData[rowIndex];
+
+                if (e.target.matches('.player-name')) {
+                    player.name = e.target.value;
+                } else if (e.target.matches('.buy-in-cb')) {
+                    player.buyInChecked = e.target.checked;
+                } else if (e.target.matches('.add-on-cb')) {
+                    player.addOnChecked = e.target.checked;
+                } else if (e.target.matches('.rebuy-cb')) {
+                    const rebuyCheckboxes = Array.from(row.querySelectorAll('.rebuy-cb'));
+                    const rebuyIndex = rebuyCheckboxes.indexOf(e.target);
+                    if (rebuyIndex !== -1) {
+                        player.rebuysChecked[rebuyIndex] = e.target.checked;
+                    }
+                }
+                
+                saveDataTimeout = setTimeout(saveData, 800);
             });
             
-            addPrizeBtn.addEventListener('click', () => createPrizeField(prizeGrid.children.length + 1));
+            addPrizeBtn.addEventListener('click', () => {
+                createPrizeField(prizeGrid.children.length + 1);
+                // Salva a nova estrutura de prêmios (com o novo campo zerado)
+                savePrizeDataToFirebase();
+            });
+
             prizeGrid.addEventListener('click', (event) => {
                 const removeBtn = event.target.closest('.remove-prize-btn');
                 if (removeBtn) {
@@ -949,7 +968,7 @@
                     prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
                         label.textContent = `${index + 1}º LUGAR`;
                     });
-                    saveData();
+                    savePrizeDataToFirebase();
                 }
             });
 
