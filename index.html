@@ -38,7 +38,6 @@
                     window.serverTimestamp = serverTimestamp;
                 })
                 .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO DO FIREBASE:", error));
-
         } catch (error) {
             console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
         }
@@ -72,8 +71,8 @@
                 <span class="text-red-500">♦</span> POKER ON JACK TALL BACK <span class="text-red-500">♥</span>
             </h1>
             <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
-            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">Admin</button>
-            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">Sair</button>
+            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg" title="Login Admin">Admin</button>
+            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg hidden" title="Sair">Sair</button>
         </header>
 
         <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
@@ -97,28 +96,28 @@
             <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-2">
                     <label for="level-duration" class="text-sm">Duração (min):</label>
-                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1">
                 </div>
                 <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Iniciar</button>
                 <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">Reiniciar</button>
             </div>
         </div>
-        
+
         <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Jogadores Ativos</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase">Jogadores Ativos</h3>
                 <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Buy-ins</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase">Total Buy-ins</h3>
                 <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Rebuys</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase">Total Rebuys</h3>
                 <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
             </div>
             <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">Total Add-ons</h3>
+                <h3 class="text-sm font-semibold text-yellow-300 uppercase">Total Add-ons</h3>
                 <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
             </div>
         </div>
@@ -159,21 +158,19 @@
                 </div>
             </div>
             <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
-            
             <div class="mt-8">
                 <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ Premiação ♣</h2>
-                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none" title="Adicionar Prêmio">+</button>
+                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center" title="Adicionar Prêmio">+</button>
                     </div>
                     <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center"></div>
                     <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
                 </div>
             </div>
-
             <div class="mt-8 flex justify-center gap-4">
-                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">Resetar Jogo</button>
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg">Adicionar Jogador</button>
+                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg">Resetar Jogo</button>
             </div>
         </div>
     </div>
@@ -182,35 +179,33 @@
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
             <h3 class="text-lg font-bold text-center mb-4">Acesso de Administrador</h3>
             <form id="login-form">
-                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border" required>
+                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3" required>
                 <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
                 <div class="flex justify-center gap-4">
-                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">Entrar</button>
+                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg">Entrar</button>
                 </div>
             </form>
         </div>
     </div>
-
     <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
             <p id="modal-text" class="text-center text-lg mb-6"></p>
             <div class="flex justify-center gap-4">
-                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Confirmar</button>
             </div>
         </div>
     </div>
-
     <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
         <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
             <h3 class="text-lg font-bold text-center mb-4">Confirmação de Ação</h3>
             <p class="text-center text-sm mb-4">Para continuar, insira a palavra-passe de administrador.</p>
-            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border">
+            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2">
             <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
             <div class="flex justify-center gap-4">
-                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Cancelar</button>
-                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">Confirmar</button>
+                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Confirmar</button>
             </div>
         </div>
     </div>
@@ -227,39 +222,28 @@
         const initializeAppLogic = () => {
             const { db, doc, onSnapshot, setDoc, serverTimestamp } = window;
 
-            // --- SELETORES DE ELEMENTOS (agrupados) ---
+            // --- SELETORES DE ELEMENTOS ---
             const UIElements = {
-                adminLoginBtn: document.getElementById('admin-login-btn'),
-                logoutBtn: document.getElementById('logout-btn'),
-                loginModal: document.getElementById('login-modal'),
-                loginForm: document.getElementById('login-form'),
-                passwordInput: document.getElementById('password'),
-                loginError: document.getElementById('login-error'),
-                loginCancelBtn: document.getElementById('login-cancel-btn'),
-                gameControls: document.getElementById('game-controls'),
-                publicPrizeSection: document.getElementById('public-prize-section'),
-                playerTableBody: document.getElementById('player-table-body'),
-                addPlayerBtn: document.getElementById('add-player-btn'),
-                resetGameBtn: document.getElementById('reset-game-btn'),
-                confirmationModal: document.getElementById('confirmation-modal'),
-                modalText: document.getElementById('modal-text'),
-                modalConfirmBtn: document.getElementById('modal-confirm-btn'),
-                modalCancelBtn: document.getElementById('modal-cancel-btn'),
-                passwordModal: document.getElementById('password-modal'),
-                passwordInputModal: document.getElementById('password-input-modal'),
-                passwordErrorModal: document.getElementById('password-error-modal'),
-                passwordConfirmBtn: document.getElementById('password-confirm-btn'),
-                passwordCancelBtn: document.getElementById('password-cancel-btn'),
-                prizeGrid: document.getElementById('prize-grid'),
-                addPrizeBtn: document.getElementById('add-prize-btn'),
-                percentageWarning: document.getElementById('percentage-warning'),
+                adminLoginBtn: document.getElementById('admin-login-btn'), logoutBtn: document.getElementById('logout-btn'),
+                loginModal: document.getElementById('login-modal'), loginForm: document.getElementById('login-form'),
+                passwordInput: document.getElementById('password'), loginError: document.getElementById('login-error'),
+                loginCancelBtn: document.getElementById('login-cancel-btn'), gameControls: document.getElementById('game-controls'),
+                publicPrizeSection: document.getElementById('public-prize-section'), playerTableBody: document.getElementById('player-table-body'),
+                addPlayerBtn: document.getElementById('add-player-btn'), resetGameBtn: document.getElementById('reset-game-btn'),
+                confirmationModal: document.getElementById('confirmation-modal'), modalText: document.getElementById('modal-text'),
+                modalConfirmBtn: document.getElementById('modal-confirm-btn'), modalCancelBtn: document.getElementById('modal-cancel-btn'),
+                passwordModal: document.getElementById('password-modal'), passwordInputModal: document.getElementById('password-input-modal'),
+                passwordErrorModal: document.getElementById('password-error-modal'), passwordConfirmBtn: document.getElementById('password-confirm-btn'),
+                passwordCancelBtn: document.getElementById('password-cancel-btn'), prizeGrid: document.getElementById('prize-grid'),
+                addPrizeBtn: document.getElementById('add-prize-btn'), percentageWarning: document.getElementById('percentage-warning'),
                 publicPrizeGrid: document.getElementById('public-prize-grid')
             };
 
             // --- CONSTANTES E ESTADO DO JOGO ---
             const CORRECT_PASSWORD = 'poker';
             const ACTION_VALUE = 30;
-            const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy"];
+            // ✅ Sinta-se à vontade para editar esta lista de jogadores!
+            const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Alexandre", "Lucas Costa", "Prado", "Rodrigo Boy", "Novo Jogador 1"];
             const initialPrizes = [50, 30, 20];
             
             let playersData = [];
@@ -269,8 +253,7 @@
 
             const gameDocRef = doc(db, 'pokerGame', 'gameState');
 
-            // --- FUNÇÕES DE RENDERIZAÇÃO E LÓGICA DE DADOS ---
-            
+            // --- FUNÇÕES DE RENDERIZAÇÃO E DADOS ---
             const renderAll = () => {
                 UIElements.playerTableBody.innerHTML = '';
                 playersData.forEach(p => createPlayerRow(p));
@@ -288,10 +271,7 @@
                 }
                 console.log(`%cSALVANDO DADOS PARA O JOGO ${currentGameId}...`, "color: blue;");
                 try {
-                    await setDoc(gameDocRef, { 
-                        gameId: currentGameId,
-                        players: playersData 
-                    });
+                    await setDoc(gameDocRef, { gameId: currentGameId, players: playersData });
                     const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => input.value);
                     localStorage.setItem('pokerPrizeData', JSON.stringify(prizePercentages));
                 } catch (error) {
@@ -299,13 +279,12 @@
                 }
             };
 
-            // ✅ FUNÇÃO DE RESET ATUALIZADA COM A LÓGICA DE gameId
             const resetGame = async () => {
                 currentGameId = `game_${Date.now()}`;
                 console.log(`%cRESETANDO JOGO. NOVO ID DO JOGO: ${currentGameId}`, "color: red; font-weight: bold;");
                 
                 playersData = initialPlayers.map(name => ({
-                    name: name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
+                    name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
                     addOnChecked: false, eliminated: false
                 }));
                 
@@ -315,22 +294,19 @@
                 
                 await saveData();
 
-                // Resetar o timer também
                 const timerDocRef = doc(db, 'pokerGame', 'timerState');
                 const durationInput = document.getElementById('level-duration');
-                const initialDuration = durationInput ? parseInt(durationInput.value) : 15;
+                const initialDuration = durationInput ? parseInt(durationInput.value, 10) : 15;
                 await setDoc(timerDocRef, { timeLeft: initialDuration * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
             };
 
             // --- LÓGICA DE LOGIN ---
-            // (Funções showLoggedInState, showLoggedOutState, openLoginModal, etc. permanecem as mesmas)
             const showLoggedInState = () => { UIElements.gameControls.classList.remove('hidden'); UIElements.publicPrizeSection.classList.add('hidden'); UIElements.logoutBtn.classList.remove('hidden'); UIElements.adminLoginBtn.classList.add('hidden'); };
             const showLoggedOutState = () => { sessionStorage.removeItem('pokerAppLoggedIn'); UIElements.gameControls.classList.add('hidden'); UIElements.logoutBtn.classList.add('hidden'); UIElements.adminLoginBtn.classList.remove('hidden'); UIElements.publicPrizeSection.classList.remove('hidden'); };
-            // ... (restante da lógica de login)
-
-            // --- FUNÇÕES DE UI (Criação de Linhas, Prêmios, Cálculos) ---
-            // (Todas as suas funções originais como createPlayerRow, calculateTotals, etc.)
+            const openLoginModal = () => { UIElements.passwordInput.value = ''; UIElements.loginError.textContent = ''; UIElements.loginModal.classList.remove('hidden'); UIElements.passwordInput.focus(); };
+            const closeLoginModal = () => UIElements.loginModal.classList.add('hidden');
             
+            // --- FUNÇÕES DE UI (Criação de Linhas, Prêmios, Cálculos) ---
             const createPlayerRow = (player) => {
                 const tr = document.createElement('tr');
                 tr.className = 'player-row hover:bg-yellow-400/10 transition-colors duration-150';
@@ -346,8 +322,8 @@
                     <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td>
                     <td class="player-total px-2 sm:px-4 py-3 text-right font-medium">R$ 0,00</td>
                     <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
-                        <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500" title="Eliminar/Restaurar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg></button>
-                        <button class="delete-player-btn text-gray-400 hover:text-red-500" title="Remover da Lista"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+                        <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500" title="Eliminar/Restaurar"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg></button>
+                        <button class="delete-player-btn text-gray-400 hover:text-red-500" title="Remover da Lista"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
                     </td>`;
                 if(player.eliminated) tr.classList.add('eliminated');
                 UIElements.playerTableBody.appendChild(tr);
@@ -357,99 +333,46 @@
             const loadPrizes = () => { /* Sua lógica para carregar os prêmios */ };
 
             // --- LISTENERS DE EVENTOS ---
-            UIElements.addPlayerBtn.addEventListener('click', () => {
-                if (isUpdatingFromFirebase) return;
-                playersData.push({ name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false });
-                renderAll();
-                saveData();
-            });
-            
+            UIElements.loginForm.addEventListener('submit', (e) => { e.preventDefault(); if (UIElements.passwordInput.value === CORRECT_PASSWORD) { sessionStorage.setItem('pokerAppLoggedIn', 'true'); showLoggedInState(); closeLoginModal(); } else { UIElements.loginError.textContent = 'Palavra-passe incorreta.'; } });
+            UIElements.logoutBtn.addEventListener('click', showLoggedOutState);
+            UIElements.adminLoginBtn.addEventListener('click', openLoginModal);
+            UIElements.loginCancelBtn.addEventListener('click', closeLoginModal);
+            UIElements.addPlayerBtn.addEventListener('click', () => { if (isUpdatingFromFirebase) return; playersData.push({ name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false }); renderAll(); saveData(); });
             UIElements.resetGameBtn.addEventListener('click', () => UIElements.passwordModal.classList.remove('hidden'));
-
-            UIElements.passwordConfirmBtn.addEventListener('click', () => {
-                if (UIElements.passwordInputModal.value === CORRECT_PASSWORD) {
-                    UIElements.passwordModal.classList.add('hidden');
-                    resetGame();
-                } else {
-                    UIElements.passwordErrorModal.textContent = 'Palavra-passe incorreta.';
-                }
-            });
-            
-            // Listener centralizado para a tabela
-            UIElements.playerTableBody.addEventListener('input', (e) => {
-                if (isUpdatingFromFirebase) return;
-                const row = e.target.closest('.player-row');
-                if (!row) return;
-                const rowIndex = Array.from(UIElements.playerTableBody.children).indexOf(row);
-                const player = playersData[rowIndex];
-                if (!player) return;
-
-                if (e.target.classList.contains('player-name')) player.name = e.target.value;
-                else if (e.target.classList.contains('buy-in-cb')) player.buyInChecked = e.target.checked;
-                else if (e.target.classList.contains('add-on-cb')) player.addOnChecked = e.target.checked;
-                else if (e.target.classList.contains('rebuy-cb')) {
-                    const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target);
-                    if (rebuyIndex !== -1) player.rebuysChecked[rebuyIndex] = e.target.checked;
-                }
-                
-                calculateTotals();
-                saveData();
-            });
-
-            UIElements.playerTableBody.addEventListener('click', (e) => {
-                if (isUpdatingFromFirebase) return;
-                const row = e.target.closest('.player-row');
-                if (!row) return;
-                const rowIndex = Array.from(UIElements.playerTableBody.children).indexOf(row);
-                const player = playersData[rowIndex];
-                if (!player) return;
-
-                if(e.target.closest('.eliminate-player-btn')) {
-                    player.eliminated = !player.eliminated;
-                } else if(e.target.closest('.delete-player-btn')) {
-                    playersData.splice(rowIndex, 1);
-                }
-                renderAll();
-                saveData();
-            });
-
+            UIElements.passwordCancelBtn.addEventListener('click', () => UIElements.passwordModal.classList.add('hidden'));
+            UIElements.passwordConfirmBtn.addEventListener('click', () => { if (UIElements.passwordInputModal.value === CORRECT_PASSWORD) { UIElements.passwordModal.classList.add('hidden'); UIElements.passwordInputModal.value = ''; resetGame(); } else { UIElements.passwordErrorModal.textContent = 'Palavra-passe incorreta.'; } });
+            UIElements.playerTableBody.addEventListener('input', (e) => { if (isUpdatingFromFirebase) return; const row = e.target.closest('.player-row'); if (!row) return; const rowIndex = Array.from(UIElements.playerTableBody.children).indexOf(row); const player = playersData[rowIndex]; if (!player) return; const target = e.target; if (target.classList.contains('player-name')) player.name = target.value; else if (target.classList.contains('buy-in-cb')) player.buyInChecked = target.checked; else if (target.classList.contains('add-on-cb')) player.addOnChecked = target.checked; else if (target.classList.contains('rebuy-cb')) { const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(target); if (rebuyIndex !== -1) player.rebuysChecked[rebuyIndex] = target.checked; } calculateTotals(); saveData(); });
+            UIElements.playerTableBody.addEventListener('click', (e) => { if (isUpdatingFromFirebase) return; const button = e.target.closest('button'); if (!button) return; const row = button.closest('.player-row'); if (!row) return; const rowIndex = Array.from(UIElements.playerTableBody.children).indexOf(row); const player = playersData[rowIndex]; if (!player) return; if (button.classList.contains('eliminate-player-btn')) player.eliminated = !player.eliminated; else if (button.classList.contains('delete-player-btn')) playersData.splice(rowIndex, 1); renderAll(); saveData(); });
+            // ... (Restante dos seus listeners para prêmios, modais de confirmação, timer, etc.)
 
             // --- INICIALIZAÇÃO E LISTENER PRINCIPAL DO FIREBASE ---
-            
-            // ✅ LISTENER PRINCIPAL ATUALIZADO COM A LÓGICA DE gameId
             onSnapshot(gameDocRef, (docSnapshot) => {
                 console.log("%cSNAPSHOT RECEBIDO!", "color: green;");
                 isUpdatingFromFirebase = true;
-
                 if (docSnapshot.exists() && docSnapshot.data().players) {
                     const data = docSnapshot.data();
                     if (currentGameId === null) {
                         currentGameId = data.gameId;
                         console.log(`Sincronizando com o jogo ID: ${currentGameId}`);
                     }
-
                     if (!data.gameId || data.gameId !== currentGameId) {
                         console.error(`DADOS INVÁLIDOS REJEITADOS! ID esperado: ${currentGameId}, ID recebido: ${data.gameId || 'NENHUM'}.`);
                         isUpdatingFromFirebase = false;
                         saveData();
                         return;
                     }
-
                     playersData = data.players;
                 } else {
                     console.log("Documento não existe. Criando novo jogo.");
-                    resetGame(); // A função já salva e renderiza
+                    resetGame();
                 }
-                
                 renderAll();
-
                 setTimeout(() => {
                     isUpdatingFromFirebase = false;
                     console.log("%cTrava liberada.", "color: gray;");
                 }, 500);
             });
             
-            // Carregar o estado de login
             if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
                 showLoggedInState();
             } else {
