@@ -272,8 +272,8 @@
             <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
             <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
             <div class="flex justify-center gap-4">
-                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
+                <button id="password-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
+                <button id="password-confirm-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
             </div>
         </div>
     </div>
@@ -342,7 +342,27 @@
             const playSound = (soundFunction) => { if (!isMuted) soundFunction(); };
             const playWarningSound = () => { const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (!ctx) return; const play = (time) => { const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1500, ctx.currentTime); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + time); o.stop(ctx.currentTime + time + 0.2); }; play(0); play(0.3); };
             const playCountdownBeep = () => { const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (!ctx) return; const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.2); };
-            const playLevelUpSound = () => { const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (!ctx) return; const g = ctx.createGain(); g.gain.setValueAtTime(0.4, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2); g.connect(ctx.destination); const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.setValueAtTime(800, ctx.currentTime); o1.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 1.2); o1.connect(g); o1.start(); o1.stop(ctx.currentTime + 1.2); const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.setValueAtTime(400, ctx.currentTime); o2.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.2); o2.connect(g); o2.start(); o2.stop(ctx.currentTime + 1.2); };
+            const playLevelUpSound = () => {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!ctx) return;
+                const createBeep = (startTime, freq) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(freq, ctx.currentTime);
+                    g.gain.setValueAtTime(0, ctx.currentTime + startTime);
+                    g.gain.linearRampToValueAtTime(0.4, ctx.currentTime + startTime + 0.02);
+                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + startTime + 0.15);
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.start(ctx.currentTime + startTime);
+                    o.stop(ctx.currentTime + startTime + 0.15);
+                };
+                createBeep(0, 1200);
+                createBeep(0.15, 1200);
+                createBeep(0.30, 1200);
+                createBeep(0.45, 1600);
+            };
             muteBtn.addEventListener('click', () => { isMuted = !isMuted; localStorage.setItem('pokerMuted', isMuted); updateMuteButton(); });
             
             // --- LÓGICA DO TEMPORIZADOR DE BLINDS ---
@@ -398,9 +418,20 @@
             const closeModal = () => { modal.classList.add('hidden'); confirmCallback = null; };
             const openPasswordModal = () => { passwordInputModal.value = ''; passwordErrorModal.textContent = ''; passwordModal.classList.remove('hidden'); passwordInputModal.focus(); };
             const closePasswordModal = () => passwordModal.classList.add('hidden');
-            const resetGame = () => { openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => { closePasswordModal(); await setDoc(gameStateDocRef, { players: initialPlayers.map(name => ({ id: generateUniqueId(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null })) }); await setDoc(prizeConfigDocRef, { percentages: initialPrizes }); await setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null }); closeModal(); }); };
             resetGameBtn.addEventListener('click', openPasswordModal);
-            passwordConfirmBtn.addEventListener('click', () => { if (passwordInputModal.value === CORRECT_PASSWORD) resetGame(); else passwordErrorModal.textContent = 'Palavra-passe incorreta.'; });
+            passwordConfirmBtn.addEventListener('click', () => { 
+                if (passwordInputModal.value === CORRECT_PASSWORD) {
+                    closePasswordModal();
+                    openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
+                        await setDoc(gameStateDocRef, { players: initialPlayers.map(name => ({ id: generateUniqueId(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null })) });
+                        await setDoc(prizeConfigDocRef, { percentages: initialPrizes });
+                        await setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+                        closeModal();
+                    });
+                } else {
+                    passwordErrorModal.textContent = 'Palavra-passe incorreta.';
+                }
+            });
             passwordCancelBtn.addEventListener('click', closePasswordModal); passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
             modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); }); modalCancelBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             
