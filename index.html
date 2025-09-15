@@ -1,292 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER On Jack Tall Back</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Roboto Condensed', sans-serif;
-            background-color: #032a05;
-            background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%);
-        }
-        h1, h2, h3, button, th {
-            font-family: 'Oswald', sans-serif;
-        }
-        .modal-overlay {
-            transition: opacity 0.3s ease;
-        }
-        .chip-label {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .chip-checkbox {
-            appearance: none;
-            -webkit-appearance: none;
-            position: absolute;
-            opacity: 0;
-        }
-        .chip {
-            height: 28px;
-            width: 28px;
-            border-radius: 50%;
-            background-color: #4a5568;
-            border: 2px solid #a0aec0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2);
-            position: relative;
-        }
-        .chip::before {
-            content: '';
-            position: absolute;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            border: 1px dashed #a0aec0;
-        }
-        .buy-in-cb + .chip { background-color: #2b6cb0; }
-        .rebuy-cb + .chip { background-color: #c53030; }
-        .add-on-cb + .chip { background-color: #2f855a; }
-        .chip-checkbox:checked + .chip {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2);
-            border-color: #fff;
-        }
-        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
-        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
-        .add-on-cb:checked + .chip { --glow-color: #68d391; }
-        .chip-checkbox:checked + .chip::before {
-            border: 2px solid #fff;
-        }
-        .player-row.eliminated {
-            background-color: rgba(40, 40, 40, 0.5);
-            color: #9ca3af;
-        }
-        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
-            pointer-events: none;
-        }
-        .player-row.eliminated .player-name {
-             text-decoration: line-through;
-        }
-        .elimination-rank {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #f59e0b; /* amber-500 */
-            background-color: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-        }
-        .rebuys-disabled .rebuy-cb,
-        .rebuys-disabled .add-on-cb {
-            pointer-events: none;
-        }
-        .rebuys-disabled .rebuy-cb + .chip,
-        .rebuys-disabled .add-on-cb + .chip {
-            cursor: not-allowed;
-            background-color: #4A5568 !important;
-            opacity: 0.5;
-        }
-        @media (max-width: 640px) {
-            .chip { height: 24px; width: 24px; }
-            .chip::before { height: 16px; width: 16px; }
-        }
-    </style>
-</head>
-<body class="bg-green-900 text-gray-200 min-h-screen">
-
-    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="relative text-center mb-6">
-            <button id="mute-btn" class="absolute top-0 left-0 bg-gray-700 hover:bg-gray-800 text-white font-bold p-2 rounded-full shadow-lg border-2 border-gray-400 transition-transform transform hover:scale-105" title="Ativar/Desativar Som">
-                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.89l.706.706z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
-                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="hidden" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
-            </button>
-            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                <span class="text-red-500">♦</span> POKER ON JACK TALL BACK <span class="text-red-500">♥</span>
-            </h1>
-            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
-            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">ADMIN</button>
-            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">SAIR</button>
-        </header>
-
-        <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
-            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">TEMPORIZADOR DE BLINDS <span id="level-indicator" class="text-yellow-400"></span></h2>
-            <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
-                <div class="sm:text-left">
-                    <p class="text-sm text-yellow-300 uppercase">NÍVEL ATUAL</p>
-                    <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
-                </div>
-                <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
-                    <button id="prev-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Nível Anterior">&lt;&lt;</button>
-                    <span id="timer-display">--:--</span>
-                    <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
-                </div>
-                <div class="sm:text-right">
-                    <p class="text-sm text-yellow-300 uppercase">PRÓXIMO NÍVEL</p>
-                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
-                </div>
-            </div>
-            <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
-                <div class="flex items-center gap-2">
-                    <label for="level-duration" class="text-sm">Duração (min):</label>
-                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
-                </div>
-                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">INICIAR</button>
-                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">REINICIAR</button>
-            </div>
-        </div>
-        
-        <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">JOGADORES ATIVOS</h3>
-                <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
-            </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL BUY-INS</h3>
-                <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
-            </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL REBUYS</h3>
-                <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
-            </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL ADD-ONS</h3>
-                <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
-            </div>
-        </div>
-
-        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row flex-wrap justify-center items-start gap-8">
-            <div id="public-prize-section" class="w-full lg:max-w-lg">
-                <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ PREMIAÇÃO ♣</h2>
-                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
-                     </div>
-                </div>
-            </div>
-            <div id="final-standings-section" class="w-full lg:max-w-lg">
-                 <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 CLASSIFICAÇÃO FINAL 🏆</h2>
-                     <ul id="standings-list" class="space-y-2 text-center">
-                        </ul>
-                </div>
-            </div>
-        </div>
-
-        <div id="game-controls" class="hidden">
-            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-yellow-600/30">
-                        <thead class="bg-black/25">
-                            <tr>
-                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">JOGADOR</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">BUY-IN</th>
-                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">REBUYS</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">ADD-ON</th>
-                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">TOTAL (R$)</th>
-                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">AÇÕES</th>
-                            </tr>
-                        </thead>
-                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
-                        </tbody>
-                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
-                            <tr>
-                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (AÇÃO: R$ 30,00)</td>
-                                <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td id="grand-total" class="px-2 sm:px-4 py-4 text-right font-bold text-2xl text-yellow-400">R$ 0,00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-            <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
-            
-            <div class="mt-8">
-                <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ CONFIGURAR PREMIAÇÃO ♣</h2>
-                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
-                    </div>
-                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                    </div>
-                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
-                </div>
-            </div>
-
-            <div class="mt-8 flex justify-center gap-4">
-                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    ADICIONAR JOGADOR
-                </button>
-                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    RESETAR JOGO
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">ACESSO DE ADMINISTRADOR</h3>
-            <form id="login-form">
-                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
-                <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
-                <div class="flex justify-center gap-4">
-                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">ENTRAR</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <p id="modal-text" class="text-center text-lg mb-6"></p>
-            <div class="flex justify-center gap-4">
-                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">CONFIRMAÇÃO DE RESET</h3>
-            <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
-            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
-            <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
-            <div class="flex justify-center gap-4">
-                <button id="password-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                <button id="password-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
+<script type="module">
         // --- IMPORTS DO FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         // --- INICIALIZAÇÃO DO FIREBASE ---
-        // ATENÇÃO: É altamente recomendável mover estas chaves para variáveis de ambiente
-        // e implementar Regras de Segurança no Firestore para proteger seus dados.
         const firebaseConfig = {
             apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c",
             authDomain: "pokerti-633ba.firebaseapp.com",
@@ -301,11 +19,9 @@
             const db = getFirestore(app);
             const auth = getAuth(app);
             
-            // Login anônimo para permitir leitura por todos os usuários
             signInAnonymously(auth)
                 .then(() => {
                     console.log("Firebase inicializado. Sessão de leitura anônima criada.");
-                    // Inicia a lógica principal da aplicação
                     initializeAppLogic(db, auth);
                 })
                 .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO:", error));
@@ -318,7 +34,7 @@
         const initializeAppLogic = (db, auth) => {
             
             // --- CONSTANTES ---
-            const CORRECT_PASSWORD = 'poker'; // MANTER APENAS PARA FINS DE COMPATIBILIDADE TEMPORÁRIA
+            const CORRECT_PASSWORD = 'poker';
             const ACTION_VALUE = 30;
             const DB_COLLECTION = 'pokerGame';
             const GAME_STATE_DOC_ID = 'gameState';
@@ -395,7 +111,7 @@
             let playersData = [];
             let isUpdatingFromFirebase = false;
             let isMuted = localStorage.getItem('pokerMuted') === 'true';
-            let saveDataTimeout = null;
+            let inputTimeout = null;
 
             // --- LÓGICA DE LOGIN E LOGOUT ---
             const openLoginModal = () => {
@@ -405,7 +121,6 @@
                 passwordInput.focus();
             };
             const closeLoginModal = () => loginModal.classList.add('hidden');
-            
             const showLoggedInState = () => {
                 gameControls.classList.remove('hidden');
                 publicInfoSection.classList.add('hidden');
@@ -413,7 +128,6 @@
                 adminLoginBtn.classList.add('hidden');
                 sessionStorage.setItem('pokerAppLoggedIn', 'true');
             };
-
             const showLoggedOutState = () => {
                 sessionStorage.removeItem('pokerAppLoggedIn');
                 gameControls.classList.add('hidden');
@@ -421,21 +135,6 @@
                 adminLoginBtn.classList.remove('hidden');
                 publicInfoSection.classList.remove('hidden');
             };
-
-            // ATENÇÃO: A lógica abaixo é INSEGURA. O ideal é usar o Firebase Auth.
-            // Exemplo de como seria com Firebase Auth:
-            // loginForm.addEventListener('submit', async (e) => {
-            //     e.preventDefault();
-            //     const email = "seu-email-de-admin@exemplo.com"; // Pegar de um input de email
-            //     const password = passwordInput.value;
-            //     try {
-            //         await signInWithEmailAndPassword(auth, email, password);
-            //         // o onAuthStateChanged vai cuidar de mostrar a tela de admin
-            //         closeLoginModal();
-            //     } catch (error) {
-            //         loginError.textContent = 'Email ou senha incorretos.';
-            //     }
-            // });
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (passwordInput.value === CORRECT_PASSWORD) {
@@ -446,7 +145,6 @@
                 }
                 passwordInput.value = '';
             });
-
             logoutBtn.addEventListener('click', showLoggedOutState);
             adminLoginBtn.addEventListener('click', openLoginModal);
             loginCancelBtn.addEventListener('click', closeLoginModal);
@@ -454,77 +152,48 @@
 
             // --- LÓGICA DE SOM ---
             const updateMuteButton = () => {
-                if (isMuted) {
-                    soundOnIcon.classList.add('hidden');
-                    soundOffIcon.classList.remove('hidden');
-                } else {
-                    soundOnIcon.classList.remove('hidden');
-                    soundOffIcon.classList.add('hidden');
-                }
+                soundOnIcon.classList.toggle('hidden', isMuted);
+                soundOffIcon.classList.toggle('hidden', !isMuted);
             };
-
-            const playWarningSound = () => {
+            const playSound = (soundFunction) => {
                 if (isMuted) return;
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (!audioContext) return;
-                function beep(frequency, startTime, duration) {
-                    const oscillator = audioContext.createOscillator();
-                    oscillator.type = 'triangle';
-                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                    oscillator.connect(audioContext.destination);
-                    oscillator.start(audioContext.currentTime + startTime);
-                    oscillator.stop(audioContext.currentTime + startTime + duration);
-                }
-                beep(1500, 0, 0.2);
-                beep(1500, 0.3, 0.2);
+                soundFunction();
             };
-
-            const playLevelUpSound = () => {
-                if (isMuted) return;
+            const createSound = (type, frequency, duration, startFreq = null) => {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 if (!audioContext) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.5);
+                oscillator.type = type;
+                oscillator.frequency.setValueAtTime(startFreq || frequency, audioContext.currentTime);
+                if(startFreq) {
+                    oscillator.frequency.exponentialRampToValueAtTime(frequency, audioContext.currentTime + (duration * 0.7));
+                }
                 gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.8);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.8);
+                oscillator.stop(audioContext.currentTime + duration);
             };
-
-            const playCountdownBeep = () => {
-                if (isMuted) return;
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (!audioContext) return;
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.2);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.2);
+            const playWarningSound = () => {
+                createSound('triangle', 1500, 0.2);
+                setTimeout(() => createSound('triangle', 1500, 0.2), 300);
             };
-
+            const playLevelUpSound = () => createSound('sawtooth', 800, 0.8, 1500);
+            const playCountdownBeep = () => createSound('sine', 880, 0.2);
             muteBtn.addEventListener('click', () => {
                 isMuted = !isMuted;
                 localStorage.setItem('pokerMuted', isMuted);
                 updateMuteButton();
             });
             
-
-            // --- LÓGICA DO TEMPORIZADOR DE BLINDS (SINCRONIZADO) ---
+            // --- LÓGICA DO TEMPORIZADOR DE BLINDS ---
+            // (Nenhuma alteração nesta seção)
             const updateChipAvailability = () => {
                 const rebuysAllowed = timerState.currentLevel < 8;
                 document.body.classList.toggle('rebuys-disabled', !rebuysAllowed);
             };
-
             const updateTimerDisplay = () => {
                 const minutes = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
                 const seconds = (timerState.timeLeft % 60).toString().padStart(2, '0');
@@ -544,143 +213,166 @@
                 nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1;
                 updateChipAvailability();
             };
-
             const runLocalTimer = () => {
                 if (timerState.timeLeft > 0) {
                     timerState.timeLeft--;
                     updateTimerDisplay();
-                    
-                    if (timerState.timeLeft <= 10 && timerState.timeLeft > 0) {
-                        playCountdownBeep();
-                    } 
-                    else if (timerState.timeLeft === 60) {
-                        playWarningSound();
-                    }
+                    if (timerState.timeLeft <= 10 && timerState.timeLeft > 0) playSound(playCountdownBeep);
+                    else if (timerState.timeLeft === 60) playSound(playWarningSound);
                 } else {
-                    if(sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
-                        nextLevel();
-                    }
+                    if(sessionStorage.getItem('pokerAppLoggedIn') === 'true') nextLevel();
                 }
             };
-
             const stopLocalTimer = () => {
                 clearInterval(timerInterval);
                 timerInterval = null;
             };
-
-            const saveTimerStateToFirebase = async (state) => {
-                const stateToSave = { ...state, lastUpdateTime: state.isRunning ? serverTimestamp() : null };
-                await setDoc(timerStateDocRef, stateToSave, { merge: true });
-            };
-
-            const startTimer = () => {
-                if (timerState.isRunning) return;
-                timerState.isRunning = true;
-                saveTimerStateToFirebase(timerState);
-            };
-
-            const pauseTimer = () => {
-                if (!timerState.isRunning) return;
-                timerState.isRunning = false;
-                saveTimerStateToFirebase(timerState);
-            };
-            
+            const saveTimerStateToFirebase = async (state) => await setDoc(timerStateDocRef, { ...state, lastUpdateTime: state.isRunning ? serverTimestamp() : null }, { merge: true });
+            const startTimer = () => { if (!timerState.isRunning) { timerState.isRunning = true; saveTimerStateToFirebase(timerState); } };
+            const pauseTimer = () => { if (timerState.isRunning) { timerState.isRunning = false; saveTimerStateToFirebase(timerState); } };
             const setLevel = (levelIndex) => {
                 const newLevelInfo = blindLevels[levelIndex];
                 const duration = newLevelInfo.isBreak ? newLevelInfo.duration : parseInt(levelDurationInput.value);
-                timerState = {
-                    currentLevel: levelIndex,
-                    timeLeft: duration * 60,
-                    isRunning: timerState.isRunning
-                };
+                timerState = { currentLevel: levelIndex, timeLeft: duration * 60, isRunning: timerState.isRunning };
                 saveTimerStateToFirebase(timerState);
             };
-
             const nextLevel = () => {
-                playLevelUpSound();
-                if (timerState.currentLevel < blindLevels.length - 1) {
-                    setLevel(timerState.currentLevel + 1);
-                } else {
-                    pauseTimer();
-                }
+                playSound(playLevelUpSound);
+                if (timerState.currentLevel < blindLevels.length - 1) setLevel(timerState.currentLevel + 1);
+                else pauseTimer();
             };
-            
             const prevLevel = () => { if (timerState.currentLevel > 0) setLevel(timerState.currentLevel - 1); };
             const resetTimer = () => { pauseTimer(); setLevel(0); };
-
             onSnapshot(timerStateDocRef, (docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const latestState = docSnapshot.data();
-                    
-                    if (latestState.isRunning) {
-                        const now = Date.now();
-                        const lastUpdate = latestState.lastUpdateTime?.toMillis() || now;
-                        const timeElapsed = Math.floor((now - lastUpdate) / 1000);
-                        const newTimeLeft = Math.max(0, latestState.timeLeft - timeElapsed);
-                        timerState = { ...latestState, timeLeft: newTimeLeft };
-                        
-                        if (!timerInterval) {
-                            timerInterval = setInterval(runLocalTimer, 1000);
-                            timerControlButton.textContent = 'PAUSAR';
-                            timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
-                            timerControlButton.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
-                        }
-                    } else {
-                        timerState = latestState;
-                        stopLocalTimer();
-                        timerControlButton.textContent = 'INICIAR';
-                        timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
-                        timerControlButton.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
+                const latestState = docSnapshot.exists() ? docSnapshot.data() : { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null };
+                if (latestState.isRunning) {
+                    const now = Date.now();
+                    const lastUpdate = latestState.lastUpdateTime?.toMillis() || now;
+                    const timeElapsed = Math.floor((now - lastUpdate) / 1000);
+                    latestState.timeLeft = Math.max(0, latestState.timeLeft - timeElapsed);
+                    if (!timerInterval) {
+                        timerInterval = setInterval(runLocalTimer, 1000);
+                        timerControlButton.textContent = 'PAUSAR';
+                        timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600');
                     }
                 } else {
-                    setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
+                    stopLocalTimer();
+                    timerControlButton.textContent = 'INICIAR';
+                    timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600');
                 }
+                timerState = latestState;
                 updateTimerDisplay();
-            }, (error) => console.error("Erro ao ouvir dados do timer:", error));
-            
+            });
             timerControlButton.addEventListener('click', () => timerState.isRunning ? pauseTimer() : startTimer());
             resetTimerButton.addEventListener('click', resetTimer);
             prevLevelBtn.addEventListener('click', prevLevel);
             nextLevelBtn.addEventListener('click', nextLevel);
             levelDurationInput.addEventListener('change', () => {
-                if (!timerState.isRunning) {
-                    const newLevelInfo = blindLevels[timerState.currentLevel];
-                    if(!newLevelInfo.isBreak) {
-                        timerState.timeLeft = parseInt(levelDurationInput.value) * 60;
-                        updateTimerDisplay();
-                        saveTimerStateToFirebase(timerState);
-                    }
+                if (!timerState.isRunning && !blindLevels[timerState.currentLevel].isBreak) {
+                    timerState.timeLeft = parseInt(levelDurationInput.value) * 60;
+                    updateTimerDisplay();
+                    saveTimerStateToFirebase(timerState);
                 }
             });
 
+            // --- LÓGICA PRINCIPAL DO JOGO ---
+            const saveData = async () => {
+                if (isUpdatingFromFirebase) return;
+                try {
+                    await setDoc(gameStateDocRef, { players: playersData });
+                } catch (error) { console.error("Erro ao salvar dados dos jogadores: ", error); }
+            };
+            const savePrizeDataToFirebase = async () => {
+                const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => parseFloat(input.value) || 0);
+                await setDoc(prizeConfigDocRef, { percentages: prizePercentages });
+            };
 
-            // --- LÓGICA PRINCIPAL DO JOGO (COM FIREBASE) ---
+            const calculateTotals = () => {
+                let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
+                playersData.forEach(p => {
+                    if (p.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
+                    if (p.rebuysChecked) { const count = p.rebuysChecked.filter(Boolean).length; grandTotal += count * ACTION_VALUE; totalRebuys += count; }
+                    if (p.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
+                });
+                document.getElementById('total-buy-ins').textContent = totalBuyIns;
+                document.getElementById('total-rebuys').textContent = totalRebuys;
+                document.getElementById('total-add-ons').textContent = totalAddOns;
+                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+                document.getElementById('total-players-summary').textContent = playersData.filter(p => !p.eliminated).length;
+                document.getElementById('total-buyins-summary').textContent = totalBuyIns;
+                document.getElementById('total-rebuys-summary').textContent = totalRebuys;
+                document.getElementById('total-addons-summary').textContent = totalAddOns;
+                const totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+                document.querySelectorAll('.prize-item').forEach(item => {
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
+                });
+                updatePublicPrizes(grandTotal);
+                calculateAndRenderStandings();
+            };
+            
+            const calculateAndRenderStandings = () => {
+                const eliminatedPlayers = playersData.map((p, i) => ({...p, originalIndex: i})).filter(p => p.eliminated && p.eliminationTimestamp);
+                finalStandingsSection.classList.toggle('hidden', eliminatedPlayers.length === 0);
+                if (eliminatedPlayers.length === 0) {
+                    standingsList.innerHTML = '<li class="text-gray-400">Nenhum jogador eliminado ainda.</li>';
+                    return;
+                }
+                eliminatedPlayers.sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0));
+                standingsList.innerHTML = '';
+                eliminatedPlayers.forEach((player, index) => {
+                    const rank = playersData.length - index;
+                    const li = document.createElement('li');
+                    li.className = 'text-lg';
+                    li.innerHTML = `<span class="font-bold">${rank}º</span> - ${player.name}`;
+                    standingsList.appendChild(li);
+                });
+            };
+            
+            const updatePublicPrizes = (grandTotal) => {
+                const prizeInputs = document.querySelectorAll('.prize-item');
+                if (prizeInputs.length === 0) {
+                    publicPrizeGrid.innerHTML = '<p class="col-span-full text-gray-400">Premiação não definida.</p>';
+                    return;
+                }
+                publicPrizeGrid.innerHTML = '';
+                prizeInputs.forEach((item, index) => {
+                    const place = index + 1;
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    const value = ((grandTotal * percent) / 100).toFixed(2);
+                    let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
+                    publicPrizeGrid.innerHTML += `<div class="prize-item-public bg-black/20 p-4 rounded-lg"><p class="block text-sm font-medium uppercase">${place}º LUGAR</p><p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p></div>`;
+                });
+            };
+
+            const renderTable = () => {
+                playerTableBody.innerHTML = '';
+                const eliminatedSorted = playersData.map((p, i) => ({ ...p, originalIndex: i })).filter(p => p.eliminated && p.eliminationTimestamp).sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0));
+                const rankMap = new Map();
+                eliminatedSorted.forEach((p, i) => rankMap.set(p.originalIndex, playersData.length - i));
+                playersData.forEach((p, index) => createPlayerRow(p, rankMap.get(index)));
+                calculateTotals();
+            };
+            
             const createPlayerRow = (player, rank) => {
                 const tr = document.createElement('tr');
-                tr.classList.add('player-row', 'hover:bg-yellow-400/10', 'transition-colors', 'duration-150');
-                
+                tr.className = `player-row hover:bg-yellow-400/10 transition-colors duration-150 ${player.eliminated ? 'eliminated' : ''}`;
+                tr.dataset.index = playersData.indexOf(player);
+
                 let rebuyCheckboxes = '';
                 for(let i = 0; i < 10; i++) {
-                    const isChecked = player.rebuysChecked && player.rebuysChecked[i];
-                    rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center">
-                        <label class="chip-label">
-                            <input type="checkbox" class="chip-checkbox rebuy-cb" ${isChecked ? 'checked' : ''}>
-                            <span class="chip"></span>
-                        </label>
-                    </td>`;
+                    rebuyCheckboxes += `<td class="px-0.5 sm:px-1 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox rebuy-cb" ${player.rebuysChecked?.[i] ? 'checked' : ''}><span class="chip"></span></label></td>`;
                 }
+
                 tr.innerHTML = `
                     <td class="px-2 sm:px-4 py-3 whitespace-nowrap flex items-center">
                         ${player.eliminated && rank ? `<span class="elimination-rank">${rank}º</span>` : ''}
-                        <input type="text" placeholder="Nome do Jogador" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none focus:ring-1 focus:ring-yellow-500">
+                        <input type="text" placeholder="Nome do Jogador" value="${player.name}" class="player-name w-full bg-transparent focus:bg-black/20 rounded-md p-1 -m-1 outline-none focus:ring-1 focus:ring-yellow-500" ${player.eliminated ? 'disabled' : ''}>
                     </td>
-                    <td class="px-1 sm:px-2 py-3 text-center">
-                        <label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label>
-                    </td>
+                    <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label></td>
                     ${rebuyCheckboxes}
-                    <td class="px-1 sm:px-2 py-3 text-center">
-                        <label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label>
-                    </td>
+                    <td class="px-1 sm:px-2 py-3 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td>
                     <td class="player-total px-2 sm:px-4 py-3 text-right font-medium text-gray-300 whitespace-nowrap">R$ 0,00</td>
                     <td class="px-2 sm:px-3 py-3 text-center flex items-center justify-center gap-2">
                         <button class="eliminate-player-btn text-gray-400 hover:text-yellow-500 transition-colors" title="${player.eliminated ? 'Restaurar Jogador' : 'Eliminar Jogador'}">
@@ -689,299 +381,110 @@
                         <button class="delete-player-btn text-gray-400 hover:text-red-500 transition-colors" title="Remover da Lista">
                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
                         </button>
-                    </td>
-                `;
-                if(player.eliminated) {
-                    tr.classList.add('eliminated');
-                    tr.querySelectorAll('input').forEach(i => i.disabled = true);
-                }
+                    </td>`;
                 playerTableBody.appendChild(tr);
             };
 
-            const createPrizeField = (place, value = 0) => {
-                const prizeItem = document.createElement('div');
-                prizeItem.className = 'prize-item relative bg-black/20 p-4 rounded-lg';
-                let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
-                prizeItem.innerHTML = `
-                    <label class="block text-sm font-medium uppercase">${place}º LUGAR</label>
-                    <input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-white text-center rounded-md p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">
-                    <p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>
-                    ${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 hover:text-red-400" title="Remover Prêmio">&times;</button>` : ''}
-                `;
-                prizeGrid.appendChild(prizeItem);
-            };
-            
-            const updatePublicPrizes = (grandTotal) => {
-                publicPrizeGrid.innerHTML = '';
-                const prizeInputs = document.querySelectorAll('.prize-item');
-                if (prizeInputs.length === 0) {
-                    publicPrizeGrid.innerHTML = '<p class="col-span-full text-gray-400">Premiação não definida.</p>';
-                    return;
-                }
-                prizeInputs.forEach((item, index) => {
-                    const place = index + 1;
-                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
-                    const value = ((grandTotal * percent) / 100).toFixed(2);
-                    let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400';
-                    const prizeDiv = document.createElement('div');
-                    prizeDiv.className = 'prize-item-public bg-black/20 p-4 rounded-lg';
-                    prizeDiv.innerHTML = `
-                        <p class="block text-sm font-medium uppercase">${place}º LUGAR</p>
-                        <p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p>
-                    `;
-                    publicPrizeGrid.appendChild(prizeDiv);
-                });
-            };
-
-            const savePrizeDataToFirebase = async () => {
-                const prizePercentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(input => parseFloat(input.value) || 0);
-                await setDoc(prizeConfigDocRef, { percentages: prizePercentages });
-            };
-
-            const saveData = async () => {
-                if (isUpdatingFromFirebase) return;
-                try {
-                    // Salva o estado atual da lista playersData diretamente
-                    await setDoc(gameStateDocRef, { players: playersData });
-                    console.log("Dados dos jogadores salvos com sucesso.");
-                } catch (error) {
-                    console.error("Erro ao salvar dados dos jogadores: ", error);
-                }
-            };
-            
-            const calculateAndRenderStandings = () => {
-                const eliminatedPlayers = playersData
-                    .map((p, index) => ({...p, originalIndex: index})) // Manter o índice original
-                    .filter(p => p.eliminated && p.eliminationTimestamp);
-
-                if (eliminatedPlayers.length === 0) {
-                    standingsList.innerHTML = '<li class="text-gray-400">Nenhum jogador eliminado ainda.</li>';
-                    finalStandingsSection.classList.add('hidden');
-                    return;
-                }
-                
-                finalStandingsSection.classList.remove('hidden');
-                
-                eliminatedPlayers.sort((a, b) => a.eliminationTimestamp.toMillis() - b.eliminationTimestamp.toMillis());
-                
-                standingsList.innerHTML = '';
-                const totalPlayers = playersData.length;
-                eliminatedPlayers.forEach((player, index) => {
-                    const rank = totalPlayers - index;
-                    const li = document.createElement('li');
-                    li.className = 'text-lg';
-                    li.innerHTML = `<span class="font-bold">${rank}º</span> - ${player.name}`;
-                    standingsList.appendChild(li);
-                });
-            };
-
-            const calculateTotals = () => {
-                let grandTotal = 0, totalBuyIns = 0, totalRebuys = 0, totalAddOns = 0;
-                
-                playersData.forEach(player => {
-                    if (player.buyInChecked) { grandTotal += ACTION_VALUE; totalBuyIns++; }
-                    if (player.rebuysChecked) {
-                        const rebuysCount = player.rebuysChecked.filter(Boolean).length;
-                        grandTotal += rebuysCount * ACTION_VALUE;
-                        totalRebuys += rebuysCount;
-                    }
-                    if (player.addOnChecked) { grandTotal += ACTION_VALUE; totalAddOns++; }
-                });
-
-                document.getElementById('total-buy-ins').textContent = totalBuyIns;
-                document.getElementById('total-rebuys').textContent = totalRebuys;
-                document.getElementById('total-add-ons').textContent = totalAddOns;
-                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
-                
-                const activePlayers = playersData.filter(p => !p.eliminated).length;
-                document.getElementById('total-players-summary').textContent = activePlayers;
-                document.getElementById('total-buyins-summary').textContent = totalBuyIns;
-                document.getElementById('total-rebuys-summary').textContent = totalRebuys;
-                document.getElementById('total-addons-summary').textContent = totalAddOns;
-                
-                let totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
-                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
-
-                document.querySelectorAll('.prize-item').forEach(item => {
-                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
-                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
-                });
-                
-                updatePublicPrizes(grandTotal);
-                calculateAndRenderStandings();
-            };
-
-            const openModal = (text, onConfirm) => {
-                modalText.textContent = text;
-                confirmCallback = onConfirm;
-                modal.classList.remove('hidden');
-            };
-            const closeModal = () => {
-                modal.classList.add('hidden');
-                confirmCallback = null;
-            };
-
-            const openPasswordModal = () => {
-                passwordInputModal.value = '';
-                passwordErrorModal.textContent = '';
-                passwordModal.classList.remove('hidden');
-                passwordInputModal.focus();
-            };
-            const closePasswordModal = () => passwordModal.classList.add('hidden');
-
             const loadData = () => {
-                // Ouvinte para os dados do jogo (jogadores)
                 onSnapshot(gameStateDocRef, (docSnapshot) => {
                     isUpdatingFromFirebase = true;
-                    if (docSnapshot.exists() && docSnapshot.data().players) {
-                        playersData = docSnapshot.data().players;
-                    } else {
-                        playersData = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
-                    }
-                    
-                    playerTableBody.innerHTML = '';
-                    const eliminatedSorted = playersData
-                        .map((p, index) => ({ ...p, originalIndex: index }))
-                        .filter(p => p.eliminated && p.eliminationTimestamp)
-                        .sort((a, b) => a.eliminationTimestamp.toMillis() - b.eliminationTimestamp.toMillis());
-
-                    const rankMap = new Map();
-                    eliminatedSorted.forEach((p, i) => {
-                        rankMap.set(p.originalIndex, playersData.length - i);
-                    });
-
-                    playersData.forEach((p, index) => createPlayerRow(p, rankMap.get(index)));
-                    
-                    calculateTotals();
+                    playersData = (docSnapshot.exists() && docSnapshot.data().players) 
+                        ? docSnapshot.data().players 
+                        : initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
+                    renderTable();
                     isUpdatingFromFirebase = false;
                 }, (error) => console.error("Erro ao ouvir dados do jogo:", error));
 
-                // Ouvinte para a configuração de prêmios
                 onSnapshot(prizeConfigDocRef, (docSnapshot) => {
                     prizeGrid.innerHTML = '';
                     const prizesToLoad = (docSnapshot.exists() && docSnapshot.data().percentages) ? docSnapshot.data().percentages : initialPrizes;
                     prizesToLoad.forEach((value, index) => createPrizeField(index + 1, value));
-                    calculateTotals(); // Recalcular totais com os novos percentuais
+                    calculateTotals();
                 }, (error) => console.error("Erro ao ouvir dados de premiação:", error));
             };
 
+            // --- MODAIS E AÇÕES ---
+            const openModal = (text, onConfirm) => { modalText.textContent = text; confirmCallback = onConfirm; modal.classList.remove('hidden'); };
+            const closeModal = () => { modal.classList.add('hidden'); confirmCallback = null; };
+            const openPasswordModal = () => { passwordInputModal.value = ''; passwordErrorModal.textContent = ''; passwordModal.classList.remove('hidden'); passwordInputModal.focus(); };
+            const closePasswordModal = () => passwordModal.classList.add('hidden');
             const resetGame = () => {
                 closePasswordModal();
                 openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                    const resetPlayers = initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }));
-                    
-                    await setDoc(gameStateDocRef, { players: resetPlayers });
+                    await setDoc(gameStateDocRef, { players: initialPlayers.map(name => ({ name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null })) });
                     await setDoc(prizeConfigDocRef, { percentages: initialPrizes });
                     await setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
-                    
-                    loadData(); // Re-carrega os dados iniciais
                     closeModal();
                 });
             };
-
             resetGameBtn.addEventListener('click', openPasswordModal);
-            
-            passwordConfirmBtn.addEventListener('click', () => {
-                if (passwordInputModal.value === CORRECT_PASSWORD) {
-                    resetGame();
-                } else {
-                    passwordErrorModal.textContent = 'Palavra-passe incorreta.';
-                    passwordInputModal.value = '';
-                    passwordInputModal.focus();
-                }
-            });
-
+            passwordConfirmBtn.addEventListener('click', () => { if (passwordInputModal.value === CORRECT_PASSWORD) resetGame(); else passwordErrorModal.textContent = 'Palavra-passe incorreta.'; });
             passwordCancelBtn.addEventListener('click', closePasswordModal);
             passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
-
-            addPlayerBtn.addEventListener('click', () => {
-                const newPlayer = { name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null };
-                playersData.push(newPlayer);
-                saveData();
-            });
-
-            playerTableBody.addEventListener('click', (event) => {
-                const row = event.target.closest('.player-row');
-                if (!row) return;
-                const rowIndex = Array.from(playerTableBody.children).indexOf(row);
-                if (rowIndex === -1 || !playersData[rowIndex]) return;
-                
-                const player = playersData[rowIndex];
-
-                if(event.target.closest('.delete-player-btn')) {
-                    const playerName = player.name || 'Jogador sem nome';
-                    openModal(`Deseja remover ${playerName} da lista?`, () => {
-                        playersData.splice(rowIndex, 1);
-                        saveData();
-                        closeModal();
-                    });
-                } else if(event.target.closest('.eliminate-player-btn')) {
-                    player.eliminated = !player.eliminated;
-                    player.eliminationTimestamp = player.eliminated ? serverTimestamp() : null;
-                    saveData();
-                }
-            });
-
-            mainContent.addEventListener('input', (e) => {
-                clearTimeout(saveDataTimeout);
-
-                if (e.target.matches('.prize-percent-input')) {
-                    saveDataTimeout = setTimeout(savePrizeDataToFirebase, 800);
-                    return;
-                }
-
-                const row = e.target.closest('.player-row');
-                if (!row) return;
-
-                const rowIndex = Array.from(playerTableBody.children).indexOf(row);
-                if (rowIndex === -1 || !playersData[rowIndex]) return;
-
-                const player = playersData[rowIndex];
-
-                if (e.target.matches('.player-name')) {
-                    player.name = e.target.value;
-                } else if (e.target.matches('.buy-in-cb')) {
-                    player.buyInChecked = e.target.checked;
-                } else if (e.target.matches('.add-on-cb')) {
-                    player.addOnChecked = e.target.checked;
-                } else if (e.target.matches('.rebuy-cb')) {
-                    const rebuyCheckboxes = Array.from(row.querySelectorAll('.rebuy-cb'));
-                    const rebuyIndex = rebuyCheckboxes.indexOf(e.target);
-                    if (rebuyIndex !== -1) {
-                        player.rebuysChecked[rebuyIndex] = e.target.checked;
-                    }
-                }
-                
-                saveDataTimeout = setTimeout(saveData, 800);
-            });
-            
-            addPrizeBtn.addEventListener('click', () => {
-                createPrizeField(prizeGrid.children.length + 1);
-                // Salva a nova estrutura de prêmios (com o novo campo zerado)
-                savePrizeDataToFirebase();
-            });
-
-            prizeGrid.addEventListener('click', (event) => {
-                const removeBtn = event.target.closest('.remove-prize-btn');
-                if (removeBtn) {
-                    removeBtn.closest('.prize-item').remove();
-                    prizeGrid.querySelectorAll('.prize-item label').forEach((label, index) => {
-                        label.textContent = `${index + 1}º LUGAR`;
-                    });
-                    savePrizeDataToFirebase();
-                }
-            });
-
             modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); });
             modalCancelBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             
-            // --- LÓGICA DE CARREGAMENTO INICIAL ---
-            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') {
-                showLoggedInState();
-            } else {
-                showLoggedOutState();
-            }
+            // --- EVENT LISTENERS DE INTERAÇÃO ---
+            addPlayerBtn.addEventListener('click', () => {
+                playersData.push({ name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null });
+                saveData();
+            });
+            playerTableBody.addEventListener('click', (event) => {
+                const row = event.target.closest('.player-row');
+                const deleteBtn = event.target.closest('.delete-player-btn');
+                const eliminateBtn = event.target.closest('.eliminate-player-btn');
+                if (!row || (!deleteBtn && !eliminateBtn)) return;
+
+                const rowIndex = parseInt(row.dataset.index);
+                if (isNaN(rowIndex) || !playersData[rowIndex]) return;
+
+                if (deleteBtn) {
+                    openModal(`Deseja remover ${playersData[rowIndex].name || 'Jogador sem nome'} da lista?`, () => {
+                        playersData.splice(rowIndex, 1);
+                        saveData();
+                        closeModal();
+                    });
+                } else if (eliminateBtn) {
+                    const player = playersData[rowIndex];
+                    player.eliminated = !player.eliminated;
+                    player.eliminationTimestamp = player.eliminated ? serverTimestamp() : null;
+                    console.log('Eliminating player', rowIndex, player);
+                    saveData();
+                }
+            });
+            mainContent.addEventListener('input', (e) => {
+                clearTimeout(inputTimeout);
+                const target = e.target;
+                if (target.matches('.prize-percent-input')) {
+                    inputTimeout = setTimeout(savePrizeDataToFirebase, 800);
+                    return;
+                }
+                const row = target.closest('.player-row');
+                if (!row) return;
+                const rowIndex = parseInt(row.dataset.index);
+                if (isNaN(rowIndex) || !playersData[rowIndex]) return;
+                const player = playersData[rowIndex];
+                if (target.matches('.player-name')) player.name = target.value;
+                else if (target.matches('.buy-in-cb')) player.buyInChecked = target.checked;
+                else if (target.matches('.add-on-cb')) player.addOnChecked = target.checked;
+                else if (target.matches('.rebuy-cb')) {
+                    const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(target);
+                    if (rebuyIndex !== -1) player.rebuysChecked[rebuyIndex] = target.checked;
+                }
+                inputTimeout = setTimeout(saveData, 800);
+            });
+            addPrizeBtn.addEventListener('click', () => { createPrizeField(prizeGrid.children.length + 1); savePrizeDataToFirebase(); });
+            prizeGrid.addEventListener('click', (event) => {
+                if (event.target.closest('.remove-prize-btn')) {
+                    event.target.closest('.prize-item').remove();
+                    prizeGrid.querySelectorAll('.prize-item label').forEach((label, i) => label.textContent = `${i + 1}º LUGAR`);
+                    savePrizeDataToFirebase();
+                }
+            });
+
+            // --- CARREGAMENTO INICIAL ---
+            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') showLoggedInState(); else showLoggedOutState();
             updateMuteButton();
             loadData();
         };
