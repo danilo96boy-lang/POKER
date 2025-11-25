@@ -405,7 +405,68 @@
             // --- LÓGICA PRINCIPAL DO JOGO ---
             const saveData = async () => { if (isUpdatingFromFirebase) return; try { await setDoc(gameStateDocRef, { players: playersData }); } catch (e) { console.error("Erro ao salvar dados dos jogadores: ", e); } };
             const savePrizes = async () => { const percentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(i => parseFloat(i.value) || 0); await setDoc(prizeConfigDocRef, { percentages }); };
-            const calculateTotals = () => { let grandTotal = 0, buys = 0, rebuys = 0, addons = 0; playersData.forEach(p => { if (p.buyInChecked) { grandTotal += ACTION_VALUE; buys++; } if (p.rebuysChecked) { const count = p.rebuysChecked.filter(Boolean).length; grandTotal += count * ACTION_VALUE; rebuys += count; } if (p.addOnChecked) { grandTotal += ACTION_VALUE; addons++; } }); document.getElementById('total-buy-ins').textContent = buys; document.getElementById('total-rebuys').textContent = rebuys; document.getElementById('total-add-ons').textContent = addons; document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`; document.getElementById('total-players-summary').textContent = playersData.filter(p => !p.eliminated).length; document.getElementById('total-buyins-summary').textContent = buys; document.getElementById('total-rebuys-summary').textContent = rebuys; document.getElementById('total-addons-summary').textContent = addons; const totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((s, i) => s + (parseFloat(i.value) || 0), 0); percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0); document.querySelectorAll('.prize-item').forEach(item => { const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0; item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`; }); updatePublicPrizes(grandTotal); calculateAndRenderStandings(); };
+            
+            const calculateTotals = () => {
+                let grandTotal = 0, buys = 0, rebuys = 0, addons = 0;
+
+                playersData.forEach(p => {
+                    let playerTotal = 0; // TOTAL INDIVIDUAL
+
+                    if (p.buyInChecked) {
+                        grandTotal += ACTION_VALUE;
+                        playerTotal += ACTION_VALUE;
+                        buys++;
+                    }
+                    if (p.rebuysChecked) {
+                        const count = p.rebuysChecked.filter(Boolean).length;
+                        grandTotal += count * ACTION_VALUE;
+                        playerTotal += count * ACTION_VALUE;
+                        rebuys += count;
+                    }
+                    if (p.addOnChecked) {
+                        grandTotal += ACTION_VALUE;
+                        playerTotal += ACTION_VALUE;
+                        addons++;
+                    }
+
+                    // --- Atualiza o HTML deste jogador específico ---
+                    const row = document.querySelector(`.player-row[data-player-id="${p.id}"]`);
+                    if (row) {
+                        const totalCell = row.querySelector('.player-total');
+                        if (totalCell) {
+                            totalCell.textContent = `R$ ${playerTotal.toFixed(2)}`;
+                            // Mudar cor se tiver gasto (opcional, mas visualmente bom)
+                            if (playerTotal > 0) {
+                                totalCell.classList.remove('text-gray-300');
+                                totalCell.classList.add('text-yellow-400', 'font-bold');
+                            } else {
+                                totalCell.classList.add('text-gray-300');
+                                totalCell.classList.remove('text-yellow-400', 'font-bold');
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('total-buy-ins').textContent = buys;
+                document.getElementById('total-rebuys').textContent = rebuys;
+                document.getElementById('total-add-ons').textContent = addons;
+                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
+                document.getElementById('total-players-summary').textContent = playersData.filter(p => !p.eliminated).length;
+                document.getElementById('total-buyins-summary').textContent = buys;
+                document.getElementById('total-rebuys-summary').textContent = rebuys;
+                document.getElementById('total-addons-summary').textContent = addons;
+                
+                const totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
+                
+                document.querySelectorAll('.prize-item').forEach(item => {
+                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
+                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
+                });
+                updatePublicPrizes(grandTotal);
+                calculateAndRenderStandings();
+            };
+
             const calculateAndRenderStandings = () => { const eliminated = playersData.map((p, i) => ({...p, originalIndex: i})).filter(p => p.eliminated && p.eliminationTimestamp); finalStandingsSection.classList.toggle('hidden', eliminated.length === 0); if (eliminated.length === 0) { standingsList.innerHTML = '<li class="text-gray-400">Nenhum jogador eliminado ainda.</li>'; return; } eliminated.sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0)); standingsList.innerHTML = ''; eliminated.forEach((p, i) => { const rank = playersData.length - i; standingsList.innerHTML += `<li class="text-lg"><span class="font-bold">${rank}º</span> - ${p.name}</li>`; }); };
             const updatePublicPrizes = (total) => { const inputs = document.querySelectorAll('.prize-item'); if (inputs.length === 0) { publicPrizeGrid.innerHTML = '<p class="col-span-full text-gray-400">Premiação não definida.</p>'; return; } publicPrizeGrid.innerHTML = ''; inputs.forEach((item, i) => { const place = i + 1; const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0; const value = ((total * percent) / 100).toFixed(2); const color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400'; publicPrizeGrid.innerHTML += `<div class="bg-black/20 p-4 rounded-lg"><p class="block text-sm font-medium uppercase">${place}º LUGAR</p><p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p></div>`; }); };
             const renderTable = () => { playerTableBody.innerHTML = ''; const eliminated = playersData.map((p, i) => ({ ...p, originalIndex: i })).filter(p => p.eliminated && p.eliminationTimestamp).sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0)); const rankMap = new Map(); eliminated.forEach((p, i) => rankMap.set(p.originalIndex, playersData.length - i)); playersData.forEach((p) => createPlayerRow(p, rankMap.get(playersData.indexOf(p)))); calculateTotals(); };
