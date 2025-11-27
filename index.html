@@ -247,16 +247,16 @@
             </div>
         </div>
 
-        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row gap-6">
-            <div id="public-prize-section" class="w-full lg:w-1/2">
-                <div class="bg-black/40 backdrop-blur rounded-xl shadow-lg p-6 border border-yellow-600/30 h-full relative overflow-hidden">
+        <div id="public-info-section" class="mb-8 flex flex-col items-center justify-center gap-6">
+            <div id="public-prize-section" class="w-full max-w-4xl mx-auto">
+                <div class="bg-black/40 backdrop-blur rounded-xl shadow-lg p-6 border border-yellow-600/30 h-full relative overflow-hidden text-center">
                      <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl"></div>
                      <h2 class="text-xl font-bold text-yellow-100 uppercase tracking-widest text-center mb-6 border-b border-yellow-500/20 pb-2">Premiação Prevista</h2>
-                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                     <div id="public-prize-grid" class="flex flex-wrap justify-center gap-4">
                          </div>
                 </div>
             </div>
-            <div id="final-standings-section" class="w-full lg:w-1/2 hidden">
+            <div id="final-standings-section" class="w-full max-w-4xl mx-auto hidden">
                  <div class="bg-black/40 backdrop-blur rounded-xl shadow-lg p-6 border border-yellow-600/30 h-full">
                      <h2 class="text-xl font-bold text-white uppercase tracking-widest text-center mb-6 border-b border-gray-700 pb-2">🏆 Classificação Final</h2>
                      <ul id="standings-list" class="space-y-3 text-center">
@@ -647,8 +647,9 @@
                     if(pct <= 0) return;
                     const val = ((total * pct)/100).toFixed(2);
                     const color = i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : 'text-amber-600';
+                    // ADICIONADO: Flex-1 e min-width para balancear os cards centralizados
                     els.publicPrizeGrid.innerHTML += `
-                        <div class="bg-black/30 p-4 rounded border border-gray-700">
+                        <div class="bg-black/30 p-4 rounded border border-gray-700 flex-1 min-w-[200px] max-w-[300px]">
                             <p class="text-xs text-gray-400 uppercase tracking-widest">${i+1}º LUGAR</p>
                             <p class="text-2xl font-bold ${color} mt-1">R$ ${val}</p>
                             <p class="text-xs text-gray-600">${pct}%</p>
@@ -662,6 +663,7 @@
                     .sort((a, b) => b.eliminationTimestamp.toMillis() - a.eliminationTimestamp.toMillis()); // Mais recente primeiro
                 
                 if(eliminated.length > 0) {
+                    els.finalStandingsSection.parentNode.classList.remove('hidden'); // Ensure parent is visible
                     els.finalStandingsSection.classList.remove('hidden');
                     els.standingsList.innerHTML = '';
                     // Re-sort para mostrar do 1º eliminado para o ultimo? Não, mostrar Ranking (último a sair = melhor rank)
