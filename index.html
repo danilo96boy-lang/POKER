@@ -3,24 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER On Jack Tall Back</title>
+    <title>POKER On Jack Tall Back - Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --bg-dark: #021a03;
+            --bg-row: #062e08;
+            --accent-yellow: #ca8a04;
+        }
+
         body {
             font-family: 'Roboto Condensed', sans-serif;
-            background-color: #032a05;
-            background-image: radial-gradient(circle, #0a4f0d 0%, #032a05 100%);
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at center, #0a4f0d 0%, #021a03 100%);
+            overflow-x: hidden; /* Evita scroll na página inteira, apenas na tabela */
         }
+
         h1, h2, h3, button, th {
             font-family: 'Oswald', sans-serif;
         }
+
         .modal-overlay {
             transition: opacity 0.3s ease;
         }
+
+        /* --- STYLES PARA CHIPS --- */
         .chip-label {
             display: inline-flex;
             align-items: center;
@@ -37,13 +48,13 @@
             height: 28px;
             width: 28px;
             border-radius: 50%;
-            background-color: #4a5568;
-            border: 2px solid #a0aec0;
+            background-color: #374151; /* gray-700 */
+            border: 2px solid #6b7280; /* gray-500 */
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.1);
             position: relative;
         }
         .chip::before {
@@ -52,45 +63,60 @@
             height: 18px;
             width: 18px;
             border-radius: 50%;
-            border: 1px dashed #a0aec0;
+            border: 1px dashed #9ca3af;
         }
-        .buy-in-cb + .chip { background-color: #2b6cb0; }
-        .rebuy-cb + .chip { background-color: #c53030; }
-        .add-on-cb + .chip { background-color: #2f855a; }
+
+        /* Cores das Fichas */
+        .buy-in-cb + .chip { background-color: #1e40af; border-color: #60a5fa; } /* Azul */
+        .rebuy-cb + .chip { background-color: #991b1b; border-color: #f87171; } /* Vermelho */
+        .add-on-cb + .chip { background-color: #166534; border-color: #4ade80; } /* Verde */
+
+        /* Estado Checado */
         .chip-checkbox:checked + .chip {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px 3px var(--glow-color, #f7fafc), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(0,0,0,0.2);
+            transform: scale(1.15);
+            box-shadow: 0 0 12px 2px var(--glow-color, #f7fafc), 0 4px 6px rgba(0,0,0,0.5);
             border-color: #fff;
+            z-index: 5;
         }
-        .buy-in-cb:checked + .chip { --glow-color: #63b3ed; }
-        .rebuy-cb:checked + .chip { --glow-color: #f56565; }
-        .add-on-cb:checked + .chip { --glow-color: #68d391; }
+        .buy-in-cb:checked + .chip { --glow-color: #3b82f6; }
+        .rebuy-cb:checked + .chip { --glow-color: #ef4444; }
+        .add-on-cb:checked + .chip { --glow-color: #22c55e; }
+        
         .chip-checkbox:checked + .chip::before {
             border: 2px solid #fff;
         }
+
+        /* Jogador Eliminado */
         .player-row.eliminated {
-            background-color: rgba(40, 40, 40, 0.5);
-            color: #9ca3af;
-        }
-        .player-row.eliminated .player-name, .player-row.eliminated .chip-checkbox {
-            pointer-events: none;
+            background-color: rgba(20, 20, 20, 0.8) !important;
         }
         .player-row.eliminated .player-name {
-             text-decoration: line-through;
+            text-decoration: line-through;
+            color: #6b7280;
         }
+        .player-row.eliminated .chip, 
+        .player-row.eliminated .chip-checkbox {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        /* Rank de Eliminação */
         .elimination-rank {
             font-size: 0.75rem;
             font-weight: bold;
-            color: #f59e0b; /* amber-500 */
-            background-color: rgba(0,0,0,0.3);
+            color: #f59e0b;
+            background-color: rgba(0,0,0,0.5);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             margin-right: 8px;
+            border: 1px solid #ca8a04;
         }
+
+        /* Desabilitar Rebuys (Fase Add-on) */
         .rebuys-disabled .rebuy-cb,
         .rebuys-disabled .add-on-cb {
             pointer-events: none;
@@ -98,182 +124,238 @@
         .rebuys-disabled .rebuy-cb + .chip,
         .rebuys-disabled .add-on-cb + .chip {
             cursor: not-allowed;
-            background-color: #4A5568 !important;
-            opacity: 0.5;
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            opacity: 0.4;
         }
+
+        /* --- STICKY COLUMNS (MELHORIA UX) --- */
+        .table-container {
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        /* Coluna Nome Fixa */
+        .sticky-left {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background-color: var(--bg-row); /* Fundo sólido para não ver através */
+            border-right: 2px solid rgba(202, 138, 4, 0.3);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+        }
+        
+        /* Coluna Ações Fixa */
+        .sticky-right {
+            position: sticky;
+            right: 0;
+            z-index: 20;
+            background-color: var(--bg-row);
+            border-left: 2px solid rgba(202, 138, 4, 0.3);
+            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+        }
+
+        /* Ajuste para cabeçalho fixo */
+        thead th.sticky-left, thead th.sticky-right {
+            background-color: #000; /* Header mais escuro */
+            z-index: 30;
+        }
+
+        /* Ajuste Mobile */
         @media (max-width: 640px) {
             .chip { height: 24px; width: 24px; }
             .chip::before { height: 16px; width: 16px; }
+            .sticky-right { border-left: none; box-shadow: none; } /* Remove stickiness da direita no mobile se ficar apertado */
         }
     </style>
 </head>
-<body class="bg-green-900 text-gray-200 min-h-screen">
+<body class="text-gray-200 min-h-screen pb-10">
 
-    <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="relative text-center mb-6">
-            <button id="mute-btn" class="absolute top-0 left-0 bg-gray-700 hover:bg-gray-800 text-white font-bold p-2 rounded-full shadow-lg border-2 border-gray-400 transition-transform transform hover:scale-105" title="Ativar/Desativar Som">
-                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.89l.706.706z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
-                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="hidden" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <div id="main-content" class="container mx-auto p-2 sm:p-4 lg:p-6 max-w-7xl">
+        
+        <header class="relative text-center mb-6 pt-2">
+            <button id="mute-btn" class="absolute top-0 left-0 bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-full shadow-lg border border-gray-600 transition-all hover:scale-105" title="Ativar/Desativar Voz e Sons">
+                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.89l.706.706z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
+                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="hidden text-red-400" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
             </button>
-            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                <span class="text-red-500">♦</span> POKER ON JACK TALL BACK <span class="text-red-500">♥</span>
+            <h1 class="text-4xl sm:text-6xl font-bold text-white tracking-widest uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                <span class="text-red-600">♦</span> JACK TALL BACK <span class="text-red-600">♥</span>
             </h1>
-            <p class="text-gray-300 mt-2 text-lg">Gerencie o jogo em tempo real.</p>
-            <button id="admin-login-btn" class="absolute top-0 right-0 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 text-xs uppercase" title="Login Admin">ADMIN</button>
-            <button id="logout-btn" class="absolute top-0 right-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 text-xs uppercase hidden" title="Sair">SAIR</button>
+            <p class="text-yellow-500/80 mt-1 text-sm sm:text-base font-mono uppercase tracking-widest">Tournament Manager</p>
+            
+            <div class="absolute top-0 right-0">
+                <button id="admin-login-btn" class="bg-blue-700 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded shadow border border-blue-400 text-xs uppercase transition-colors">Admin</button>
+                <button id="logout-btn" class="bg-red-700 hover:bg-red-600 text-white font-bold py-1 px-3 rounded shadow border border-red-400 text-xs uppercase hidden transition-colors">Sair</button>
+            </div>
         </header>
 
-        <div id="blinds-timer-section" class="mb-8 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 border-2 border-yellow-600/50">
-            <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-2">TEMPORIZADOR DE BLINDS <span id="level-indicator" class="text-yellow-400"></span></h2>
-            <div id="blinds-note" class="text-center text-yellow-200 text-sm h-5 mb-2"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-center">
-                <div class="sm:text-left">
-                    <p class="text-sm text-yellow-300 uppercase">NÍVEL ATUAL</p>
-                    <p id="current-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+        <div id="blinds-timer-section" class="mb-6 bg-gradient-to-b from-gray-900/90 to-black/90 backdrop-blur-md rounded-2xl shadow-2xl p-4 sm:p-6 border border-yellow-600/30 ring-1 ring-yellow-500/10">
+            <h2 class="text-lg font-bold text-yellow-500 uppercase tracking-widest text-center mb-1 flex justify-center items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> AO VIVO <span id="level-indicator" class="text-white ml-2"></span>
+            </h2>
+            <div id="blinds-note" class="text-center text-yellow-200/80 text-sm h-5 font-medium mb-2"></div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center text-center">
+                <div class="sm:text-left order-2 sm:order-1 bg-black/40 p-3 rounded-lg sm:bg-transparent">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Blinds Atuais</p>
+                    <p id="current-blinds" class="text-3xl sm:text-4xl font-bold text-white tracking-tighter">--/--</p>
                 </div>
-                <div class="font-mono text-6xl sm:text-7xl text-yellow-400 font-bold flex items-center justify-center gap-4">
-                    <button id="prev-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Nível Anterior">&lt;&lt;</button>
-                    <span id="timer-display">--:--</span>
-                    <button id="next-level-btn" class="text-4xl text-gray-400 hover:text-white transition-colors" title="Próximo Nível">&gt;&gt;</button>
+                
+                <div class="order-1 sm:order-2 font-mono text-7xl sm:text-8xl text-yellow-400 font-bold flex items-center justify-center gap-4 relative py-2">
+                    <button id="prev-level-btn" class="absolute left-0 sm:-left-4 text-2xl text-gray-600 hover:text-white transition-colors p-2">&lt;</button>
+                    <span id="timer-display" class="tabular-nums drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]">--:--</span>
+                    <button id="next-level-btn" class="absolute right-0 sm:-right-4 text-2xl text-gray-600 hover:text-white transition-colors p-2">&gt;</button>
                 </div>
-                <div class="sm:text-right">
-                    <p class="text-sm text-yellow-300 uppercase">PRÓXIMO NÍVEL</p>
-                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-white">--/--</p>
+                
+                <div class="sm:text-right order-3 bg-black/40 p-3 rounded-lg sm:bg-transparent">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Próximo Nível</p>
+                    <p id="next-blinds" class="text-xl sm:text-2xl font-bold text-gray-300">--/--</p>
                 </div>
             </div>
-            <div class="mt-4 flex justify-center items-center gap-2 sm:gap-4">
-                <div class="flex items-center gap-2">
-                    <label for="level-duration" class="text-sm">Duração (min):</label>
-                    <input type="number" id="level-duration" value="15" class="w-16 bg-gray-900/50 text-white text-center rounded-md p-1 outline-none focus:ring-1 focus:ring-yellow-500">
+
+            <div class="mt-6 flex flex-wrap justify-center items-center gap-3 bg-black/20 p-2 rounded-lg inline-flex mx-auto w-full">
+                <div class="flex items-center gap-2 px-3 py-1 bg-gray-800/50 rounded border border-gray-700">
+                    <label for="level-duration" class="text-xs text-gray-400 uppercase">Minutos:</label>
+                    <input type="number" id="level-duration" value="15" class="w-12 bg-transparent text-white text-center font-bold outline-none focus:text-yellow-400">
                 </div>
-                <button id="timer-control-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">INICIAR</button>
-                <button id="reset-timer-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg uppercase text-sm">REINICIAR</button>
+                <button id="timer-control-btn" class="flex-1 sm:flex-none bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-6 rounded shadow border-b-4 border-green-900 active:border-b-0 active:translate-y-1 transition-all uppercase text-sm tracking-wide">INICIAR</button>
+                <button id="reset-timer-btn" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded shadow border-b-4 border-gray-900 active:border-b-0 active:translate-y-1 transition-all uppercase text-sm tracking-wide">RESET TIMER</button>
             </div>
         </div>
         
-        <div id="summary-panel" class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">JOGADORES ATIVOS</h3>
-                <p id="total-players-summary" class="text-3xl font-bold text-white">0</p>
+        <div id="summary-panel" class="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+            <div class="bg-black/40 backdrop-blur rounded-xl border border-gray-700 p-3 flex flex-col justify-center">
+                <h3 class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest">Jogadores</h3>
+                <p id="total-players-summary" class="text-2xl sm:text-3xl font-bold text-white">0</p>
             </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL BUY-INS</h3>
-                <p id="total-buyins-summary" class="text-3xl font-bold text-white">0</p>
+            <div class="bg-black/40 backdrop-blur rounded-xl border border-blue-900/50 p-3 flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-8 h-8 bg-blue-500/10 rounded-bl-full"></div>
+                <h3 class="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest">Buy-ins</h3>
+                <p id="total-buyins-summary" class="text-2xl sm:text-3xl font-bold text-white">0</p>
             </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL REBUYS</h3>
-                <p id="total-rebuys-summary" class="text-3xl font-bold text-white">0</p>
+            <div class="bg-black/40 backdrop-blur rounded-xl border border-red-900/50 p-3 flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-8 h-8 bg-red-500/10 rounded-bl-full"></div>
+                <h3 class="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-widest">Rebuys</h3>
+                <p id="total-rebuys-summary" class="text-2xl sm:text-3xl font-bold text-white">0</p>
             </div>
-            <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border-2 border-yellow-600/30">
-                <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wider">TOTAL ADD-ONS</h3>
-                <p id="total-addons-summary" class="text-3xl font-bold text-white">0</p>
-            </div>
-        </div>
-
-        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row flex-wrap justify-center items-start gap-8">
-            <div id="public-prize-section" class="w-full lg:max-w-lg">
-                <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">♠ PREMIAÇÃO ♣</h2>
-                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
-                     </div>
-                </div>
-            </div>
-            <div id="final-standings-section" class="w-full lg:max-w-lg">
-                 <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 h-full">
-                     <h2 class="text-2xl font-bold text-white uppercase tracking-wider text-center mb-4">🏆 CLASSIFICAÇÃO FINAL 🏆</h2>
-                     <ul id="standings-list" class="space-y-2 text-center">
-                     </ul>
-                </div>
+            <div class="bg-black/40 backdrop-blur rounded-xl border border-green-900/50 p-3 flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-8 h-8 bg-green-500/10 rounded-bl-full"></div>
+                <h3 class="text-[10px] sm:text-xs font-bold text-green-400 uppercase tracking-widest">Add-ons</h3>
+                <p id="total-addons-summary" class="text-2xl sm:text-3xl font-bold text-white">0</p>
             </div>
         </div>
 
-        <div id="game-controls" class="hidden">
-            <div class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border-2 border-yellow-600/50">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-yellow-600/30">
-                        <thead class="bg-black/25">
+        <div id="public-info-section" class="mb-8 flex flex-col lg:flex-row gap-6">
+            <div id="public-prize-section" class="w-full lg:w-1/2">
+                <div class="bg-black/40 backdrop-blur rounded-xl shadow-lg p-6 border border-yellow-600/30 h-full relative overflow-hidden">
+                     <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl"></div>
+                     <h2 class="text-xl font-bold text-yellow-100 uppercase tracking-widest text-center mb-6 border-b border-yellow-500/20 pb-2">Premiação Prevista</h2>
+                     <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                         </div>
+                </div>
+            </div>
+            <div id="final-standings-section" class="w-full lg:w-1/2 hidden">
+                 <div class="bg-black/40 backdrop-blur rounded-xl shadow-lg p-6 border border-yellow-600/30 h-full">
+                     <h2 class="text-xl font-bold text-white uppercase tracking-widest text-center mb-6 border-b border-gray-700 pb-2">🏆 Classificação Final</h2>
+                     <ul id="standings-list" class="space-y-3 text-center">
+                         </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-controls" class="hidden animate-fade-in">
+            <div class="bg-[#062e08] rounded-xl shadow-2xl overflow-hidden border border-yellow-600/30">
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-gray-800">
+                        <thead class="bg-black text-yellow-500">
                             <tr>
-                                <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-yellow-300 uppercase tracking-wider">JOGADOR</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">BUY-IN</th>
-                                <th colspan="10" class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">REBUYS</th>
-                                <th class="px-1 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">ADD-ON</th>
-                                <th class="px-2 sm:px-4 py-3 text-right text-xs font-semibold text-yellow-300 uppercase tracking-wider">TOTAL (R$)</th>
-                                <th class="px-2 sm:px-3 py-3 text-center text-xs font-semibold text-yellow-300 uppercase tracking-wider">AÇÕES</th>
+                                <th class="sticky-left px-4 py-3 text-left text-xs font-bold uppercase tracking-wider shadow-md">JOGADOR</th>
+                                <th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-400">BUY-IN</th>
+                                <th colspan="10" class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-red-400">REBUYS</th>
+                                <th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-green-400">ADD-ON</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">TOTAL</th>
+                                <th class="sticky-right px-3 py-3 text-center text-xs font-bold uppercase tracking-wider shadow-md">AÇÕES</th>
                             </tr>
                         </thead>
-                        <tbody id="player-table-body" class="divide-y divide-yellow-600/30">
-                        </tbody>
-                        <tfoot class="bg-black/25 border-t-2 border-yellow-600/50">
+                        <tbody id="player-table-body" class="divide-y divide-gray-800/50">
+                            </tbody>
+                        <tfoot class="bg-black/80 border-t-2 border-yellow-600/50">
                             <tr>
-                                <td class="px-2 sm:px-4 py-4 font-semibold text-white">TOTAIS (AÇÃO: R$ 30,00)</td>
-                                <td id="total-buy-ins" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td colspan="10" id="total-rebuys" class="px-2 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td id="total-add-ons" class="px-1 sm:px-3 py-4 text-center font-semibold text-white">0</td>
-                                <td id="grand-total" class="px-2 sm:px-4 py-4 text-right font-bold text-2xl text-yellow-400">R$ 0,00</td>
-                                <td></td>
+                                <td class="sticky-left px-4 py-4 font-bold text-white text-sm bg-black/80">TOTAL GERAL</td>
+                                <td id="total-buy-ins" class="px-2 py-4 text-center font-bold text-blue-400">0</td>
+                                <td colspan="10" id="total-rebuys" class="px-2 py-4 text-center font-bold text-red-400">0</td>
+                                <td id="total-add-ons" class="px-2 py-4 text-center font-bold text-green-400">0</td>
+                                <td id="grand-total" class="px-4 py-4 text-right font-bold text-2xl text-yellow-400 whitespace-nowrap">R$ 0,00</td>
+                                <td class="sticky-right bg-black/80"></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
-            <p class="text-center text-xs text-gray-400 mt-2 sm:hidden">Arraste a tabela para os lados para ver todas as colunas.</p>
+            
+            <p class="text-center text-xs text-gray-500 mt-2 italic sm:hidden">Deslize para ver todas as colunas. Nomes e ações estão fixos.</p>
             
             <div class="mt-8">
-                <div id="prize-section" class="bg-black/30 backdrop-blur-sm rounded-xl shadow-lg p-6 border-2 border-yellow-600/50 max-w-2xl mx-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-white uppercase tracking-wider">♠ CONFIGURAR PREMIAÇÃO ♣</h2>
-                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-yellow-500" title="Adicionar Prêmio">+</button>
+                <div id="prize-section" class="bg-black/30 backdrop-blur rounded-xl p-6 border border-gray-700 max-w-3xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-yellow-500" viewBox="0 0 16 16"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.531.255l.319.256c.394.315.618.797.618 1.296v.611a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-.611c0-.499.224-.981.618-1.296l.319-.256a.85.85 0 0 0 .531-.255l1.425-.356v-2.173a5.52 5.52 0 0 1-2.833-3.012a3 3 0 1 1-1.133-5.89A33.076 33.076 0 0 1 2.5.5"/></svg>
+                            Configurar Premiação
+                        </h2>
+                        <button id="add-prize-btn" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold h-8 w-8 rounded-full flex items-center justify-center transition-all shadow-lg text-lg leading-none" title="Adicionar Faixa de Prêmio">+</button>
                     </div>
-                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                    </div>
-                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden">A soma das porcentagens deve ser 100.</p>
+                    <div id="prize-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                    <p id="percentage-warning" class="text-center text-xs text-red-400 mt-4 hidden bg-red-900/20 p-2 rounded">A soma das porcentagens deve ser 100%.</p>
                 </div>
             </div>
 
-            <div class="mt-8 flex justify-center gap-4">
-                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-blue-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    ADICIONAR JOGADOR
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                <button id="add-player-btn" class="bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all uppercase tracking-wider flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/></svg>
+                    Adicionar Jogador
                 </button>
-                <button id="reset-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-red-400 transition-transform transform hover:scale-105 uppercase tracking-wider">
-                    RESETAR JOGO
+                <button id="reset-game-btn" class="bg-red-900/80 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg border border-red-500 transition-all uppercase tracking-wider text-sm">
+                    Resetar Jogo
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="login-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">ACESSO DE ADMINISTRADOR</h3>
+    <div id="login-modal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-sm border border-yellow-500/50">
+            <h3 class="text-xl font-bold text-center mb-6 text-white uppercase tracking-widest">Acesso Restrito</h3>
             <form id="login-form">
-                <input id="password" type="password" placeholder="Palavra-passe" autocomplete="current-password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-3 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50" required>
-                <p id="login-error" class="text-red-400 text-center text-xs h-4 mb-4"></p>
-                <div class="flex justify-center gap-4">
-                    <button id="login-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg uppercase">ENTRAR</button>
+                <input id="password" type="password" placeholder="Senha Admin" class="w-full bg-gray-900 text-white text-center rounded-lg p-3 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 transition-all placeholder-gray-600" required>
+                <p id="login-error" class="text-red-400 text-center text-xs h-5 mb-4"></p>
+                <div class="flex gap-3">
+                    <button id="login-cancel-btn" type="button" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg uppercase text-sm">Voltar</button>
+                    <button type="submit" class="flex-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 rounded-lg uppercase text-sm shadow-lg">Entrar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <p id="modal-text" class="text-center text-lg mb-6"></p>
+    <div id="confirmation-modal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm border border-gray-600">
+            <p id="modal-text" class="text-center text-lg mb-8 text-gray-200"></p>
             <div class="flex justify-center gap-4">
-                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg uppercase tracking-wide">Cancelar</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded-lg uppercase tracking-wide shadow-lg">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-sm border-2 border-yellow-500">
-            <h3 class="text-lg font-bold text-center mb-4">CONFIRMAÇÃO DE RESET</h3>
-            <p class="text-center text-sm mb-4">Para continuar, por favor insira a palavra-passe de administrador.</p>
-            <input id="password-input-modal" type="password" class="w-full bg-gray-900/50 text-white text-center rounded-md p-2 mb-2 outline-none focus:ring-2 focus:ring-yellow-500 border border-yellow-600/50">
+    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm border border-red-500/50">
+            <h3 class="text-lg font-bold text-center mb-2 text-red-500 uppercase">Zona de Perigo</h3>
+            <p class="text-center text-sm mb-6 text-gray-400">Digite a senha para apagar todos os dados.</p>
+            <input id="password-input-modal" type="password" class="w-full bg-gray-900 text-white text-center rounded-lg p-3 mb-2 outline-none focus:ring-2 focus:ring-red-500 border border-gray-700">
             <p id="password-error-modal" class="text-red-400 text-center text-xs h-4 mb-4"></p>
-            <div class="flex justify-center gap-4">
-                <button id="password-cancel-btn" type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CANCELAR</button>
-                <button id="password-confirm-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg uppercase">CONFIRMAR</button>
+            <div class="flex gap-3">
+                <button id="password-cancel-btn" type="button" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg uppercase text-sm">Cancelar</button>
+                <button id="password-confirm-btn" type="button" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg uppercase text-sm shadow-lg">Apagar Tudo</button>
             </div>
         </div>
     </div>
@@ -283,6 +365,7 @@
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
+        // CONFIGURAÇÃO FIREBASE (MANTIDA A ORIGINAL DO USUÁRIO)
         const firebaseConfig = {
             apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c",
             authDomain: "pokerti-633ba.firebaseapp.com",
@@ -292,221 +375,541 @@
             appId: "1:883744429166:web:7e091d7e8fcae6251c827f"
         };
 
+        let app, db, auth;
         try {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            const auth = getAuth(app);
-            
-            signInAnonymously(auth)
-                .then(() => initializeAppLogic(db, auth))
-                .catch((error) => console.error("ERRO NO LOGIN ANÔNIMO:", error));
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            signInAnonymously(auth).then(() => initializeAppLogic()).catch((e) => console.error("Login Error:", e));
         } catch (error) {
-            console.error("ERRO CRÍTICO NA INICIALIZAÇÃO DO FIREBASE:", error);
+            console.error("Firebase Init Error:", error);
         }
 
-        const initializeAppLogic = (db, auth) => {
-            
+        const initializeAppLogic = () => {
             // --- CONSTANTES ---
             const CORRECT_PASSWORD = 'poker';
-            const ACTION_VALUE = 30;
+            const ACTION_VALUE = 30; // Valor de cada ficha/buy-in
             const DB_COLLECTION = 'pokerGame';
-            const GAME_STATE_DOC_ID = 'gameState';
-            const TIMER_STATE_DOC_ID = 'timerState';
-            const PRIZE_CONFIG_DOC_ID = 'prizeConfig';
+            const GAME_DOC = 'gameState';
+            const TIMER_DOC = 'timerState';
+            const PRIZE_DOC = 'prizeConfig';
             const initialPlayers = ["DANILO", "Bronx", "Gustavo Lui", "Guilherme Lui", "Luiz", "Miudinho", "Vitor", "Lucas", "Yago", "Rodrigo Boy", "Lucas Costa", "Alexandre Costa", "Prado", "Raphinha", "NJ", "NJ2", "NJ3"];
             const initialPrizes = [50, 30, 20];
-            const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" }, { isBreak: true, note: "Pausa - 15 Minutos", duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "25000/50000" }, { blinds: "30000/60000" }, { blinds: "40000/80000" }, { blinds: "50000/100000" }];
+            const blindLevels = [
+                { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, 
+                { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, 
+                { blinds: "600/1200", note: "Último nível para Rebuys e Add-on" }, 
+                { isBreak: true, note: "Pausa - Chip Race", duration: 15 }, 
+                { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1500/3000" }, 
+                { blinds: "2000/4000" }, { blinds: "3000/6000" }, { blinds: "4000/8000" }, 
+                { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, 
+                { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }
+            ];
 
-            // --- REFERÊNCIAS DE DOCUMENTOS NO FIREBASE ---
-            const gameStateDocRef = doc(db, DB_COLLECTION, GAME_STATE_DOC_ID);
-            const timerStateDocRef = doc(db, DB_COLLECTION, TIMER_STATE_DOC_ID);
-            const prizeConfigDocRef = doc(db, DB_COLLECTION, PRIZE_CONFIG_DOC_ID);
+            // --- REFERÊNCIAS DOM ---
+            const els = {
+                mainContent: document.getElementById('main-content'),
+                gameControls: document.getElementById('game-controls'),
+                publicInfo: document.getElementById('public-info-section'),
+                tableBody: document.getElementById('player-table-body'),
+                timerDisplay: document.getElementById('timer-display'),
+                currBlinds: document.getElementById('current-blinds'),
+                nextBlinds: document.getElementById('next-blinds'),
+                levelInd: document.getElementById('level-indicator'),
+                note: document.getElementById('blinds-note'),
+                prizeGrid: document.getElementById('prize-grid'),
+                publicPrizeGrid: document.getElementById('public-prize-grid'),
+                standingsList: document.getElementById('standings-list'),
+                finalStandingsSection: document.getElementById('final-standings-section'),
+                adminBtn: document.getElementById('admin-login-btn'),
+                logoutBtn: document.getElementById('logout-btn'),
+                muteBtn: document.getElementById('mute-btn'),
+                toastContainer: document.getElementById('toast-container'),
+                soundOn: document.getElementById('sound-on-icon'),
+                soundOff: document.getElementById('sound-off-icon')
+            };
 
-            // --- ELEMENTOS DO DOM ---
-            const adminLoginBtn = document.getElementById('admin-login-btn'); const loginModal = document.getElementById('login-modal'); const loginCancelBtn = document.getElementById('login-cancel-btn'); const loginForm = document.getElementById('login-form'); const passwordInput = document.getElementById('password'); const loginError = document.getElementById('login-error'); const mainContent = document.getElementById('main-content'); const gameControls = document.getElementById('game-controls'); const logoutBtn = document.getElementById('logout-btn'); const playerTableBody = document.getElementById('player-table-body'); const addPlayerBtn = document.getElementById('add-player-btn'); const resetGameBtn = document.getElementById('reset-game-btn'); const modal = document.getElementById('confirmation-modal'); const modalText = document.getElementById('modal-text'); const modalConfirmBtn = document.getElementById('modal-confirm-btn'); const modalCancelBtn = document.getElementById('modal-cancel-btn'); const passwordModal = document.getElementById('password-modal'); const passwordInputModal = document.getElementById('password-input-modal'); const passwordErrorModal = document.getElementById('password-error-modal'); const passwordConfirmBtn = document.getElementById('password-confirm-btn'); const passwordCancelBtn = document.getElementById('password-cancel-btn'); const prizeGrid = document.getElementById('prize-grid'); const publicPrizeGrid = document.getElementById('public-prize-grid'); const publicInfoSection = document.getElementById('public-info-section'); const addPrizeBtn = document.getElementById('add-prize-btn'); const percentageWarning = document.getElementById('percentage-warning'); const timerDisplay = document.getElementById('timer-display'); const currentBlindsDisplay = document.getElementById('current-blinds'); const nextBlindsDisplay = document.getElementById('next-blinds'); const timerControlButton = document.getElementById('timer-control-btn'); const resetTimerButton = document.getElementById('reset-timer-btn'); const levelDurationInput = document.getElementById('level-duration'); const levelIndicator = document.getElementById('level-indicator'); const prevLevelBtn = document.getElementById('prev-level-btn'); const nextLevelBtn = document.getElementById('next-level-btn'); const blindsNote = document.getElementById('blinds-note'); const standingsList = document.getElementById('standings-list'); const finalStandingsSection = document.getElementById('final-standings-section'); const muteBtn = document.getElementById('mute-btn'); const soundOnIcon = document.getElementById('sound-on-icon'); const soundOffIcon = document.getElementById('sound-off-icon');
+            // --- ESTADO ---
+            let state = {
+                players: [],
+                timer: { timeLeft: 900, currentLevel: 0, isRunning: false },
+                isMuted: localStorage.getItem('pokerMuted') === 'true',
+                updating: false,
+                inputTimer: null,
+                timerInterval: null
+            };
+            const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-            // --- VARIÁVEIS DE ESTADO ---
-            let confirmCallback = null; let timerInterval = null; let timerState = { timeLeft: 15 * 60, currentLevel: 0, isRunning: false }; let playersData = []; let isUpdatingFromFirebase = false; let isMuted = localStorage.getItem('pokerMuted') === 'true'; let inputTimeout = null;
-            const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+            // --- FUNÇÕES AUXILIARES (TOAST E SOM) ---
+            const showToast = (msg, type = 'success') => {
+                const toast = document.createElement('div');
+                const colors = type === 'success' ? 'bg-green-600 border-green-400' : 'bg-red-600 border-red-400';
+                toast.className = `${colors} text-white px-4 py-3 rounded shadow-lg border-l-4 transform transition-all duration-300 translate-y-10 opacity-0 pointer-events-auto flex items-center gap-2`;
+                toast.innerHTML = `<span class="font-bold">${type === 'success' ? '✓' : '!'}</span> ${msg}`;
+                els.toastContainer.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-x-10');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            };
 
-            // --- LÓGICA DE LOGIN E LOGOUT ---
-            const openLoginModal = () => { passwordInput.value = ''; loginError.textContent = ''; loginModal.classList.remove('hidden'); passwordInput.focus(); };
-            const closeLoginModal = () => loginModal.classList.add('hidden');
-            const showLoggedInState = () => { gameControls.classList.remove('hidden'); publicInfoSection.classList.add('hidden'); logoutBtn.classList.remove('hidden'); adminLoginBtn.classList.add('hidden'); sessionStorage.setItem('pokerAppLoggedIn', 'true'); };
-            const showLoggedOutState = () => { sessionStorage.removeItem('pokerAppLoggedIn'); gameControls.classList.add('hidden'); logoutBtn.classList.add('hidden'); adminLoginBtn.classList.remove('hidden'); publicInfoSection.classList.remove('hidden'); };
-            loginForm.addEventListener('submit', (e) => { e.preventDefault(); if (passwordInput.value === CORRECT_PASSWORD) { showLoggedInState(); closeLoginModal(); } else { loginError.textContent = 'Palavra-passe incorreta.'; } passwordInput.value = ''; });
-            logoutBtn.addEventListener('click', showLoggedOutState); adminLoginBtn.addEventListener('click', openLoginModal); loginCancelBtn.addEventListener('click', closeLoginModal); loginModal.addEventListener('click', (e) => { if(e.target === loginModal) closeLoginModal(); });
+            const speak = (text) => {
+                if (state.isMuted || !window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'pt-BR';
+                u.rate = 1.1;
+                window.speechSynthesis.speak(u);
+            };
 
-            // --- LÓGICA DE SOM ---
-            const updateMuteButton = () => { soundOnIcon.classList.toggle('hidden', isMuted); soundOffIcon.classList.toggle('hidden', !isMuted); };
-            const playSound = (soundFunction) => { if (!isMuted) soundFunction(); };
-            const playWarningSound = () => { const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (!ctx) return; const play = (time) => { const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1500, ctx.currentTime); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + time); o.stop(ctx.currentTime + time + 0.2); }; play(0); play(0.3); };
-            const playCountdownBeep = () => { const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (!ctx) return; const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.2); };
-            const playLevelUpSound = () => {
+            const playSound = (type) => {
+                if (state.isMuted) return;
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (!ctx) return;
-                const createBeep = (startTime, freq) => {
-                    const o = ctx.createOscillator();
-                    const g = ctx.createGain();
-                    o.type = 'sine';
-                    o.frequency.setValueAtTime(freq, ctx.currentTime);
-                    g.gain.setValueAtTime(0, ctx.currentTime + startTime);
-                    g.gain.linearRampToValueAtTime(0.4, ctx.currentTime + startTime + 0.02);
-                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + startTime + 0.15);
-                    o.connect(g);
-                    g.connect(ctx.destination);
-                    o.start(ctx.currentTime + startTime);
-                    o.stop(ctx.currentTime + startTime + 0.15);
-                };
-                createBeep(0, 1200);
-                createBeep(0.15, 1200);
-                createBeep(0.30, 1200);
-                createBeep(0.45, 1600);
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                
+                if (type === 'beep') {
+                    o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime);
+                    g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                    o.start(); o.stop(ctx.currentTime + 0.1);
+                } else if (type === 'level') {
+                    o.type = 'triangle'; o.frequency.setValueAtTime(440, ctx.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+                    g.gain.setValueAtTime(0.2, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
+                    o.start(); o.stop(ctx.currentTime + 1);
+                }
             };
-            muteBtn.addEventListener('click', () => { isMuted = !isMuted; localStorage.setItem('pokerMuted', isMuted); updateMuteButton(); });
-            
-            // --- LÓGICA DO TEMPORIZADOR DE BLINDS ---
-            const updateChipAvailability = () => document.body.classList.toggle('rebuys-disabled', timerState.currentLevel >= 8);
-            const updateTimerDisplay = () => { const minutes = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0'); const seconds = (timerState.timeLeft % 60).toString().padStart(2, '0'); timerDisplay.textContent = `${minutes}:${seconds}`; const levelInfo = blindLevels[timerState.currentLevel]; if (levelInfo?.isBreak) { currentBlindsDisplay.textContent = "PAUSA"; } else { currentBlindsDisplay.textContent = levelInfo?.blinds || '--/--'; } blindsNote.textContent = levelInfo?.note || ''; const nextBlind = blindLevels.find((l, i) => i > timerState.currentLevel && !l.isBreak); nextBlindsDisplay.textContent = nextBlind?.blinds || 'Fim'; levelIndicator.textContent = `(NÍVEL ${timerState.currentLevel + 1}/${blindLevels.length})`; prevLevelBtn.disabled = timerState.currentLevel === 0; nextLevelBtn.disabled = timerState.currentLevel >= blindLevels.length - 1; updateChipAvailability(); };
-            const runLocalTimer = () => {
-                if (timerState.timeLeft > 0) {
-                    timerState.timeLeft--;
-                    updateTimerDisplay();
-                    if (timerState.timeLeft <= 10 && timerState.timeLeft > 0) playSound(playCountdownBeep);
-                    else if (timerState.timeLeft === 60) playSound(playWarningSound);
+
+            // --- LÓGICA DO TIMER ---
+            const updateTimerUI = () => {
+                const m = Math.floor(state.timer.timeLeft / 60).toString().padStart(2, '0');
+                const s = (state.timer.timeLeft % 60).toString().padStart(2, '0');
+                els.timerDisplay.textContent = `${m}:${s}`;
+                
+                const lvl = blindLevels[state.timer.currentLevel];
+                if (lvl?.isBreak) {
+                    els.currBlinds.textContent = "PAUSA";
+                    els.currBlinds.className = "text-3xl sm:text-4xl font-bold text-green-400 tracking-tighter animate-pulse";
                 } else {
-                    stopLocalTimer();
+                    els.currBlinds.textContent = lvl?.blinds || 'FIM';
+                    els.currBlinds.className = "text-3xl sm:text-4xl font-bold text-white tracking-tighter";
+                }
+                
+                els.note.textContent = lvl?.note || '';
+                const next = blindLevels.find((l, i) => i > state.timer.currentLevel && !l.isBreak);
+                els.nextBlinds.textContent = next?.blinds || '---';
+                els.levelInd.textContent = `Nível ${state.timer.currentLevel + 1}`;
+                
+                document.body.classList.toggle('rebuys-disabled', state.timer.currentLevel >= 8);
+                
+                const btn = document.getElementById('timer-control-btn');
+                btn.textContent = state.timer.isRunning ? 'PAUSAR' : 'INICIAR';
+                btn.className = state.timer.isRunning 
+                    ? "flex-1 sm:flex-none bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-6 rounded shadow border-b-4 border-yellow-800 active:border-b-0 active:translate-y-1 transition-all uppercase text-sm tracking-wide"
+                    : "flex-1 sm:flex-none bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-6 rounded shadow border-b-4 border-green-900 active:border-b-0 active:translate-y-1 transition-all uppercase text-sm tracking-wide";
+            };
+
+            const runTimer = () => {
+                if (state.timer.timeLeft > 0) {
+                    state.timer.timeLeft--;
+                    updateTimerUI();
+                    if (state.timer.timeLeft <= 10 && state.timer.timeLeft > 0) playSound('beep');
+                } else {
+                    clearInterval(state.timerInterval);
                     nextLevel();
                 }
             };
-            const stopLocalTimer = () => { clearInterval(timerInterval); timerInterval = null; };
-            const saveTimerStateToFirebase = async (state) => await setDoc(timerStateDocRef, { ...state, lastUpdateTime: state.isRunning ? serverTimestamp() : null }, { merge: true });
-            const startTimer = () => { if (!timerState.isRunning) { timerState.isRunning = true; saveTimerStateToFirebase(timerState); } };
-            const pauseTimer = () => { if (timerState.isRunning) { timerState.isRunning = false; saveTimerStateToFirebase(timerState); } };
-            const setLevel = (idx) => { const levelInfo = blindLevels[idx]; timerState = { currentLevel: idx, timeLeft: (levelInfo.isBreak ? levelInfo.duration : parseInt(levelDurationInput.value)) * 60, isRunning: timerState.isRunning }; saveTimerStateToFirebase(timerState); };
+
+            const saveTimer = async () => {
+                await setDoc(doc(db, DB_COLLECTION, TIMER_DOC), {
+                    ...state.timer,
+                    lastUpdateTime: state.timer.isRunning ? serverTimestamp() : null
+                }, { merge: true });
+            };
+
             const nextLevel = () => {
-                const levelThatJustEnded = timerState.currentLevel;
-                setTimeout(() => {
-                    if (timerState.currentLevel === levelThatJustEnded) {
-                        playSound(playLevelUpSound);
-                        if (timerState.currentLevel < blindLevels.length - 1) {
-                            setLevel(timerState.currentLevel + 1);
-                        } else {
-                            pauseTimer();
-                        }
-                    }
-                }, 500 + Math.random() * 1000);
+                const oldLvl = state.timer.currentLevel;
+                if (oldLvl < blindLevels.length - 1) {
+                    const newLvlIdx = oldLvl + 1;
+                    const newLvl = blindLevels[newLvlIdx];
+                    state.timer.currentLevel = newLvlIdx;
+                    state.timer.timeLeft = (newLvl.isBreak ? newLvl.duration : parseInt(document.getElementById('level-duration').value)) * 60;
+                    playSound('level');
+                    
+                    if (newLvl.isBreak) speak("Atenção jogadores. Pausa de 15 minutos.");
+                    else speak(`Os blinds subiram. Nível ${newLvlIdx + 1}. ${newLvl.blinds.replace('/', ' ')}.`);
+                    
+                    saveTimer();
+                } else {
+                    state.timer.isRunning = false;
+                    saveTimer();
+                }
             };
-            const prevLevel = () => { if (timerState.currentLevel > 0) setLevel(timerState.currentLevel - 1); };
-            const resetTimer = () => { pauseTimer(); setLevel(0); };
-            onSnapshot(timerStateDocRef, (doc) => { const state = doc.exists() ? doc.data() : { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null }; if (state.isRunning) { const elapsed = Math.floor((Date.now() - (state.lastUpdateTime?.toMillis() || Date.now())) / 1000); state.timeLeft = Math.max(0, state.timeLeft - elapsed); if (!timerInterval) { timerInterval = setInterval(runLocalTimer, 1000); timerControlButton.textContent = 'PAUSAR'; timerControlButton.classList.replace('bg-green-600', 'bg-yellow-600'); } } else { stopLocalTimer(); timerControlButton.textContent = 'INICIAR'; timerControlButton.classList.replace('bg-yellow-600', 'bg-green-600'); } timerState = state; updateTimerDisplay(); });
-            timerControlButton.addEventListener('click', () => timerState.isRunning ? pauseTimer() : startTimer()); resetTimerButton.addEventListener('click', resetTimer); prevLevelBtn.addEventListener('click', prevLevel); nextLevelBtn.addEventListener('click', nextLevel); levelDurationInput.addEventListener('change', () => { if (!timerState.isRunning && !blindLevels[timerState.currentLevel].isBreak) { timerState.timeLeft = parseInt(levelDurationInput.value) * 60; updateTimerDisplay(); saveTimerStateToFirebase(timerState); } });
 
-            // --- LÓGICA PRINCIPAL DO JOGO ---
-            const saveData = async () => { if (isUpdatingFromFirebase) return; try { await setDoc(gameStateDocRef, { players: playersData }); } catch (e) { console.error("Erro ao salvar dados dos jogadores: ", e); } };
-            const savePrizes = async () => { const percentages = Array.from(document.querySelectorAll('.prize-percent-input')).map(i => parseFloat(i.value) || 0); await setDoc(prizeConfigDocRef, { percentages }); };
-            
+            // --- LÓGICA DO JOGO ---
+            const renderTable = () => {
+                els.tableBody.innerHTML = '';
+                const active = state.players.filter(p => !p.eliminated);
+                const eliminated = state.players.filter(p => p.eliminated)
+                    .sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0));
+                
+                // Mapa de ranking reverso para eliminados
+                const rankMap = new Map();
+                eliminated.forEach((p, i) => rankMap.set(p.id, state.players.length - i));
+                
+                // Renderiza ativos primeiro, depois eliminados
+                [...state.players].forEach(p => {
+                     const tr = document.createElement('tr');
+                     const isEliminated = p.eliminated;
+                     tr.className = `player-row hover:bg-yellow-400/5 transition-colors ${isEliminated ? 'eliminated' : ''}`;
+                     tr.dataset.id = p.id;
+                     
+                     const rankHtml = isEliminated && rankMap.get(p.id) ? `<span class="elimination-rank">${rankMap.get(p.id)}º</span>` : '';
+                     
+                     let rebuysHtml = '';
+                     for(let i=0; i<10; i++) {
+                         rebuysHtml += `<td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><span class="chip"></span></label></td>`;
+                     }
+
+                     tr.innerHTML = `
+                        <td class="sticky-left px-4 py-3 whitespace-nowrap bg-[#062e08]">
+                            <div class="flex items-center">
+                                ${rankHtml}
+                                <input type="text" value="${p.name}" class="player-name bg-transparent text-gray-200 font-medium w-full outline-none focus:text-yellow-400 border-b border-transparent focus:border-yellow-500 transition-all uppercase" ${isEliminated ? 'disabled' : ''}>
+                            </div>
+                        </td>
+                        <td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${p.buyInChecked ? 'checked' : ''}><span class="chip"></span></label></td>
+                        ${rebuysHtml}
+                        <td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${p.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td>
+                        <td class="player-total px-4 py-3 text-right font-mono font-medium text-gray-400">R$ 0,00</td>
+                        <td class="sticky-right px-2 py-3 text-center bg-[#062e08]">
+                            <div class="flex items-center justify-center gap-2">
+                                <button class="eliminate-player-btn text-gray-500 hover:text-yellow-500 transition-colors" title="${isEliminated ? 'Restaurar' : 'Eliminar'}">
+                                    <svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg>
+                                </button>
+                                <button class="delete-player-btn text-gray-500 hover:text-red-500 transition-colors" title="Excluir Definitivamente">
+                                    <svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
+                                </button>
+                            </div>
+                        </td>`;
+                     els.tableBody.appendChild(tr);
+                });
+                calculateTotals();
+            };
+
             const calculateTotals = () => {
-                let grandTotal = 0, buys = 0, rebuys = 0, addons = 0;
-
-                playersData.forEach(p => {
-                    let playerTotal = 0; // TOTAL INDIVIDUAL
-
-                    if (p.buyInChecked) {
-                        grandTotal += ACTION_VALUE;
-                        playerTotal += ACTION_VALUE;
-                        buys++;
-                    }
-                    if (p.rebuysChecked) {
-                        const count = p.rebuysChecked.filter(Boolean).length;
-                        grandTotal += count * ACTION_VALUE;
-                        playerTotal += count * ACTION_VALUE;
-                        rebuys += count;
-                    }
-                    if (p.addOnChecked) {
-                        grandTotal += ACTION_VALUE;
-                        playerTotal += ACTION_VALUE;
-                        addons++;
-                    }
-
-                    // --- Atualiza o HTML deste jogador específico ---
-                    const row = document.querySelector(`.player-row[data-player-id="${p.id}"]`);
-                    if (row) {
-                        const totalCell = row.querySelector('.player-total');
-                        if (totalCell) {
-                            totalCell.textContent = `R$ ${playerTotal.toFixed(2)}`;
-                            // Mudar cor se tiver gasto (opcional, mas visualmente bom)
-                            if (playerTotal > 0) {
-                                totalCell.classList.remove('text-gray-300');
-                                totalCell.classList.add('text-yellow-400', 'font-bold');
-                            } else {
-                                totalCell.classList.add('text-gray-300');
-                                totalCell.classList.remove('text-yellow-400', 'font-bold');
-                            }
-                        }
+                let gTotal = 0, nBuy = 0, nRebuy = 0, nAddon = 0;
+                
+                state.players.forEach(p => {
+                    let pTotal = 0;
+                    if(p.buyInChecked) { gTotal += ACTION_VALUE; pTotal += ACTION_VALUE; nBuy++; }
+                    if(p.addOnChecked) { gTotal += ACTION_VALUE; pTotal += ACTION_VALUE; nAddon++; }
+                    const rCount = p.rebuysChecked.filter(Boolean).length;
+                    gTotal += rCount * ACTION_VALUE; pTotal += rCount * ACTION_VALUE; nRebuy += rCount;
+                    
+                    const row = document.querySelector(`.player-row[data-id="${p.id}"] .player-total`);
+                    if(row) {
+                        row.textContent = `R$ ${pTotal.toFixed(2)}`;
+                        row.classList.toggle('text-yellow-400', pTotal > 0);
+                        row.classList.toggle('text-gray-400', pTotal === 0);
                     }
                 });
 
-                document.getElementById('total-buy-ins').textContent = buys;
-                document.getElementById('total-rebuys').textContent = rebuys;
-                document.getElementById('total-add-ons').textContent = addons;
-                document.getElementById('grand-total').textContent = `R$ ${grandTotal.toFixed(2)}`;
-                document.getElementById('total-players-summary').textContent = playersData.filter(p => !p.eliminated).length;
-                document.getElementById('total-buyins-summary').textContent = buys;
-                document.getElementById('total-rebuys-summary').textContent = rebuys;
-                document.getElementById('total-addons-summary').textContent = addons;
+                document.getElementById('total-buy-ins').textContent = nBuy;
+                document.getElementById('total-rebuys').textContent = nRebuy;
+                document.getElementById('total-add-ons').textContent = nAddon;
+                document.getElementById('grand-total').textContent = `R$ ${gTotal.toFixed(2)}`;
                 
-                const totalPercent = Array.from(document.querySelectorAll('.prize-percent-input')).reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
-                percentageWarning.classList.toggle('hidden', Math.round(totalPercent) === 100 || totalPercent === 0);
-                
-                document.querySelectorAll('.prize-item').forEach(item => {
-                    const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0;
-                    item.querySelector('.prize-value-display').textContent = `R$ ${((grandTotal * percent) / 100).toFixed(2)}`;
-                });
-                updatePublicPrizes(grandTotal);
-                calculateAndRenderStandings();
+                document.getElementById('total-players-summary').textContent = state.players.filter(p=>!p.eliminated).length;
+                document.getElementById('total-buyins-summary').textContent = nBuy;
+                document.getElementById('total-rebuys-summary').textContent = nRebuy;
+                document.getElementById('total-addons-summary').textContent = nAddon;
+
+                renderPrizes(gTotal);
+                renderStandings();
             };
 
-            const calculateAndRenderStandings = () => { const eliminated = playersData.map((p, i) => ({...p, originalIndex: i})).filter(p => p.eliminated && p.eliminationTimestamp); finalStandingsSection.classList.toggle('hidden', eliminated.length === 0); if (eliminated.length === 0) { standingsList.innerHTML = '<li class="text-gray-400">Nenhum jogador eliminado ainda.</li>'; return; } eliminated.sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0)); standingsList.innerHTML = ''; eliminated.forEach((p, i) => { const rank = playersData.length - i; standingsList.innerHTML += `<li class="text-lg"><span class="font-bold">${rank}º</span> - ${p.name}</li>`; }); };
-            const updatePublicPrizes = (total) => { const inputs = document.querySelectorAll('.prize-item'); if (inputs.length === 0) { publicPrizeGrid.innerHTML = '<p class="col-span-full text-gray-400">Premiação não definida.</p>'; return; } publicPrizeGrid.innerHTML = ''; inputs.forEach((item, i) => { const place = i + 1; const percent = parseFloat(item.querySelector('.prize-percent-input').value) || 0; const value = ((total * percent) / 100).toFixed(2); const color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400'; publicPrizeGrid.innerHTML += `<div class="bg-black/20 p-4 rounded-lg"><p class="block text-sm font-medium uppercase">${place}º LUGAR</p><p class="mt-2 text-xl font-semibold ${color}">R$ ${value}</p></div>`; }); };
-            const renderTable = () => { playerTableBody.innerHTML = ''; const eliminated = playersData.map((p, i) => ({ ...p, originalIndex: i })).filter(p => p.eliminated && p.eliminationTimestamp).sort((a, b) => (a.eliminationTimestamp?.toMillis() || 0) - (b.eliminationTimestamp?.toMillis() || 0)); const rankMap = new Map(); eliminated.forEach((p, i) => rankMap.set(p.originalIndex, playersData.length - i)); playersData.forEach((p) => createPlayerRow(p, rankMap.get(playersData.indexOf(p)))); calculateTotals(); };
-            const createPlayerRow = (player, rank) => { const tr = document.createElement('tr'); tr.className = `player-row hover:bg-yellow-400/10 ${player.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = player.id; let rebuysHTML = ''; for(let i=0; i<10; i++) rebuysHTML += `<td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox rebuy-cb" ${player.rebuysChecked?.[i] ? 'checked' : ''}><span class="chip"></span></label></td>`; tr.innerHTML = `<td class="px-2 sm:px-4 py-3 whitespace-nowrap flex items-center">${player.eliminated && rank ? `<span class="elimination-rank">${rank}º</span>` : ''}<input type="text" value="${player.name}" class="player-name w-full bg-transparent p-1 -m-1" ${player.eliminated ? 'disabled' : ''}></td><td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox buy-in-cb" ${player.buyInChecked ? 'checked' : ''}><span class="chip"></span></label></td>${rebuysHTML}<td class="p-1 text-center"><label class="chip-label"><input type="checkbox" class="chip-checkbox add-on-cb" ${player.addOnChecked ? 'checked' : ''}><span class="chip"></span></label></td><td class="player-total px-2 sm:px-4 text-right font-medium text-gray-300">R$ 0,00</td><td class="px-2 sm:px-3 text-center"><div class="flex items-center justify-center gap-2"><button class="eliminate-player-btn text-gray-400 h:text-yellow-500" title="${player.eliminated?'Restaurar':'Eliminar'}"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zM5 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1zm6 8a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM5 9a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1z"/><path d="M8 0a.5.5 0 0 1 .5.5V3h3a.5.5 0 0 1 0 1h-3v2.03a1.5 1.5 0 0 1-2 0V4H3.5a.5.5 0 0 1 0-1H6V.5A.5.5 0 0 1 6.5 0h3A.5.5 0 0 1 8 0zM2 4.5A1.5 1.5 0 0 1 3.5 6H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 3.5v1zM12.5 6A1.5 1.5 0 0 1 14 4.5v-1A1.5 1.5 0 0 1 12.5 2H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v1A1.5 1.5 0 0 1 12.5 5H12a.5.5 0 0 1 0 1h.5zM12.5 12A1.5 1.5 0 0 1 14 10.5v-1A1.5 1.5 0 0 1 12.5 8H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 8.5v1A1.5 1.5 0 0 1 12.5 11H12a.5.5 0 0 1 0 1h.5zM2 10.5A1.5 1.5 0 0 1 3.5 12H4a.5.5 0 0 1 0 1H3.5A1.5 1.5 0 0 1 2 11.5v-1A1.5 1.5 0 0 1 3.5 9H4a.5.5 0 0 1 0-1H3.5A1.5 1.5 0 0 1 2 9.5v1z"/></svg></button><button class="delete-player-btn text-gray-400 h:text-red-500" title="Remover"><svg class="pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button></div></td>`; playerTableBody.appendChild(tr); };
-            const createPrizeField = (place, value = 0) => { const item = document.createElement('div'); item.className = 'prize-item relative bg-black/20 p-4 rounded-lg'; let color = place === 1 ? 'text-yellow-300' : place === 2 ? 'text-gray-300' : 'text-orange-400'; item.innerHTML = `<label class="block text-sm font-medium uppercase">${place}º LUGAR</label><input type="number" value="${value}" class="prize-percent-input mt-2 w-24 bg-gray-900/50 text-center rounded p-2 outline-none focus:ring-2 focus:ring-yellow-500" placeholder="%">${place > 3 ? `<button class="remove-prize-btn absolute top-2 right-2 text-gray-500 h:text-red-400">&times;</button>`:''}<p class="prize-value-display mt-2 text-xl font-semibold ${color}">R$ 0,00</p>`; prizeGrid.appendChild(item); };
-            const loadData = () => { onSnapshot(gameStateDocRef, (doc) => { isUpdatingFromFirebase = true; let loaded = []; if (doc.exists() && doc.data().players) { loaded = doc.data().players; let needsUpdate = false; loaded.forEach(p => { if (!p.id) { p.id = generateUniqueId(); needsUpdate = true; } }); if (needsUpdate) { console.log("Migrando dados antigos para incluir IDs."); setDoc(gameStateDocRef, { players: loaded }); } } else { loaded = initialPlayers.map(name => ({ id: generateUniqueId(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null })); } playersData = loaded; renderTable(); isUpdatingFromFirebase = false; }); onSnapshot(prizeConfigDocRef, (doc) => { prizeGrid.innerHTML = ''; const percentages = (doc.exists() && doc.data().percentages) ? doc.data().percentages : initialPrizes; percentages.forEach((v, i) => createPrizeField(i + 1, v)); calculateTotals(); }); };
+            const renderPrizes = (total) => {
+                const inputs = document.querySelectorAll('.prize-percent-input');
+                const percentages = Array.from(inputs).map(i => parseFloat(i.value)||0);
+                
+                // Atualiza display dos inputs (Admin)
+                document.querySelectorAll('.prize-item').forEach((div, i) => {
+                   div.querySelector('.prize-val').textContent = `R$ ${((total * percentages[i])/100).toFixed(2)}`; 
+                });
 
-            // --- MODAIS E AÇÕES ---
-            const openModal = (text, onConfirm) => { modalText.textContent = text; confirmCallback = onConfirm; modal.classList.remove('hidden'); };
-            const closeModal = () => { modal.classList.add('hidden'); confirmCallback = null; };
-            const openPasswordModal = () => { passwordInputModal.value = ''; passwordErrorModal.textContent = ''; passwordModal.classList.remove('hidden'); passwordInputModal.focus(); };
-            const closePasswordModal = () => passwordModal.classList.add('hidden');
-            resetGameBtn.addEventListener('click', openPasswordModal);
-            passwordConfirmBtn.addEventListener('click', () => { 
-                if (passwordInputModal.value === CORRECT_PASSWORD) {
-                    closePasswordModal();
-                    openModal('Tem a certeza que deseja reiniciar o jogo? Todos os dados serão perdidos.', async () => {
-                        await setDoc(gameStateDocRef, { players: initialPlayers.map(name => ({ id: generateUniqueId(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null })) });
-                        await setDoc(prizeConfigDocRef, { percentages: initialPrizes });
-                        await setDoc(timerStateDocRef, { timeLeft: parseInt(levelDurationInput.value) * 60, currentLevel: 0, isRunning: false, lastUpdateTime: null });
-                        closeModal();
+                // Atualiza display público
+                els.publicPrizeGrid.innerHTML = '';
+                percentages.forEach((pct, i) => {
+                    if(pct <= 0) return;
+                    const val = ((total * pct)/100).toFixed(2);
+                    const color = i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : 'text-amber-600';
+                    els.publicPrizeGrid.innerHTML += `
+                        <div class="bg-black/30 p-4 rounded border border-gray-700">
+                            <p class="text-xs text-gray-400 uppercase tracking-widest">${i+1}º LUGAR</p>
+                            <p class="text-2xl font-bold ${color} mt-1">R$ ${val}</p>
+                            <p class="text-xs text-gray-600">${pct}%</p>
+                        </div>
+                    `;
+                });
+            };
+
+            const renderStandings = () => {
+                const eliminated = state.players.filter(p => p.eliminated && p.eliminationTimestamp)
+                    .sort((a, b) => b.eliminationTimestamp.toMillis() - a.eliminationTimestamp.toMillis()); // Mais recente primeiro
+                
+                if(eliminated.length > 0) {
+                    els.finalStandingsSection.classList.remove('hidden');
+                    els.standingsList.innerHTML = '';
+                    // Re-sort para mostrar do 1º eliminado para o ultimo? Não, mostrar Ranking (último a sair = melhor rank)
+                    const totalP = state.players.length;
+                    eliminated.sort((a, b) => a.eliminationTimestamp.toMillis() - b.eliminationTimestamp.toMillis()); // Ordem de eliminação
+                    
+                    eliminated.forEach((p, i) => {
+                        const rank = totalP - i;
+                        els.standingsList.innerHTML += `<li class="text-gray-300 flex justify-center items-center gap-2"><span class="font-bold text-yellow-600">${rank}º</span> ${p.name}</li>`;
                     });
                 } else {
-                    passwordErrorModal.textContent = 'Palavra-passe incorreta.';
+                    els.finalStandingsSection.classList.add('hidden');
+                }
+            };
+
+            const saveGame = async () => {
+                if(state.updating) return;
+                try {
+                    await setDoc(doc(db, DB_COLLECTION, GAME_DOC), { players: state.players });
+                } catch(e) { console.error(e); showToast('Erro ao salvar!', 'error'); }
+            };
+
+            // --- LISTENERS ---
+            // Interação na Tabela (Delegation)
+            els.tableBody.addEventListener('input', (e) => {
+                const tr = e.target.closest('tr');
+                if(!tr) return;
+                const p = state.players.find(x => x.id === tr.dataset.id);
+                if(!p) return;
+
+                if(e.target.matches('.player-name')) p.name = e.target.value;
+                if(e.target.matches('.buy-in-cb')) p.buyInChecked = e.target.checked;
+                if(e.target.matches('.add-on-cb')) p.addOnChecked = e.target.checked;
+                if(e.target.matches('.rebuy-cb')) {
+                    const idx = Array.from(tr.querySelectorAll('.rebuy-cb')).indexOf(e.target);
+                    p.rebuysChecked[idx] = e.target.checked;
+                }
+                
+                clearTimeout(state.inputTimer);
+                state.inputTimer = setTimeout(saveGame, 500); // Debounce
+                calculateTotals(); // Atualiza UI instantaneamente
+            });
+
+            els.tableBody.addEventListener('click', (e) => {
+                 const tr = e.target.closest('tr');
+                 if(!tr) return;
+                 const idx = state.players.findIndex(x => x.id === tr.dataset.id);
+                 if(idx === -1) return;
+
+                 if(e.target.closest('.delete-player-btn')) {
+                     if(confirm(`Remover ${state.players[idx].name}?`)) {
+                         state.players.splice(idx, 1);
+                         saveGame();
+                         showToast('Jogador removido');
+                     }
+                 } else if (e.target.closest('.eliminate-player-btn')) {
+                     const p = state.players[idx];
+                     p.eliminated = !p.eliminated;
+                     p.eliminationTimestamp = p.eliminated ? serverTimestamp() : null;
+                     saveGame();
+                     showToast(p.eliminated ? `${p.name} eliminado!` : `${p.name} voltou ao jogo!`);
+                 }
+            });
+
+            // Timer Controls
+            document.getElementById('timer-control-btn').addEventListener('click', () => {
+                state.timer.isRunning = !state.timer.isRunning;
+                saveTimer();
+            });
+            document.getElementById('reset-timer-btn').addEventListener('click', () => {
+                state.timer.isRunning = false;
+                state.timer.timeLeft = parseInt(document.getElementById('level-duration').value) * 60;
+                state.timer.currentLevel = 0;
+                saveTimer();
+                showToast('Timer resetado');
+            });
+            document.getElementById('prev-level-btn').addEventListener('click', () => {
+                 if(state.timer.currentLevel > 0) { 
+                     state.timer.currentLevel--; 
+                     state.timer.timeLeft = parseInt(document.getElementById('level-duration').value) * 60;
+                     saveTimer(); 
+                 }
+            });
+            document.getElementById('next-level-btn').addEventListener('click', () => {
+                 if(state.timer.currentLevel < blindLevels.length-1) {
+                     state.timer.currentLevel++;
+                     state.timer.timeLeft = parseInt(document.getElementById('level-duration').value) * 60;
+                     saveTimer();
+                 }
+            });
+
+            // Admin Logic
+            els.adminBtn.addEventListener('click', () => document.getElementById('login-modal').classList.remove('hidden'));
+            document.getElementById('login-cancel-btn').addEventListener('click', () => document.getElementById('login-modal').classList.add('hidden'));
+            document.getElementById('login-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const pwd = document.getElementById('password');
+                if(pwd.value === CORRECT_PASSWORD) {
+                    sessionStorage.setItem('pokerAdmin', 'true');
+                    updateAuthUI();
+                    document.getElementById('login-modal').classList.add('hidden');
+                    pwd.value = '';
+                    showToast('Modo Admin Ativo');
+                } else {
+                    document.getElementById('login-error').textContent = 'Senha incorreta';
                 }
             });
-            passwordCancelBtn.addEventListener('click', closePasswordModal); passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) closePasswordModal(); });
-            modalConfirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); }); modalCancelBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-            
-            // --- EVENT LISTENERS DE INTERAÇÃO ---
-            addPlayerBtn.addEventListener('click', () => { playersData.push({ id: generateUniqueId(), name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false), addOnChecked: false, eliminated: false, eliminationTimestamp: null }); saveData(); });
-            playerTableBody.addEventListener('click', (event) => { const row = event.target.closest('.player-row'); if (!row) return; const playerId = row.dataset.playerId; const playerIndex = playersData.findIndex(p => p.id === playerId); if (playerIndex === -1) return; if (event.target.closest('.delete-player-btn')) { openModal(`Deseja remover ${playersData[playerIndex].name || 'Jogador sem nome'}?`, () => { playersData.splice(playerIndex, 1); saveData(); closeModal(); }); } else if (event.target.closest('.eliminate-player-btn')) { const player = playersData[playerIndex]; player.eliminated = !player.eliminated; player.eliminationTimestamp = player.eliminated ? serverTimestamp() : null; saveData(); } });
-            mainContent.addEventListener('input', (e) => { clearTimeout(inputTimeout); const target = e.target; if (target.matches('.prize-percent-input')) { inputTimeout = setTimeout(savePrizes, 800); return; } const row = target.closest('.player-row'); if (!row) return; const playerId = row.dataset.playerId; const player = playersData.find(p => p.id === playerId); if (!player) return; if (target.matches('.player-name')) player.name = target.value; else if (target.matches('.buy-in-cb')) player.buyInChecked = target.checked; else if (target.matches('.add-on-cb')) player.addOnChecked = target.checked; else if (target.matches('.rebuy-cb')) { const rebuyIndex = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(target); if (rebuyIndex !== -1) player.rebuysChecked[rebuyIndex] = target.checked; } inputTimeout = setTimeout(saveData, 800); });
-            addPrizeBtn.addEventListener('click', () => { const p = Array.from(document.querySelectorAll('.prize-percent-input')).map(i => parseFloat(i.value) || 0); p.push(0); setDoc(prizeConfigDocRef, { percentages: p }); });
-            prizeGrid.addEventListener('click', (event) => { if (event.target.closest('.remove-prize-btn')) { const itemToRemove = event.target.closest('.prize-item'); const p = Array.from(document.querySelectorAll('.prize-item')).filter(i => i !== itemToRemove).map(i => parseFloat(i.querySelector('.prize-percent-input').value) || 0); setDoc(prizeConfigDocRef, { percentages: p }); } });
+            els.logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('pokerAdmin');
+                updateAuthUI();
+                showToast('Logout realizado');
+            });
 
-            // --- CARREGAMENTO INICIAL ---
-            if (sessionStorage.getItem('pokerAppLoggedIn') === 'true') showLoggedInState(); else showLoggedOutState();
-            updateMuteButton();
-            loadData();
+            const updateAuthUI = () => {
+                const isAdmin = sessionStorage.getItem('pokerAdmin') === 'true';
+                if(isAdmin) {
+                    els.gameControls.classList.remove('hidden');
+                    els.publicInfo.classList.add('hidden');
+                    els.adminBtn.classList.add('hidden');
+                    els.logoutBtn.classList.remove('hidden');
+                } else {
+                    els.gameControls.classList.add('hidden');
+                    els.publicInfo.classList.remove('hidden');
+                    els.adminBtn.classList.remove('hidden');
+                    els.logoutBtn.classList.add('hidden');
+                }
+            };
+            
+            // Player & Prizes Actions
+            document.getElementById('add-player-btn').addEventListener('click', () => {
+                state.players.push({
+                    id: generateId(), name: '', buyInChecked: false, rebuysChecked: Array(10).fill(false),
+                    addOnChecked: false, eliminated: false, eliminationTimestamp: null
+                });
+                saveGame();
+                showToast('Novo jogador adicionado');
+            });
+
+            document.getElementById('add-prize-btn').addEventListener('click', async () => {
+                const inputs = document.querySelectorAll('.prize-percent-input');
+                const p = Array.from(inputs).map(i => parseFloat(i.value)||0);
+                p.push(0);
+                await setDoc(doc(db, DB_COLLECTION, PRIZE_DOC), { percentages: p });
+            });
+
+            // Prizes grid click delegate for remove
+            els.prizeGrid.addEventListener('click', async (e) => {
+                if(e.target.closest('.remove-prize')) {
+                    const row = e.target.closest('.prize-item');
+                    const inputs = document.querySelectorAll('.prize-percent-input');
+                    const allP = Array.from(inputs).map(i => parseFloat(i.value)||0);
+                    const idx = Array.from(document.querySelectorAll('.prize-item')).indexOf(row);
+                    allP.splice(idx, 1);
+                    await setDoc(doc(db, DB_COLLECTION, PRIZE_DOC), { percentages: allP });
+                }
+            });
+            els.prizeGrid.addEventListener('input', (e) => {
+                if(e.target.matches('.prize-percent-input')) {
+                    const inputs = document.querySelectorAll('.prize-percent-input');
+                    const p = Array.from(inputs).map(i => parseFloat(i.value)||0);
+                    clearTimeout(state.inputTimer);
+                    state.inputTimer = setTimeout(async () => {
+                        await setDoc(doc(db, DB_COLLECTION, PRIZE_DOC), { percentages: p });
+                    }, 800);
+                    calculateTotals(); // Atualiza visual
+                }
+            });
+
+            // Mute
+            els.muteBtn.addEventListener('click', () => {
+                state.isMuted = !state.isMuted;
+                localStorage.setItem('pokerMuted', state.isMuted);
+                els.soundOn.classList.toggle('hidden', state.isMuted);
+                els.soundOff.classList.toggle('hidden', !state.isMuted);
+                showToast(state.isMuted ? 'Som desativado' : 'Som ativado');
+            });
+
+            // Reset Logic (Complicated enough to keep separate)
+            document.getElementById('reset-game-btn').addEventListener('click', () => document.getElementById('password-modal').classList.remove('hidden'));
+            document.getElementById('password-cancel-btn').addEventListener('click', () => document.getElementById('password-modal').classList.add('hidden'));
+            document.getElementById('password-confirm-btn').addEventListener('click', async () => {
+                const val = document.getElementById('password-input-modal').value;
+                if(val === CORRECT_PASSWORD) {
+                    document.getElementById('password-modal').classList.add('hidden');
+                    document.getElementById('password-input-modal').value = '';
+                    const players = initialPlayers.map(name => ({
+                        id: generateId(), name, buyInChecked: false, rebuysChecked: Array(10).fill(false),
+                        addOnChecked: false, eliminated: false, eliminationTimestamp: null
+                    }));
+                    await setDoc(doc(db, DB_COLLECTION, GAME_DOC), { players });
+                    await setDoc(doc(db, DB_COLLECTION, TIMER_DOC), { timeLeft: 900, currentLevel: 0, isRunning: false });
+                    await setDoc(doc(db, DB_COLLECTION, PRIZE_DOC), { percentages: initialPrizes });
+                    showToast('Jogo Reiniciado!', 'success');
+                } else {
+                    document.getElementById('password-error-modal').textContent = 'Senha incorreta';
+                }
+            });
+
+            // --- LOAD DATA ---
+            onSnapshot(doc(db, DB_COLLECTION, GAME_DOC), (snap) => {
+                state.updating = true;
+                if(snap.exists()) state.players = snap.data().players || [];
+                else state.players = []; // Deveria carregar default se vazio, mas o reset button cuida disso
+                renderTable();
+                state.updating = false;
+            });
+
+            onSnapshot(doc(db, DB_COLLECTION, TIMER_DOC), (snap) => {
+                if(snap.exists()) {
+                    const d = snap.data();
+                    state.timer = { ...state.timer, ...d };
+                    
+                    if(state.timer.isRunning) {
+                        const elapsed = d.lastUpdateTime ? Math.floor((Date.now() - d.lastUpdateTime.toMillis()) / 1000) : 0;
+                        state.timer.timeLeft = Math.max(0, state.timer.timeLeft - elapsed);
+                        if(!state.timerInterval) state.timerInterval = setInterval(runTimer, 1000);
+                    } else {
+                        clearInterval(state.timerInterval);
+                        state.timerInterval = null;
+                    }
+                    updateTimerUI();
+                }
+            });
+
+            onSnapshot(doc(db, DB_COLLECTION, PRIZE_DOC), (snap) => {
+                 const pct = snap.exists() ? snap.data().percentages : initialPrizes;
+                 els.prizeGrid.innerHTML = '';
+                 pct.forEach((val, i) => {
+                     const div = document.createElement('div');
+                     div.className = 'prize-item relative bg-black/20 p-3 rounded border border-gray-600';
+                     div.innerHTML = `
+                        <label class="text-xs text-yellow-500 font-bold uppercase block mb-1">${i+1}º Lugar</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" class="prize-percent-input w-16 bg-gray-800 text-white p-1 text-center rounded outline-none focus:ring-1 focus:ring-yellow-500" value="${val}">
+                            <span class="text-gray-400">%</span>
+                        </div>
+                        <p class="prize-val mt-2 text-lg font-bold text-white">R$ 0.00</p>
+                        ${i > 2 ? `<button class="remove-prize absolute top-1 right-1 text-red-400 hover:text-red-300 text-xl font-bold px-2">&times;</button>` : ''}
+                     `;
+                     els.prizeGrid.appendChild(div);
+                 });
+                 calculateTotals();
+            });
+
+            // Init Styles
+            els.soundOn.classList.toggle('hidden', state.isMuted);
+            els.soundOff.classList.toggle('hidden', !state.isMuted);
+            updateAuthUI();
         };
     </script>
 </body>
