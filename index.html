@@ -11,7 +11,7 @@
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
         
-        /* Fichas - Cores PokerStars */
+        /* Fichas PokerStars */
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
@@ -25,10 +25,14 @@
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
 
         /* Estilização dos Cards de Premiação */
-        .award-card { transition: transform 0.3s ease; border-width: 2px; }
-        .gold-border { border-color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
-        .silver-border { border-color: #e2e8f0; box-shadow: 0 0 15px rgba(226, 232, 240, 0.3); }
-        .bronze-border { border-color: #d97706; box-shadow: 0 0 15px rgba(217, 119, 6, 0.3); }
+        .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); }
+        .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
+        .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
+        .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
+
+        /* Badge de Ante Ativo */
+        #ante-badge { display: none; background: #c8102e; color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 14px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
@@ -38,39 +42,56 @@
     <div class="w-full px-4 py-4 text-white">
         <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg"><span class="text-white transform -rotate-45 font-bold italic">S</span></div>
+                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg font-bold">S</div>
                 <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
             </div>
-            <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
-            <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
+            <div class="flex gap-2">
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-3 bg-gradient-to-b from-[#1a1a1a] to-black rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl text-center">
+            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl relative">
                 <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
                 <div id="timer-display" class="huge-timer mono text-white">15:00</div>
+                
+                <div id="ante-badge" class="oswald uppercase italic mb-4">ANTE ATIVO</div>
+
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/5 pt-8">
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
-                    <div><span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
+                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
+                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
                 </div>
                 <div class="mt-10 flex gap-4">
-                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-white text-xl">⏮</button>
-                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition text-white">Iniciar</button>
-                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-white text-xl">⏭</button>
+                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏮</button>
+                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
+                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏭</button>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-4 text-center">
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl">
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        <div class="border-r border-white/10"><span class="text-[9px] uppercase text-gray-500">Buy-ins</span><span id="count-bi" class="oswald text-xl text-[#c8102e]">0</span></div>
-                        <div class="border-r border-white/10"><span class="text-[9px] uppercase text-gray-500">Rebuys</span><span id="count-rb" class="oswald text-xl text-[#22c55e]">0</span></div>
-                        <div><span class="text-[9px] uppercase text-gray-500">Add-ons</span><span id="count-ao" class="oswald text-xl text-[#3b82f6]">0</span></div>
+            <div class="flex flex-col gap-4">
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 text-center shadow-xl">
+                    <div class="grid grid-cols-3 gap-2 mb-6">
+                        <div class="border-r border-white/10">
+                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Buy-ins</span>
+                            <span id="count-bi" class="oswald text-3xl font-bold text-[#c8102e] italic">0</span>
+                        </div>
+                        <div class="border-r border-white/10">
+                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Rebuys</span>
+                            <span id="count-rb" class="oswald text-3xl font-bold text-[#22c55e] italic">0</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Add-ons</span>
+                            <span id="count-ao" class="oswald text-3xl font-bold text-[#3b82f6] italic">0</span>
+                        </div>
                     </div>
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Pote Total</span>
-                    <div id="grand-total" class="oswald text-6xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                    <span class="text-[12px] text-gray-500 uppercase font-bold tracking-widest block mb-2">Pote Total</span>
+                    <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
                 </div>
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden text-left"><span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest">Últimas Saídas</span><ul id="elimination-log" class="text-xs space-y-3 oswald italic overflow-y-auto max-h-[200px] pr-2"></ul></div>
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden text-left">
+                    <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4">Últimas Saídas</span>
+                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[200px] pr-2"></ul>
+                </div>
             </div>
         </div>
 
@@ -78,7 +99,7 @@
 
         <div id="game-controls" class="hidden">
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto text-white">
                     <table class="w-full text-[13px] text-center">
                         <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
                         <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
@@ -86,8 +107,8 @@
                 </div>
             </div>
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase text-white">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase text-white">Reset Geral</button>
+                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Adicionar Jogador</button>
+                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Reset Geral</button>
             </div>
         </div>
     </div>
@@ -123,6 +144,9 @@
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
+            
+            // Controle visual do Ante (Nível 9 em diante)
+            document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
             playersData.forEach(p => {
@@ -136,16 +160,15 @@
             
             const styles = ['gold-border', 'silver-border', 'bronze-border'];
             const icons = ['text-yellow-400', 'text-gray-300', 'text-orange-500'];
-            
             document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
-                <div class="award-card bg-white/5 p-6 rounded-3xl text-center shadow-xl ${styles[i]} flex flex-col items-center justify-center relative">
+                <div class="award-card p-6 rounded-3xl text-center shadow-xl ${styles[i]} flex flex-col items-center justify-center relative">
                     <span class="absolute top-2 right-4 text-2xl ${icons[i]}">🏆</span>
                     <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
                     <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
                 </div>`).join('');
 
             const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
-            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
+            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
         };
 
         const renderTable = () => {
