@@ -16,24 +16,22 @@
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
         
-        /* Estilo das Fichas - Cores PokerStars conforme imagem */
+        /* Fichas PokerStars */
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
         
-        /* BI: Vermelho */
         .buyin .chip-design { border-color: #ef4444; background-color: transparent; }
         .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
-
-        /* REBUY: Verde */
         .rebuy .chip-design { border-color: #22c55e; background-color: transparent; }
         .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
-
-        /* ADDON: Azul */
         .addon .chip-design { border-color: #3b82f6; background-color: transparent; }
         .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
 
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
+        .award-card { transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); }
+        .award-card:hover { transform: translateY(-5px); border-color: #c8102e; }
+
         @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
     </style>
@@ -60,11 +58,11 @@
                 <div id="timer-display" class="huge-timer mono text-white">15:00</div>
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/5 pt-8">
                     <div class="text-center">
-                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Atual</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest uppercase">Atual</span>
                         <span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span>
                     </div>
                     <div class="text-center">
-                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Próximo</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest uppercase">Próximo</span>
                         <span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span>
                     </div>
                 </div>
@@ -75,14 +73,28 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-6">
-                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 text-center flex-1 flex flex-col justify-center shadow-xl">
-                    <span class="text-xs text-gray-500 font-bold uppercase tracking-[0.2em] mb-3 uppercase">Pote Total</span>
+            <div class="flex flex-col gap-4">
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl text-center">
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="text-center border-r border-white/10">
+                            <span class="text-[9px] uppercase text-gray-500 block">Buy-ins</span>
+                            <span id="count-bi" class="oswald text-xl text-[#c8102e]">0</span>
+                        </div>
+                        <div class="text-center border-r border-white/10">
+                            <span class="text-[9px] uppercase text-gray-500 block">Rebuys</span>
+                            <span id="count-rb" class="oswald text-xl text-[#22c55e]">0</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[9px] uppercase text-gray-500 block">Add-ons</span>
+                            <span id="count-ao" class="oswald text-xl text-[#3b82f6]">0</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest uppercase">Pote Total</span>
                     <div id="grand-total" class="oswald text-6xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
                 </div>
-                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex-1 overflow-hidden shadow-xl text-left">
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden shadow-xl text-left">
                     <span class="text-[10px] text-[#c8102e] font-bold uppercase mb-4 block italic tracking-widest uppercase">Últimas Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
+                    <ul id="elimination-log" class="text-xs space-y-3 oswald italic overflow-y-auto max-h-[200px] pr-2 text-white"></ul>
                 </div>
             </div>
         </div>
@@ -115,7 +127,7 @@
     </div>
 
     <div id="login-modal" class="fixed inset-0 bg-black/95 flex justify-center items-center hidden z-50 p-6">
-        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl">
+        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl text-white">
             <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold text-white">Acesso Painel</h3>
             <form id="login-form">
                 <input id="password" type="password" placeholder="Senha" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
@@ -136,6 +148,7 @@
         const auth = getAuth(app);
 
         const VALOR_ACAO = 30;
+        const SENHA_CORRETA = 'poker';
         const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" } ];
 
         let playersData = [];
@@ -156,17 +169,34 @@
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
 
             let grandTotal = 0;
+            let totalBI = 0, totalRB = 0, totalAO = 0;
+
             playersData.forEach(p => {
-                const b = p.buyInChecked ? VALOR_ACAO : 0;
-                const r = (p.rebuysChecked || []).filter(Boolean).length * VALOR_ACAO;
-                const a = p.addOnChecked ? VALOR_ACAO : 0;
-                const pTotal = b + r + a;
+                const b = p.buyInChecked ? 1 : 0;
+                const r = (p.rebuysChecked || []).filter(Boolean).length;
+                const a = p.addOnChecked ? 1 : 0;
+                
+                totalBI += b; totalRB += r; totalAO += a;
+                const pTotal = (b + r + a) * VALOR_ACAO;
                 grandTotal += pTotal;
+
                 const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`);
                 if (cell) cell.textContent = `R$ ${pTotal}`;
             });
+
+            document.getElementById('count-bi').textContent = totalBI;
+            document.getElementById('count-rb').textContent = totalRB;
+            document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
-            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `<div class="bg-white/5 border border-white/10 p-5 rounded-2xl flex justify-between"><span>${i+1}º LUGAR (${pct}%)</span><b>R$ ${Math.floor((grandTotal * pct) / 100)}</b></div>`).join('');
+
+            const trophyColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
+            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
+                <div class="award-card bg-white/5 p-6 rounded-3xl text-center shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2 ${trophyColors[i]} opacity-10 text-6xl">🏆</div>
+                    <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
+                    <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
+                </div>
+            `).join('');
             
             const logUl = document.getElementById('elimination-log');
             const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
@@ -181,7 +211,7 @@
                 tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`;
                 tr.dataset.playerId = p.id;
                 let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateUI();
@@ -201,7 +231,6 @@
 
         onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
 
-        // Delegação de Eventos - Garante funcionamento dos botões 💀 e Checkboxes
         document.getElementById('player-table-body').addEventListener('click', (e) => {
             const row = e.target.closest('tr'); if(!row) return;
             const p = playersData.find(x => x.id === row.dataset.playerId);
