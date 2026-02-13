@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JACK TALL STARS - Professional Dashboard</title>
+    <title>POKER ON JACK TALL BACK</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     
     <style>
-        /* TEMA POKERSTARS */
+        /* TEMA POKERSTARS CUSTOMIZADO */
         body { 
             background-color: #000000 !important;
             background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%) !important; 
@@ -19,7 +19,7 @@
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
         
-        /* Fichas PokerStars Style - Clique Otimizado (34px) */
+        /* Estilo das Fichas - Clique Otimizado */
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { 
@@ -27,15 +27,18 @@
             border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s;
         }
         
-        /* Cores PokerStars */
-        .buyin .chip-design { background-color: #c8102e !important; } /* Vermelho */
-        .rebuy .chip-design { background-color: #ffffff !important; border-color: #ccc; } /* Branco */
-        .addon .chip-design { background-color: #333333 !important; border-color: #c8102e; } /* Preto/Vermelho */
-        
-        .chip-input:checked + .chip-design { 
-            transform: scale(1.15); border: 2px solid #fff; 
-            box-shadow: 0 0 15px rgba(200, 16, 46, 0.9); 
-        }
+        /* Cores solicitadas conforme referências */
+        /* BI: Vermelho */
+        .buyin .chip-design { border-color: #ef4444; background-color: transparent; }
+        .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
+
+        /* REBUY: Verde solicitado */
+        .rebuy .chip-design { border-color: #22c55e; background-color: transparent; }
+        .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
+
+        /* ADDON: Azul solicitado */
+        .addon .chip-design { border-color: #3b82f6; background-color: transparent; }
+        .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
 
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
         .status-pago { color: #ffffff !important; background-color: #15803d !important; border-radius: 4px; padding: 2px 6px; font-weight: bold; }
@@ -47,20 +50,20 @@
 </head>
 <body class="min-h-screen">
 
-    <div class="w-full px-4 py-4">
+    <div class="w-full px-4 py-4 text-white">
         <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg">
                     <span class="text-white transform -rotate-45 font-bold italic">S</span>
                 </div>
                 <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">
-                    Jack Tall <span class="text-[#c8102e]">Stars</span>
+                    POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span>
                 </h1>
             </div>
             <div class="flex items-center gap-4">
-                <button id="toggle-voice" class="text-[10px] bg-white/10 px-4 py-1 rounded border border-white/10 uppercase font-bold text-white">Voz On</button>
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase text-white">Admin</button>
-                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase text-white">Sair</button>
+                <button id="toggle-voice" class="text-[10px] bg-white/10 px-4 py-1 rounded border border-white/10 uppercase font-bold">Voz On</button>
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
             </div>
         </header>
 
@@ -71,11 +74,11 @@
                 
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/5 pt-8">
                     <div class="text-center">
-                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Atual</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest font-bold">Blinds Atuais</span>
                         <span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span>
                     </div>
                     <div class="text-center">
-                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Próximo</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest font-bold">Próximos</span>
                         <span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span>
                     </div>
                 </div>
@@ -90,29 +93,29 @@
             <div class="flex flex-col gap-6">
                 <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 text-center flex-1 flex flex-col justify-center shadow-xl">
                     <span class="text-xs text-gray-500 font-bold uppercase tracking-[0.2em] mb-3">Pote Total</span>
-                    <div id="grand-total" class="oswald text-6xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                    <div id="grand-total" class="oswald text-6xl font-bold text-white italic drop-shadow-lg text-white">R$ 0</div>
                 </div>
-                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex-1 overflow-hidden shadow-xl">
-                    <span class="text-[10px] text-[#c8102e] font-bold uppercase mb-4 block italic tracking-widest">Histórico de Saídas</span>
+                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex-1 overflow-hidden shadow-xl text-left">
+                    <span class="text-[10px] text-[#c8102e] font-bold uppercase mb-4 block italic tracking-widest font-bold">Últimas Saídas</span>
                     <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
                 </div>
             </div>
         </div>
 
-        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
+        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10 text-white"></div>
 
         <div id="game-controls" class="hidden">
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-[13px]">
+                    <table class="w-full text-[13px] text-center">
                         <thead>
-                            <tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest">
+                            <tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold">
                                 <th class="p-5 text-left min-w-[150px]">Jogador</th>
-                                <th class="p-2 text-center text-[#c8102e]">BI</th>
-                                <th class="p-2 text-center bg-black/20" colspan="15">Rebuys</th>
-                                <th class="p-2 text-center">Addon</th>
+                                <th class="p-2 text-[#c8102e]">BI</th>
+                                <th class="p-2 bg-black/20" colspan="15">Rebuys</th>
+                                <th class="p-2">Addon</th>
                                 <th class="p-5 text-right">Total</th>
-                                <th class="p-5 text-center">💀</th>
+                                <th class="p-5">💀</th>
                             </tr>
                         </thead>
                         <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
@@ -127,12 +130,12 @@
     </div>
 
     <div id="login-modal" class="fixed inset-0 bg-black/95 flex justify-center items-center hidden z-50 p-6">
-        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl">
-            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold text-white tracking-widest">Senha de Acesso</h3>
+        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl text-white">
+            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold">Painel Admin</h3>
             <form id="login-form">
-                <input id="password" type="password" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
+                <input id="password" type="password" placeholder="Senha" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
                 <button type="submit" class="w-full bg-[#c8102e] py-5 rounded-2xl font-bold oswald text-2xl uppercase text-white shadow-2xl hover:bg-[#a00d25] transition">Confirmar</button>
-                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold">Fechar</button>
+                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold tracking-widest">Fechar</button>
             </form>
         </div>
     </div>
@@ -149,7 +152,7 @@
 
         const VALOR_ACAO = 30;
         const SENHA_CORRETA = 'poker';
-        const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "2000/4000" } ];
+        const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" } ];
 
         let playersData = [];
         let timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null };
@@ -181,7 +184,7 @@
                     timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
                     if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; updateTimerUI(); }}, 1000);
                 } else { clearInterval(localTimer); localTimer = null; }
-                if (oldLevel !== timerState.currentLevel) { falar(blindLevels[timerState.currentLevel].isBreak ? "Pausa iniciada" : `Blinds subiram para ${blindLevels[timerState.currentLevel].blinds}`); }
+                if (oldLevel !== timerState.currentLevel) { falar(blindLevels[timerState.currentLevel].isBreak ? "Pausa" : `Blinds subiram. Nível ${timerState.currentLevel + 1}, ${blindLevels[timerState.currentLevel].blinds}`); }
                 updateTimerUI();
             }
         });
@@ -199,8 +202,8 @@
                 tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`;
                 tr.dataset.playerId = p.id;
                 let rebuys = '';
-                for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold cursor-pointer player-total ${p.pago ? 'status-pago' : 'status-pendente'}">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
+                for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold cursor-pointer player-total ${p.pago ? 'status-pago' : 'status-pendente'}">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateTotalsAndLog();
@@ -253,7 +256,7 @@
         document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false, pago: false, eliminatedAt: null }); save(); };
 
         document.getElementById('admin-login-btn').onclick = () => { modalMode = 'login'; document.getElementById('modal-title').textContent = 'Acesso Admin'; document.getElementById('login-modal').classList.remove('hidden'); };
-        document.getElementById('reset-game-btn').onclick = () => { modalMode = 'reset'; document.getElementById('modal-title').textContent = 'Confirmar Reset Total'; document.getElementById('login-modal').classList.remove('hidden'); };
+        document.getElementById('reset-game-btn').onclick = () => { modalMode = 'reset'; document.getElementById('modal-title').textContent = 'Confirmar Reset Geral'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('login-cancel-btn').onclick = () => document.getElementById('login-modal').classList.add('hidden');
 
         document.getElementById('login-form').onsubmit = (e) => {
