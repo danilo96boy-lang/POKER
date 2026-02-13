@@ -24,15 +24,15 @@
         
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
 
-        /* Estilização dos Cards de Premiação */
-        .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); }
+        /* Estilização dos Cards de Premiação Premium */
+        .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); transition: transform 0.3s; }
+        .award-card:hover { transform: translateY(-5px); }
         .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
         .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
         .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
 
-        /* Badge de Ante Ativo */
-        #ante-badge { display: none; background: #c8102e; color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 14px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* Badge de Ante Ativo no Timer */
+        #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 15px; border-radius: 6px; font-weight: 800; font-size: 1.2rem; position: absolute; right: 10%; top: 45%; transform: rotate(5deg); box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); }
 
         @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
@@ -56,11 +56,11 @@
                 <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
                 <div id="timer-display" class="huge-timer mono text-white">15:00</div>
                 
-                <div id="ante-badge" class="oswald uppercase italic mb-4">ANTE ATIVO</div>
+                <div id="ante-badge" class="oswald uppercase italic">ANTE ATIVO</div>
 
-                <div class="w-full flex justify-around items-center mt-6 border-t border-white/5 pt-8">
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
+                <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
+                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
+                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
                 </div>
                 <div class="mt-10 flex gap-4">
                     <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏮</button>
@@ -70,27 +70,29 @@
             </div>
 
             <div class="flex flex-col gap-4">
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 text-center shadow-xl">
-                    <div class="grid grid-cols-3 gap-2 mb-6">
-                        <div class="border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Buy-ins</span>
-                            <span id="count-bi" class="oswald text-3xl font-bold text-[#c8102e] italic">0</span>
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl">
+                    <div class="grid grid-cols-3 gap-2 mb-8 border-b border-white/10 pb-6">
+                        <div class="text-center border-r border-white/10">
+                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Buy-ins</span>
+                            <span id="count-bi" class="oswald text-4xl font-bold text-[#c8102e] italic">0</span>
                         </div>
-                        <div class="border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Rebuys</span>
-                            <span id="count-rb" class="oswald text-3xl font-bold text-[#22c55e] italic">0</span>
+                        <div class="text-center border-r border-white/10">
+                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Rebuys</span>
+                            <span id="count-rb" class="oswald text-4xl font-bold text-[#22c55e] italic">0</span>
                         </div>
-                        <div>
-                            <span class="text-[10px] uppercase text-gray-500 block font-bold">Add-ons</span>
-                            <span id="count-ao" class="oswald text-3xl font-bold text-[#3b82f6] italic">0</span>
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Add-ons</span>
+                            <span id="count-ao" class="oswald text-4xl font-bold text-[#3b82f6] italic">0</span>
                         </div>
                     </div>
-                    <span class="text-[12px] text-gray-500 uppercase font-bold tracking-widest block mb-2">Pote Total</span>
-                    <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                    <div class="text-center">
+                        <span class="text-[14px] text-gray-500 uppercase font-bold tracking-[0.2em] block mb-2">Pote Total</span>
+                        <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                    </div>
                 </div>
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden text-left">
-                    <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4">Últimas Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[200px] pr-2"></ul>
+                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden">
+                    <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4 text-center">Últimas Saídas</span>
+                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
                 </div>
             </div>
         </div>
@@ -145,7 +147,7 @@
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
             
-            // Controle visual do Ante (Nível 9 em diante)
+            // Visual do Ante Ativo (Nível 9 em diante)
             document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
@@ -168,7 +170,7 @@
                 </div>`).join('');
 
             const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
-            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
+            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
         };
 
         const renderTable = () => {
@@ -176,7 +178,7 @@
             playersData.forEach(p => {
                 const tr = document.createElement('tr'); tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = p.id;
                 let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateUI();
@@ -216,7 +218,7 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        document.getElementById('admin-login-btn').onclick = () => { const pwd = prompt("Senha:"); if(pwd === "poker") { document.getElementById('game-controls').classList.remove('hidden'); document.getElementById('logout-btn').classList.remove('hidden'); document.getElementById('admin-login-btn').classList.add('hidden'); } };
+        document.getElementById('admin-login-btn').onclick = () => { const pwd = prompt("Senha:"); if(pwd === "poker") { document.getElementById('game-controls').classList.toggle('hidden'); document.getElementById('logout-btn').classList.toggle('hidden'); document.getElementById('admin-login-btn').classList.toggle('hidden'); } };
         document.getElementById('logout-btn').onclick = () => { document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
         document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
         document.getElementById('next-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
