@@ -111,7 +111,7 @@
 
     <div id="login-modal" class="fixed inset-0 bg-black/95 flex justify-center items-center hidden z-50 p-6">
         <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl">
-            <h3 class="oswald text-3xl mb-8 uppercase font-bold text-white">Acesso Admin</h3>
+            <h3 class="oswald text-3xl mb-8 uppercase font-bold text-white">Acesso Painel</h3>
             <form id="login-form">
                 <input id="password" type="password" placeholder="Senha" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
                 <button type="submit" class="w-full bg-[#c8102e] py-5 rounded-2xl font-bold oswald text-2xl uppercase text-white shadow-2xl">Confirmar</button>
@@ -138,7 +138,7 @@
         let localTimer = null;
         let modalMode = 'login';
 
-        const syncTimer = (running) => setDoc(doc(db, 'pokerGame', 'timerState'), { ...timerState, isRunning: running, lastUpdate: serverTimestamp() }, { merge: true });
+        function playBeep() { try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.15); } catch(e){} }
 
         const updateUI = () => {
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
@@ -155,8 +155,14 @@
                 const buyin = p.buyInChecked ? VALOR_ACAO : 0;
                 const rebuys = (p.rebuysChecked || []).filter(Boolean).length * VALOR_ACAO;
                 const addon = p.addOnChecked ? VALOR_ACAO : 0;
-                grandTotal += (buyin + rebuys + addon);
+                const pTotal = buyin + rebuys + addon;
+                grandTotal += pTotal;
+
+                // ATUALIZAÇÃO DA SOMA NA TABELA ADMIN
+                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`);
+                if (cell) cell.textContent = `R$ ${pTotal}`;
             });
+
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
             document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `<div class="bg-white/5 border border-white/10 p-5 rounded-2xl flex justify-between"><span>${i+1}º LUGAR (${pct}%)</span><b>R$ ${Math.floor((grandTotal * pct) / 100)}</b></div>`).join('');
             
@@ -174,19 +180,23 @@
                 tr.dataset.playerId = p.id;
                 let rebuys = '';
                 for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateUI();
         };
 
+        // Listeners do Firebase
         onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
             if (s.exists()) {
                 timerState = s.data();
                 if (timerState.isRunning && timerState.lastUpdate) {
                     const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
                     timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
-                    if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; updateUI(); } }, 1000);
+                    if (!localTimer) localTimer = setInterval(() => { 
+                        if (timerState.timeLeft > 0) { timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); } 
+                        else { clearInterval(localTimer); localTimer = null; if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() }); }
+                    }, 1000);
                 } else { clearInterval(localTimer); localTimer = null; }
                 updateUI();
             }
@@ -194,10 +204,9 @@
 
         onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
 
-        // DELEGAÇÃO DE EVENTOS PARA A TABELA (💀 e FICHAS)
+        // Delegação de Eventos para a Tabela
         document.getElementById('player-table-body').addEventListener('click', (e) => {
-            const row = e.target.closest('tr');
-            if(!row) return;
+            const row = e.target.closest('tr'); if(!row) return;
             const p = playersData.find(x => x.id === row.dataset.playerId);
             if(e.target.classList.contains('eliminate-btn')) {
                 p.eliminated = !p.eliminated;
@@ -207,8 +216,7 @@
         });
 
         document.getElementById('player-table-body').addEventListener('change', (e) => {
-            const row = e.target.closest('tr');
-            if(!row) return;
+            const row = e.target.closest('tr'); if(!row) return;
             const p = playersData.find(x => x.id === row.dataset.playerId);
             if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
             if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
@@ -221,18 +229,11 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // BOTÕES DE CONTROLE
+        // Controle de Admin e Reset
         document.getElementById('admin-login-btn').onclick = () => { modalMode = 'login'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('reset-game-btn').onclick = () => { modalMode = 'reset'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('login-cancel-btn').onclick = () => document.getElementById('login-modal').classList.add('hidden');
-        
-        // BOTÃO SAIR (LOGOUT) - CORRIGIDO
-        document.getElementById('logout-btn').onclick = () => {
-            sessionStorage.removeItem('pokerAdmin');
-            document.getElementById('game-controls').classList.add('hidden');
-            document.getElementById('logout-btn').classList.add('hidden');
-            document.getElementById('admin-login-btn').classList.remove('hidden');
-        };
+        document.getElementById('logout-btn').onclick = () => { sessionStorage.removeItem('pokerAdmin'); document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
 
         document.getElementById('login-form').onsubmit = (e) => {
             e.preventDefault();
@@ -252,9 +253,11 @@
             } else { alert('Senha Incorreta'); }
         };
 
-        document.getElementById('timer-control-btn').onclick = () => syncTimer(!timerState.isRunning);
+        // Controle do Timer
+        document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
         document.getElementById('next-level-btn').onclick = () => { if (timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true }); };
         document.getElementById('prev-level-btn').onclick = () => { if (timerState.currentLevel > 0) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel - 1, timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true }); };
+        document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); };
 
         signInAnonymously(auth);
     </script>
