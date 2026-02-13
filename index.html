@@ -3,80 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER DASHBOARD - Elite Edition</title>
+    <title>POKER STARS EDITION - Jack Tall Back</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     
     <style>
         body { 
-            background: radial-gradient(circle at center, #064e3b 0%, #022c22 100%); 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%); 
             font-family: 'Segoe UI', sans-serif;
-            color: #f8fafc; /* Branco Gelo para leitura suave */
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
         
-        /* Fichas com área de clique expandida para celular */
-        .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
+        /* Fichas PokerStars Style */
+        .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
-        .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .chip-design { 
+            position: absolute; inset: 4px; border-radius: 50%; 
+            border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
         
-        .buyin .chip-design { background: #1d4ed8; } 
-        .rebuy .chip-design { background: #b91c1c; } 
-        .addon .chip-design { background: #15803d; } 
+        .buyin .chip-design { background: #c8102e; } /* Vermelho PokerStars */
+        .rebuy .chip-design { background: #ffffff; } /* Branco/Prata */
+        .addon .chip-design { background: #1a1a1a; border-color: #c8102e; } /* Preto/Vermelho */
         
-        .chip-input:checked + .chip-design { transform: scale(1.2); border: 2px solid #fff; box-shadow: 0 0 15px rgba(255,255,255,0.7); }
+        .chip-input:checked + .chip-design { 
+            transform: scale(1.1); border: 2px solid #fff; 
+            box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); 
+        }
 
-        .player-row.eliminated { opacity: 0.2; background: rgba(0,0,0,0.6); }
-        .status-pago { color: #4ade80 !important; font-weight: 700; }
-        .status-pendente { color: #f87171 !important; font-weight: 700; text-decoration: underline; }
+        .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
+        .status-pago { color: #ffffff !important; background: #15803d; border-radius: 4px; padding: 2px 6px; }
+        .status-pendente { color: #c8102e !important; font-weight: bold; text-decoration: underline; }
 
-        @media (min-width: 1024px) { .huge-timer { font-size: 14rem; line-height: 1; } .huge-blinds { font-size: 4.5rem; } }
+        @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div class="w-full px-4 py-4">
-        <header class="flex justify-between items-center mb-4 bg-black/30 p-4 rounded-2xl border border-white/5 shadow-2xl">
-            <h1 class="oswald text-xl font-bold tracking-[0.2em] uppercase italic text-emerald-500">Jack Tall Back</h1>
+        <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg">
+                    <span class="text-white transform -rotate-45 font-bold">S</span>
+                </div>
+                <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">
+                    Jack Tall <span class="text-[#c8102e]">Stars</span>
+                </h1>
+            </div>
             <div class="flex items-center gap-4">
-                <button id="toggle-voice" class="text-[10px] bg-white/5 px-4 py-1 rounded-full border border-white/10 uppercase font-bold">Voz</button>
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Admin</button>
-                <button id="logout-btn" class="bg-red-600 hidden px-5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white">Sair</button>
+                <button id="toggle-voice" class="text-[10px] bg-white/10 px-4 py-1 rounded border border-white/10 uppercase font-bold">Voz On</button>
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase text-white">Sair</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-3 bg-black/40 backdrop-blur-2xl rounded-[3rem] border-2 border-emerald-500/30 p-10 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                <div id="level-indicator" class="oswald text-emerald-400 font-bold text-2xl uppercase tracking-[0.4em] mb-4">NÍVEL 1</div>
-                <div id="timer-display" class="huge-timer mono text-white drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)]">15:00</div>
+            <div class="lg:col-span-3 bg-gradient-to-b from-[#1a1a1a] to-black rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl overflow-hidden relative">
+                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
+                <div id="timer-display" class="huge-timer mono text-white">15:00</div>
                 
-                <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
+                <div class="w-full flex justify-around items-center mt-6 border-t border-white/5 pt-8">
                     <div class="text-center">
-                        <span class="oswald text-emerald-500/50 text-base uppercase block font-bold tracking-widest">BLINDS ATUAIS</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Atual</span>
                         <span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span>
                     </div>
                     <div class="text-center">
-                        <span class="oswald text-emerald-500/50 text-base uppercase block font-bold tracking-widest">PRÓXIMOS</span>
-                        <span id="next-blinds" class="huge-blinds oswald font-bold text-white/30 uppercase tracking-tighter">100/200</span>
+                        <span class="oswald text-gray-500 text-base uppercase block font-bold tracking-widest">Próximo</span>
+                        <span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span>
                     </div>
                 </div>
 
-                <div id="timer-public-controls" class="mt-10 flex gap-8">
-                    <button id="prev-level-btn" class="bg-emerald-950/60 p-5 rounded-3xl hover:bg-emerald-800 transition shadow-lg text-2xl">⏮</button>
-                    <button id="timer-control-btn" class="bg-emerald-600 px-16 py-5 rounded-3xl font-bold oswald text-3xl uppercase shadow-2xl hover:bg-emerald-500 transition tracking-widest text-white">Iniciar</button>
-                    <button id="next-level-btn" class="bg-emerald-950/60 p-5 rounded-3xl hover:bg-emerald-800 transition shadow-lg text-2xl">⏭</button>
+                <div id="timer-public-controls" class="mt-10 flex gap-4">
+                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏮</button>
+                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition text-white">Iniciar</button>
+                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏭</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-6">
-                <div class="bg-black/40 rounded-[2.5rem] p-8 border border-white/10 text-center flex-1 flex flex-col justify-center shadow-xl">
-                    <span class="text-xs text-emerald-500 font-bold uppercase tracking-[0.2em] mb-3">Pote Acumulado</span>
-                    <div id="grand-total" class="oswald text-6xl font-bold text-yellow-400 drop-shadow-md italic">R$ 0</div>
+                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 text-center flex-1 flex flex-col justify-center shadow-xl">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-[0.2em] mb-3 uppercase">Pote Total</span>
+                    <div id="grand-total" class="oswald text-6xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
                 </div>
-                <div class="bg-black/20 rounded-[2.5rem] p-8 border border-white/10 flex-1 overflow-hidden shadow-xl">
-                    <span class="text-[10px] text-orange-500 font-bold uppercase mb-4 block italic tracking-widest">Histórico de Saídas</span>
+                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex-1 overflow-hidden shadow-xl">
+                    <span class="text-[10px] text-[#c8102e] font-bold uppercase mb-4 block italic tracking-widest">Histórico de Saídas</span>
                     <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
                 </div>
             </div>
@@ -85,17 +100,17 @@
         <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
 
         <div id="game-controls" class="hidden">
-            <div class="bg-black/60 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto">
                     <table class="w-full text-[13px]">
                         <thead>
-                            <tr class="bg-emerald-900/50 oswald text-emerald-400 uppercase tracking-widest">
+                            <tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest">
                                 <th class="p-5 text-left min-w-[150px]">Jogador</th>
-                                <th class="p-2 text-center">BI</th>
-                                <th class="p-2 text-center bg-black/20" colspan="15">Rebuys</th>
+                                <th class="p-2 text-center text-[#c8102e]">BI</th>
+                                <th class="p-2 text-center bg-white/5" colspan="15">Rebuys</th>
                                 <th class="p-2 text-center">Addon</th>
                                 <th class="p-5 text-right">Total</th>
-                                <th class="p-5 text-center">Sair</th>
+                                <th class="p-5 text-center">X</th>
                             </tr>
                         </thead>
                         <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
@@ -103,19 +118,19 @@
                 </div>
             </div>
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-emerald-600 hover:bg-emerald-500 px-12 py-5 rounded-3xl font-bold oswald text-xl text-white shadow-2xl transition">ADICIONAR JOGADOR</button>
-                <button id="reset-game-btn" class="bg-red-900/40 hover:bg-red-800 px-12 py-5 rounded-3xl font-bold oswald text-xl text-white transition">RESET GERAL</button>
+                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl text-white transition">ADICIONAR JOGADOR</button>
+                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl text-white transition">RESET GERAL</button>
             </div>
         </div>
     </div>
 
     <div id="login-modal" class="fixed inset-0 bg-black/95 flex justify-center items-center hidden z-50 p-6">
-        <div class="bg-emerald-950 p-10 rounded-[3rem] border border-emerald-500/50 w-full max-w-sm text-center shadow-2xl">
-            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold text-white tracking-widest text-white">Painel Admin</h3>
+        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl">
+            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold text-white">Senha de Acesso</h3>
             <form id="login-form">
-                <input id="password" type="password" placeholder="Senha" class="w-full p-5 bg-black/50 text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-emerald-500 transition text-white">
-                <button type="submit" class="w-full bg-emerald-600 py-5 rounded-2xl font-bold oswald text-2xl uppercase text-white shadow-2xl hover:bg-emerald-500 transition text-white">Confirmar</button>
-                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold tracking-widest">Cancelar</button>
+                <input id="password" type="password" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
+                <button type="submit" class="w-full bg-[#c8102e] py-5 rounded-2xl font-bold oswald text-2xl uppercase text-white shadow-2xl hover:bg-[#a00d25] transition">Confirmar</button>
+                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold">Fechar</button>
             </form>
         </div>
     </div>
@@ -140,6 +155,20 @@
         let modalMode = 'login';
         let voiceEnabled = true;
 
+        // Som de clique de ficha para Mobile
+        function playChipSound() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
         function falar(texto) { if (!voiceEnabled) return; window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
 
         const updateTimerUI = () => {
@@ -150,10 +179,9 @@
             document.getElementById('level-indicator').textContent = `NÍVEL ${timerState.currentLevel + 1}`;
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
-            const btn = document.getElementById('timer-control-btn');
-            btn.textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            btn.classList.toggle('bg-yellow-600', timerState.isRunning);
-            btn.classList.toggle('bg-emerald-600', !timerState.isRunning);
+            document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
+            document.getElementById('timer-control-btn').classList.toggle('bg-gray-600', timerState.isRunning);
+            document.getElementById('timer-control-btn').classList.toggle('bg-[#c8102e]', !timerState.isRunning);
         };
 
         onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
@@ -166,7 +194,7 @@
                     timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
                     if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; updateTimerUI(); }}, 1000);
                 } else { clearInterval(localTimer); localTimer = null; }
-                if (oldLevel !== timerState.currentLevel) { const lvl = blindLevels[timerState.currentLevel]; falar(lvl.isBreak ? "Intervalo" : `Nível ${timerState.currentLevel + 1}, blinds ${lvl.blinds}`); }
+                if (oldLevel !== timerState.currentLevel) { falar(blindLevels[timerState.currentLevel].isBreak ? "Pausa iniciada" : `Blinds subiram para ${blindLevels[timerState.currentLevel].blinds}`); }
                 updateTimerUI();
             }
         });
@@ -181,11 +209,11 @@
             tbody.innerHTML = '';
             playersData.forEach(p => {
                 const tr = document.createElement('tr');
-                tr.className = `player-row ${p.eliminated ? 'eliminated' : ''} transition-all duration-300`;
+                tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`;
                 tr.dataset.playerId = p.id;
                 let rebuys = '';
-                for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold cursor-pointer player-total ${p.pago ? 'status-pago' : 'status-pendente'}">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl hover:scale-125 transition shadow-lg">💀</button></td>`;
+                for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design shadow-lg"></div></div></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold cursor-pointer player-total ${p.pago ? 'status-pago' : 'status-pendente'}">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateTotalsAndLog();
@@ -202,8 +230,8 @@
             document.getElementById('grand-total').textContent = `R$ ${total}`;
             const logUl = document.getElementById('elimination-log');
             const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
-            logUl.innerHTML = eliminados.map((p, i) => `<li class="border-l-4 border-orange-500 pl-3 py-2 bg-black/20 rounded-r flex justify-between shadow-sm animate-in slide-in-from-right"><span>#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</span></li>`).join('');
-            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `<div class="bg-black/30 border border-emerald-500/10 p-5 rounded-3xl flex justify-between items-center shadow-lg"><span class="oswald text-[10px] text-emerald-500 uppercase font-bold tracking-widest">${i+1}º LUGAR (${pct}%)</span><span class="oswald text-3xl font-bold text-white shadow-sm">R$ ${((total * pct) / 100).toFixed(0)}</span></div>`).join('');
+            logUl.innerHTML = eliminados.map((p, i) => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
+            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `<div class="bg-white/5 border border-white/10 p-5 rounded-2xl flex justify-between shadow-xl"><span class="oswald text-[10px] text-gray-500 uppercase font-bold">${i+1}º LUGAR (${pct}%)</span><span class="oswald text-3xl font-bold text-white shadow-sm">R$ ${((total * pct) / 100).toFixed(0)}</span></div>`).join('');
         };
 
         onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
@@ -218,13 +246,16 @@
 
         document.getElementById('player-table-body').onchange = (e) => {
             const p = playersData.find(x => x.id === e.target.closest('tr').dataset.playerId);
-            if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
-            if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) {
-                const idx = Array.from(e.target.closest('tr').querySelectorAll('.rebuy-cb')).indexOf(e.target);
-                p.rebuysChecked[idx] = e.target.checked;
+            if(e.target.classList.contains('buyin-cb') || e.target.classList.contains('addon-cb') || e.target.classList.contains('rebuy-cb')) {
+                playChipSound();
+                if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
+                if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
+                if(e.target.classList.contains('rebuy-cb')) {
+                    const idx = Array.from(e.target.closest('tr').querySelectorAll('.rebuy-cb')).indexOf(e.target);
+                    p.rebuysChecked[idx] = e.target.checked;
+                }
+                save();
             }
-            save();
         };
 
         document.getElementById('player-table-body').onclick = (e) => {
@@ -234,9 +265,12 @@
             if(e.target.classList.contains('player-total')) { p.pago = !p.pago; save(); }
         };
 
-        document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false, pago: false, eliminatedAt: null }); save(); };
+        document.getElementById('add-player-btn').onclick = () => {
+            playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false, pago: false, eliminatedAt: null });
+            save();
+        };
 
-        document.getElementById('admin-login-btn').onclick = () => { modalMode = 'login'; document.getElementById('modal-title').textContent = 'Acesso Painel'; document.getElementById('login-modal').classList.remove('hidden'); };
+        document.getElementById('admin-login-btn').onclick = () => { modalMode = 'login'; document.getElementById('modal-title').textContent = 'Acesso Admin'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('reset-game-btn').onclick = () => { modalMode = 'reset'; document.getElementById('modal-title').textContent = 'Confirmar Reset Total'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('login-cancel-btn').onclick = () => document.getElementById('login-modal').classList.add('hidden');
 
@@ -255,9 +289,16 @@
             } else { alert('Senha Incorreta!'); }
         };
 
-        const checkAuth = () => { const isAdmin = sessionStorage.getItem('pokerAdmin') === 'true'; document.getElementById('game-controls').classList.toggle('hidden', !isAdmin); document.getElementById('logout-btn').classList.toggle('hidden', !isAdmin); document.getElementById('admin-login-btn').classList.toggle('hidden', isAdmin); };
+        const checkAuth = () => {
+            const isAdmin = sessionStorage.getItem('pokerAdmin') === 'true';
+            document.getElementById('game-controls').classList.toggle('hidden', !isAdmin);
+            document.getElementById('logout-btn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-login-btn').classList.toggle('hidden', isAdmin);
+        };
+        
         document.getElementById('logout-btn').onclick = () => { sessionStorage.removeItem('pokerAdmin'); checkAuth(); };
-        document.getElementById('toggle-voice').onclick = (e) => { voiceEnabled = !voiceEnabled; e.target.textContent = voiceEnabled ? "🔊 VOZ" : "🔇 VOZ"; };
+        document.getElementById('toggle-voice').onclick = (e) => { voiceEnabled = !voiceEnabled; e.target.textContent = voiceEnabled ? "Voz On" : "Voz Off"; };
+
         signInAnonymously(auth);
         checkAuth();
     </script>
