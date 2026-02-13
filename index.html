@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
+        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10 text-white"></div>
 
         <div id="game-controls" class="hidden">
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
@@ -93,10 +93,18 @@
         const auth = getAuth(app);
 
         const VALOR_ACAO = 30;
+        // CORREÇÃO: Nível 8 é pausa. Nível 9 segue a progressão sem duplicar.
         const blindLevels = [
-            { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 },
-            { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1200/2400" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "2500/5000" }, { blinds: "3000/6000" }, 
-            { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
+            { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, 
+            { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, 
+            { blinds: "600/1200" }, 
+            { isBreak: true, duration: 15 }, // ESTE É O NÍVEL 8 (PAUSA)
+            { blinds: "800/1600" }, // ESTE É O NÍVEL 9 (BIG BLIND ANTE)
+            { blinds: "1000/2000" }, { blinds: "1200/2400" }, { blinds: "1500/3000" }, 
+            { blinds: "2000/4000" }, { blinds: "2500/5000" }, { blinds: "3000/6000" }, 
+            { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, 
+            { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, 
+            { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
         ];
 
         let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
