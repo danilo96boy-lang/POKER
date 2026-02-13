@@ -33,8 +33,8 @@
             <h1 class="oswald text-lg font-bold tracking-widest uppercase italic text-emerald-500">Jack Tall Back</h1>
             <div class="flex items-center gap-3">
                 <button id="toggle-voice" class="text-[10px] bg-white/5 px-3 py-1 rounded-full border border-white/10">🔊 VOZ</button>
-                <button id="admin-login-btn" class="bg-white/10 px-4 py-1 rounded-full text-[10px] font-bold">ADMIN</button>
-                <button id="logout-btn" class="bg-red-600 hidden px-4 py-1 rounded-full text-[10px] font-bold">SAIR</button>
+                <button id="admin-login-btn" class="bg-white/10 px-4 py-1 rounded-full text-[10px] font-bold text-white">ADMIN</button>
+                <button id="logout-btn" class="bg-red-600 hidden px-4 py-1 rounded-full text-[10px] font-bold text-white">SAIR</button>
             </div>
         </header>
 
@@ -55,9 +55,9 @@
                 </div>
 
                 <div id="timer-public-controls" class="mt-8 flex gap-6">
-                    <button id="prev-level-btn" class="bg-emerald-900/50 p-4 rounded-2xl">⏮</button>
-                    <button id="timer-control-btn" class="bg-emerald-600 px-12 py-4 rounded-2xl font-bold oswald text-2xl uppercase shadow-lg">Iniciar</button>
-                    <button id="next-level-btn" class="bg-emerald-900/50 p-4 rounded-2xl">⏭</button>
+                    <button id="prev-level-btn" class="bg-emerald-900/50 p-4 rounded-2xl hover:bg-emerald-800 transition">⏮</button>
+                    <button id="timer-control-btn" class="bg-emerald-600 px-12 py-4 rounded-2xl font-bold oswald text-2xl uppercase shadow-lg transition">Iniciar</button>
+                    <button id="next-level-btn" class="bg-emerald-900/50 p-4 rounded-2xl hover:bg-emerald-800 transition">⏭</button>
                 </div>
             </div>
 
@@ -67,8 +67,9 @@
                     <div id="grand-total" class="oswald text-5xl font-bold text-yellow-400">R$ 0</div>
                 </div>
                 <div class="bg-black/20 rounded-3xl p-6 border border-white/10 flex-1 overflow-hidden">
-                    <span class="text-[10px] text-orange-500 font-bold uppercase mb-3 block italic">Histórico de Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-2 oswald italic overflow-y-auto max-h-[220px]"></ul>
+                    <span class="text-[10px] text-orange-500 font-bold uppercase mb-3 block italic">Últimas Saídas</span>
+                    <ul id="elimination-log" class="text-sm space-y-2 oswald italic overflow-y-auto max-h-[220px]">
+                        </ul>
                 </div>
             </div>
         </div>
@@ -94,8 +95,8 @@
                 </div>
             </div>
             <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                <button id="add-player-btn" class="bg-emerald-600 px-10 py-4 rounded-2xl font-bold oswald text-lg">ADICIONAR JOGADOR</button>
-                <button id="reset-game-btn" class="bg-red-900/40 px-10 py-4 rounded-2xl font-bold oswald text-lg">RESET GERAL</button>
+                <button id="add-player-btn" class="bg-emerald-600 px-10 py-4 rounded-2xl font-bold oswald text-lg text-white">ADICIONAR JOGADOR</button>
+                <button id="reset-game-btn" class="bg-red-900/40 px-10 py-4 rounded-2xl font-bold oswald text-lg text-white">RESET GERAL</button>
             </div>
         </div>
     </div>
@@ -104,7 +105,7 @@
         <div class="bg-emerald-950 p-8 rounded-[2rem] border border-emerald-500/50 w-full max-w-sm text-center shadow-2xl">
             <form id="login-form">
                 <input id="password" type="password" placeholder="Senha" class="w-full p-4 bg-black/50 text-white text-center mb-6 rounded-xl border border-white/10 text-2xl outline-none focus:border-emerald-500 transition">
-                <button type="submit" class="w-full bg-emerald-600 py-4 rounded-xl font-bold oswald text-xl uppercase hover:bg-emerald-500 transition shadow-lg">Entrar</button>
+                <button type="submit" class="w-full bg-emerald-600 py-4 rounded-xl font-bold oswald text-xl uppercase text-white shadow-lg">Entrar</button>
                 <button id="login-cancel-btn" type="button" class="w-full mt-4 text-gray-500 text-xs uppercase tracking-widest">Fechar</button>
             </form>
         </div>
@@ -134,7 +135,7 @@
             { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, 
             { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, 
             { blinds: "600/1200", note: "Fim Rebuy" }, { isBreak: true, note: "Pausa", duration: 15 },
-            { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "2000/4000" }, { blinds: "5000/10000" }
+            { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "2000/4000" }
         ];
 
         let playersData = [];
@@ -150,7 +151,6 @@
             window.speechSynthesis.speak(msg);
         }
 
-        // LÓGICA TIMER
         const updateTimerUI = () => {
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
             const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
@@ -161,54 +161,20 @@
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             const btn = document.getElementById('timer-control-btn');
             btn.textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            btn.className = timerState.isRunning ? "bg-yellow-600 px-12 py-4 rounded-2xl font-bold oswald text-2xl uppercase shadow-lg transition" : "bg-emerald-600 px-12 py-4 rounded-2xl font-bold oswald text-2xl uppercase shadow-lg transition";
+            btn.classList.toggle('bg-yellow-600', timerState.isRunning);
+            btn.classList.toggle('bg-emerald-600', !timerState.isRunning);
         };
 
-        onSnapshot(doc(db, 'pokerGame', 'timerState'), (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.data();
-                const oldLevel = timerState.currentLevel;
-                timerState = data;
-                if (timerState.isRunning && timerState.lastUpdate) {
-                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, timerState.timeLeft - diff);
-                    if (!localTimer) localTimer = setInterval(() => {
-                        if (timerState.timeLeft > 0) { timerState.timeLeft--; updateTimerUI(); }
-                    }, 1000);
-                } else { clearInterval(localTimer); localTimer = null; }
-                if (oldLevel !== timerState.currentLevel) {
-                    const lvl = blindLevels[timerState.currentLevel];
-                    falar(lvl.isBreak ? "Hora do intervalo" : `Blinds subiram. Nível ${timerState.currentLevel + 1}, ${lvl.blinds}`);
-                }
-                updateTimerUI();
-            }
-        });
-
-        const syncTimer = (running) => setDoc(doc(db, 'pokerGame', 'timerState'), { ...timerState, isRunning: running, lastUpdate: serverTimestamp() }, { merge: true });
-
-        document.getElementById('timer-control-btn').onclick = () => syncTimer(!timerState.isRunning);
-        document.getElementById('next-level-btn').onclick = () => {
-            if (timerState.currentLevel < blindLevels.length - 1) {
-                timerState.currentLevel++;
-                timerState.timeLeft = (blindLevels[timerState.currentLevel].duration || 15) * 60;
-                syncTimer(timerState.isRunning);
-            }
-        };
-        document.getElementById('prev-level-btn').onclick = () => {
-            if (timerState.currentLevel > 0) {
-                timerState.currentLevel--;
-                timerState.timeLeft = 900;
-                syncTimer(timerState.isRunning);
-            }
-        };
-
-        // LÓGICA JOGADORES E LOG
         const updateLog = () => {
             const logUl = document.getElementById('elimination-log');
-            const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
+            // Filtra quem está eliminado E tem o timestamp de saída, ordenando do mais recente para o mais antigo
+            const eliminados = playersData
+                .filter(p => p.eliminated && p.eliminatedAt)
+                .sort((a,b) => b.eliminatedAt - a.eliminatedAt);
+            
             logUl.innerHTML = eliminados.map((p, i) => `
-                <li class="border-l-4 border-orange-500 pl-3 py-2 bg-black/20 rounded-r flex justify-between">
-                    <span>${playersData.length - eliminados.length + (eliminados.length - i)}º ${p.name}</span>
+                <li class="border-l-4 border-orange-500 pl-3 py-2 bg-black/20 rounded-r flex justify-between animate-in slide-in-from-right duration-300">
+                    <span class="text-white font-bold">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</span>
                 </li>
             `).join('');
         };
@@ -226,8 +192,8 @@
             });
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
             document.getElementById('public-prize-grid').innerHTML = premiacoesPct.map((pct, i) => `
-                <div class="bg-black/30 border border-emerald-500/10 p-5 rounded-2xl flex justify-between items-center">
-                    <span class="oswald text-[10px] text-emerald-500 uppercase font-bold">${i+1}º LUGAR (${pct}%)</span>
+                <div class="bg-black/30 border border-emerald-500/10 p-5 rounded-2xl flex justify-between items-center shadow-inner">
+                    <span class="oswald text-xs text-emerald-500 uppercase font-bold">${i+1}º LUGAR (${pct}%)</span>
                     <span class="oswald text-2xl font-bold text-white">R$ ${((grandTotal * pct) / 100).toFixed(0)}</span>
                 </div>
             `).join('');
@@ -253,14 +219,52 @@
                 tbody.appendChild(tr);
             });
             calculateTotals();
-            updateLog();
         };
 
-        signInAnonymously(auth).then(() => {
-            onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
+        onSnapshot(doc(db, 'pokerGame', 'timerState'), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                const oldLevel = timerState.currentLevel;
+                timerState = data;
+                if (timerState.isRunning && timerState.lastUpdate) {
+                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
+                    timerState.timeLeft = Math.max(0, timerState.timeLeft - diff);
+                    if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; updateTimerUI(); }}, 1000);
+                } else { clearInterval(localTimer); localTimer = null; }
+                if (oldLevel !== timerState.currentLevel) {
+                    const lvl = blindLevels[timerState.currentLevel];
+                    falar(lvl.isBreak ? "Intervalo" : `Nível ${timerState.currentLevel + 1}, ${lvl.blinds}`);
+                }
+                updateTimerUI();
+            }
         });
 
+        onSnapshot(doc(db, 'pokerGame', 'gameState'), (snapshot) => {
+            if (snapshot.exists()) {
+                playersData = snapshot.data().players || [];
+                renderTable();
+                updateLog(); // Chama a atualização do Log sempre que os dados dos jogadores mudarem
+            }
+        });
+
+        const syncTimer = (running) => setDoc(doc(db, 'pokerGame', 'timerState'), { ...timerState, isRunning: running, lastUpdate: serverTimestamp() }, { merge: true });
         const save = () => setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+
+        document.getElementById('timer-control-btn').onclick = () => syncTimer(!timerState.isRunning);
+        document.getElementById('next-level-btn').onclick = () => {
+            if (timerState.currentLevel < blindLevels.length - 1) {
+                timerState.currentLevel++;
+                timerState.timeLeft = 900;
+                syncTimer(timerState.isRunning);
+            }
+        };
+        document.getElementById('prev-level-btn').onclick = () => {
+            if (timerState.currentLevel > 0) {
+                timerState.currentLevel--;
+                timerState.timeLeft = 900;
+                syncTimer(timerState.isRunning);
+            }
+        };
 
         document.getElementById('player-table-body').onchange = (e) => {
             const id = e.target.closest('tr').dataset.playerId;
@@ -281,7 +285,7 @@
             const p = playersData.find(x => x.id === row.dataset.playerId);
             if(e.target.classList.contains('eliminate-btn')) {
                 p.eliminated = !p.eliminated;
-                p.eliminatedAt = p.eliminated ? Date.now() : null;
+                p.eliminatedAt = p.eliminated ? Date.now() : null; // Grava o momento da eliminação
                 save();
             }
             if(e.target.classList.contains('player-total')) {
@@ -294,6 +298,8 @@
             playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false, pago: false });
             save();
         };
+
+        signInAnonymously(auth);
 
         document.getElementById('admin-login-btn').onclick = () => document.getElementById('login-modal').classList.remove('hidden');
         document.getElementById('login-cancel-btn').onclick = () => document.getElementById('login-modal').classList.add('hidden');
