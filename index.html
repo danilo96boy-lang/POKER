@@ -16,11 +16,11 @@
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
         
+        /* Fichas conforme solicitado */
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
         
-        /* CORES SOLICITADAS */
         .buyin .chip-design { border-color: #ef4444; background-color: transparent; }
         .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
 
@@ -46,9 +46,8 @@
                 <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
             </div>
             <div class="flex items-center gap-4">
-                <button id="toggle-voice" class="text-[10px] bg-white/10 px-4 py-1 rounded border border-white/10 uppercase font-bold text-white">Voz On</button>
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase text-white">Admin</button>
-                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase text-white">Sair</button>
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
             </div>
         </header>
 
@@ -67,14 +66,14 @@
                     </div>
                 </div>
                 <div id="timer-public-controls" class="mt-10 flex gap-4">
-                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition text-white">⏮</button>
-                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl text-white">Iniciar</button>
-                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition text-white">⏭</button>
+                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏮</button>
+                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl">Iniciar</button>
+                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏭</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-6">
-                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 text-center flex-1 flex flex-col justify-center shadow-xl">
+                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 text-center flex-1 flex flex-col justify-center">
                     <span class="text-xs text-gray-500 font-bold uppercase tracking-[0.2em] mb-3">Pote Total</span>
                     <div id="grand-total" class="oswald text-6xl font-bold text-white italic">R$ 0</div>
                 </div>
@@ -105,7 +104,7 @@
                     </table>
                 </div>
             </div>
-            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10 text-white">
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
                 <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Adicionar Jogador</button>
                 <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Reset Geral</button>
             </div>
@@ -113,12 +112,12 @@
     </div>
 
     <div id="login-modal" class="fixed inset-0 bg-black/95 flex justify-center items-center hidden z-50 p-6">
-        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl text-white">
-            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold">Acesso Admin</h3>
+        <div class="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/10 w-full max-w-sm text-center shadow-2xl">
+            <h3 id="modal-title" class="oswald text-3xl mb-8 uppercase font-bold">Acesso Painel</h3>
             <form id="login-form">
                 <input id="password" type="password" placeholder="Senha" class="w-full p-5 bg-black text-white text-center mb-8 rounded-2xl border border-white/10 text-3xl outline-none focus:border-[#c8102e] transition">
-                <button type="submit" class="w-full bg-[#c8102e] py-5 rounded-2xl font-bold oswald text-2xl uppercase shadow-2xl text-white">Confirmar</button>
-                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold tracking-widest">Fechar</button>
+                <button type="submit" class="w-full bg-[#c8102e] py-5 rounded-2xl font-bold oswald text-2xl uppercase shadow-2xl">Confirmar</button>
+                <button id="login-cancel-btn" type="button" class="w-full mt-6 text-gray-500 text-xs uppercase font-bold">Fechar</button>
             </form>
         </div>
     </div>
@@ -134,29 +133,17 @@
         const auth = getAuth(app);
 
         const VALOR_ACAO = 30;
-        const SENHA_CORRETA = 'poker';
         const blindLevels = [ { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 }, { blinds: "800/1600" }, { blinds: "1000/2000" } ];
 
         let playersData = [];
         let timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null };
         let localTimer = null;
-        let voiceEnabled = true;
         let modalMode = 'login';
 
-        function playBeep(f = 880, d = 150) {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const o = ctx.createOscillator(); const g = ctx.createGain();
-                o.type = "sine"; o.frequency.setValueAtTime(f, ctx.currentTime);
-                g.gain.setValueAtTime(0.1, ctx.currentTime);
-                o.connect(g); g.connect(ctx.destination);
-                o.start(); o.stop(ctx.currentTime + (d / 1000));
-            } catch(e) {}
-        }
+        function playBeep() { try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.15); } catch(e){} }
 
-        const syncTimer = (running) => setDoc(doc(db, 'pokerGame', 'timerState'), { ...timerState, isRunning: running, lastUpdate: serverTimestamp() }, { merge: true });
-
-        const updateTimerUI = () => {
+        const updateUI = () => {
+            // Timer UI
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
             const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
             document.getElementById('timer-display').textContent = `${m}:${s}`;
@@ -165,42 +152,14 @@
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-        };
 
-        const advanceLevel = () => {
-            if (timerState.currentLevel < blindLevels.length - 1) {
-                setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() });
-            } else { syncTimer(false); }
-        };
-
-        onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
-            if (s.exists()) {
-                timerState = s.data();
-                if (timerState.isRunning && timerState.lastUpdate) {
-                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
-                    if (!localTimer) localTimer = setInterval(() => { 
-                        if (timerState.timeLeft > 0) { 
-                            timerState.timeLeft--; 
-                            if (timerState.timeLeft <= 15) playBeep();
-                            updateTimerUI(); 
-                        } else { clearInterval(localTimer); localTimer = null; advanceLevel(); }
-                    }, 1000);
-                } else { clearInterval(localTimer); localTimer = null; }
-                updateTimerUI();
-            }
-        });
-
-        const updateTotals = () => {
+            // Totals UI
             let grandTotal = 0;
             playersData.forEach(p => {
                 const buyin = p.buyInChecked ? VALOR_ACAO : 0;
                 const rebuys = (p.rebuysChecked || []).filter(Boolean).length * VALOR_ACAO;
                 const addon = p.addOnChecked ? VALOR_ACAO : 0;
-                const pTotal = buyin + rebuys + addon;
-                grandTotal += pTotal;
-                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`);
-                if (cell) cell.textContent = `R$ ${pTotal}`;
+                grandTotal += (buyin + rebuys + addon);
             });
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
             document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
@@ -218,55 +177,68 @@
                 const tr = document.createElement('tr');
                 tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`;
                 tr.dataset.playerId = p.id;
-                let rebuysHtml = '';
-                for(let i=0; i<15; i++) rebuysHtml += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>${rebuysHtml}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
+                let rebuys = '';
+                for(let i=0; i<15; i++) rebuys += `<td class="p-0.5 text-center"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white"></td><td class="p-2 text-center"><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td>${rebuys}<td class="p-2 text-center"><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design shadow-sm"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4 text-center"><button class="eliminate-btn text-2xl">💀</button></td>`;
                 tbody.appendChild(tr);
             });
-            updateTotals();
+            updateUI();
         };
+
+        // Listeners
+        onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
+            if (s.exists()) {
+                timerState = s.data();
+                if (timerState.isRunning && timerState.lastUpdate) {
+                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
+                    timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
+                    if (!localTimer) localTimer = setInterval(() => { 
+                        if (timerState.timeLeft > 0) { 
+                            timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); 
+                        } else { clearInterval(localTimer); localTimer = null; 
+                            if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() });
+                        }
+                    }, 1000);
+                } else { clearInterval(localTimer); localTimer = null; }
+                updateUI();
+            }
+        });
 
         onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
 
-        document.getElementById('player-table-body').onchange = (e) => {
-            const row = e.target.closest('tr');
-            const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
-            if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) {
-                const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target);
-                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false);
-                p.rebuysChecked[idx] = e.target.checked;
-            }
-            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
-        };
-
+        // Eventos
         document.getElementById('admin-login-btn').onclick = () => { modalMode = 'login'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('reset-game-btn').onclick = () => { modalMode = 'reset'; document.getElementById('login-modal').classList.remove('hidden'); };
         document.getElementById('login-cancel-btn').onclick = () => document.getElementById('login-modal').classList.add('hidden');
-        
         document.getElementById('login-form').onsubmit = (e) => {
             e.preventDefault();
-            if(document.getElementById('password').value === SENHA_CORRETA) {
+            if(document.getElementById('password').value === 'poker') {
                 if(modalMode === 'login') {
-                    sessionStorage.setItem('pokerAdmin', 'true');
                     document.getElementById('game-controls').classList.remove('hidden');
                     document.getElementById('logout-btn').classList.remove('hidden');
                     document.getElementById('admin-login-btn').classList.add('hidden');
                 } else {
-                    const reset = [];
-                    for(let i=1; i<=10; i++) reset.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false });
-                    setDoc(doc(db, 'pokerGame', 'gameState'), { players: reset });
+                    const r = []; for(let i=1; i<=10; i++) r.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false });
+                    setDoc(doc(db, 'pokerGame', 'gameState'), { players: r });
                     setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: 0, timeLeft: 900, isRunning: false, lastUpdate: serverTimestamp() });
                 }
                 document.getElementById('login-modal').classList.add('hidden');
             } else { alert('Senha Incorreta'); }
         };
 
-        document.getElementById('timer-control-btn').onclick = () => syncTimer(!timerState.isRunning);
-        document.getElementById('next-level-btn').onclick = advanceLevel;
-        document.getElementById('add-player-btn').onclick = () => {
-            playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false });
+        document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
+        document.getElementById('next-level-btn').onclick = () => { if (timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true }); };
+        document.getElementById('prev-level-btn').onclick = () => { if (timerState.currentLevel > 0) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel - 1, timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true }); };
+
+        document.getElementById('player-table-body').onchange = (e) => {
+            const p = playersData.find(x => x.id === e.target.closest('tr').dataset.playerId);
+            if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
+            if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
+            if(e.target.classList.contains('rebuy-cb')) {
+                const idx = Array.from(e.target.closest('tr').querySelectorAll('.rebuy-cb')).indexOf(e.target);
+                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false);
+                p.rebuysChecked[idx] = e.target.checked;
+            }
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         };
 
