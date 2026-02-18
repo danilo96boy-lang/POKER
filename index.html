@@ -3,115 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER ON JACK TALL BACK</title>
+    <title>POKER SYSTEM - MULTI-MESA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #000000 !important; background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%) !important; font-family: 'Segoe UI', sans-serif; color: #f5f5f5; overflow-x: hidden; }
+        body { background-color: #000000; background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%); font-family: 'Segoe UI', sans-serif; color: #f5f5f5; overflow-x: hidden; }
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
-        
-        /* Fichas PokerStars */
-        .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
+        .chip-container { display: inline-block; position: relative; width: 32px; height: 32px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
         .buyin .chip-design { border-color: #ef4444; }
-        .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
+        .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 10px #c8102e; }
         .rebuy .chip-design { border-color: #22c55e; }
-        .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
+        .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 10px #22c55e; }
         .addon .chip-design { border-color: #3b82f6; }
-        .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
-        
+        .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 10px #3b82f6; }
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
-
-        /* Estilização dos Cards de Premiação Premium */
-        .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); transition: transform 0.3s; }
-        .award-card:hover { transform: translateY(-5px); }
-        .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
-        .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
-        .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
-
-        /* Badge de Ante Ativo no Timer */
-        #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 15px; border-radius: 6px; font-weight: 800; font-size: 1.2rem; position: absolute; right: 10%; top: 45%; transform: rotate(5deg); box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); }
-
-        @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
-        @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
+        #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; position: absolute; right: 10%; top: 40%; transform: rotate(5deg); z-index: 20; }
+        @media (min-width: 1024px) { .huge-timer { font-size: 14rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
+        @media (max-width: 1023px) { .huge-timer { font-size: 5.5rem; } .huge-blinds { font-size: 2.2rem; } }
     </style>
 </head>
 <body class="min-h-screen">
     <div class="w-full px-4 py-4 text-white">
         <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg font-bold">S</div>
-                <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
+                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center font-bold shadow-lg">S</div>
+                <h1 id="main-title" class="oswald text-xl lg:text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
             </div>
             <div class="flex gap-2">
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
-                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
+                <span id="admin-status" class="hidden lg:block text-[10px] text-gray-500 self-center mr-2 uppercase font-bold tracking-widest">Visualização</span>
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-2 rounded text-[10px] font-bold uppercase hover:bg-white/20 transition">Login Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-2 rounded text-[10px] font-bold uppercase shadow-lg">Sair</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl relative">
-                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
-                <div id="timer-display" class="huge-timer mono text-white">15:00</div>
-                
-                <div id="ante-badge" class="oswald uppercase italic">ANTE ATIVO</div>
+            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-6 lg:p-10 flex flex-col items-center justify-center shadow-2xl relative">
+                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-xl lg:text-2xl uppercase tracking-[0.4em] mb-4 text-center">Nível 1</div>
+                <div id="timer-display" class="huge-timer mono text-white drop-shadow-2xl">15:00</div>
+                <div id="ante-badge" class="oswald uppercase italic shadow-xl">ANTE ATIVO</div>
 
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
+                    <div class="text-center"><span class="oswald text-gray-500 text-xs uppercase block font-bold mb-1">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
+                    <div class="text-center"><span class="oswald text-gray-500 text-xs uppercase block font-bold mb-1">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
                 </div>
-                <div class="mt-10 flex gap-4">
-                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏮</button>
-                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
-                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏭</button>
+                
+                <div class="mt-8 flex gap-4 admin-only hidden">
+                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏮</button>
+                    <button id="timer-control-btn" class="bg-[#c8102e] px-12 lg:px-20 py-4 rounded-2xl font-bold oswald text-2xl lg:text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
+                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl hover:bg-white/10 transition">⏭</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-4">
                 <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl">
-                    <div class="grid grid-cols-3 gap-2 mb-8 border-b border-white/10 pb-6">
-                        <div class="text-center border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Buy-ins</span>
-                            <span id="count-bi" class="oswald text-4xl font-bold text-[#c8102e] italic">0</span>
-                        </div>
-                        <div class="text-center border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Rebuys</span>
-                            <span id="count-rb" class="oswald text-4xl font-bold text-[#22c55e] italic">0</span>
-                        </div>
-                        <div class="text-center">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Add-ons</span>
-                            <span id="count-ao" class="oswald text-4xl font-bold text-[#3b82f6] italic">0</span>
-                        </div>
+                    <div class="grid grid-cols-3 gap-2 mb-6 border-b border-white/10 pb-6 text-center">
+                        <div><span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">BI</span><span id="count-bi" class="oswald text-3xl font-bold text-[#c8102e]">0</span></div>
+                        <div class="border-x border-white/10"><span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">RB</span><span id="count-rb" class="oswald text-3xl font-bold text-[#22c55e]">0</span></div>
+                        <div><span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">AO</span><span id="count-ao" class="oswald text-3xl font-bold text-[#3b82f6]">0</span></div>
                     </div>
                     <div class="text-center">
-                        <span class="text-[14px] text-gray-500 uppercase font-bold tracking-[0.2em] block mb-2">Pote Total</span>
-                        <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                        <span class="text-gray-400 uppercase font-bold text-xs tracking-widest block mb-2">Pote Total</span>
+                        <div id="grand-total" class="oswald text-5xl lg:text-6xl font-bold text-white italic drop-shadow-md">R$ 0</div>
                     </div>
                 </div>
                 <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden">
                     <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4 text-center">Últimas Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
+                    <ul id="elimination-log" class="text-sm space-y-2 oswald italic overflow-y-auto max-h-[200px] pr-2"></ul>
                 </div>
             </div>
         </div>
 
         <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
 
-        <div id="game-controls" class="hidden">
-            <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto text-white">
-                    <table class="w-full text-[13px] text-center">
-                        <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
-                        <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
-                    </table>
-                </div>
+        <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-[13px] text-center">
+                    <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2">BI</th><th colspan="15" class="bg-black/20 p-2">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
+                    <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
+                </table>
             </div>
-            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Reset Geral</button>
-            </div>
+        </div>
+        
+        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-6 pb-12 admin-only hidden">
+            <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-10 py-4 rounded-2xl font-bold oswald text-lg uppercase transition">Adicionar Jogador</button>
+            <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-10 py-4 rounded-2xl font-bold oswald text-lg uppercase transition">Reset Mesa</button>
         </div>
     </div>
 
@@ -125,106 +103,146 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // CONFIGURAÇÃO DE SALA INDEPENDENTE
+        const urlParams = new URLSearchParams(window.location.search);
+        let salaID = urlParams.get('mesa') || prompt("Identificador da Mesa (Ex: 1, 2, 3):", "1") || "1";
+        document.getElementById('main-title').innerHTML += ` - MESA ${salaID}`;
+
+        const docTimer = doc(db, 'poker_v3', salaID, 'dados', 'timer');
+        const docPlayers = doc(db, 'poker_v3', salaID, 'dados', 'jogadores');
+
         const VALOR_ACAO = 30;
         const blindLevels = [
-            { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 },
-            { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1200/2400" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "2500/5000" }, { blinds: "3000/6000" }, 
-            { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
+            {blinds:"100/100"},{blinds:"100/200"},{blinds:"200/400"},{blinds:"300/600"},{blinds:"400/800"},{blinds:"500/1k"},{blinds:"600/1.2k"},{isBreak:true},
+            {blinds:"800/1.6k"},{blinds:"1k/2k"},{blinds:"1.2k/2.4k"},{blinds:"1.5k/3k"},{blinds:"2k/4k"},{blinds:"2.5k/5k"},{blinds:"3k/6k"}
         ];
 
-        let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
+        let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null, isAdmin = false;
 
-        function falar(texto) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
-        function playBeep() { try { const ctx = new AudioContext(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
+        function falar(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'pt-BR'; window.speechSynthesis.speak(m); }
 
         const updateUI = () => {
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
             const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
             document.getElementById('timer-display').textContent = `${m}:${s}`;
-            const lvl = blindLevels[timerState.currentLevel];
+            const l = blindLevels[timerState.currentLevel];
             document.getElementById('level-indicator').textContent = `NÍVEL ${timerState.currentLevel + 1}`;
-            document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
+            document.getElementById('current-blinds').textContent = l.isBreak ? "PAUSA" : l.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            
-            // Visual do Ante Ativo (Nível 9 em diante)
             document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
 
-            let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
+            let gT = 0, tBI = 0, tRB = 0, tAO = 0;
             playersData.forEach(p => {
-                const b = p.buyInChecked ? 1 : 0, r = (p.rebuysChecked || []).filter(Boolean).length, a = p.addOnChecked ? 1 : 0;
-                totalBI += b; totalRB += r; totalAO += a;
-                const pTotal = (b + r + a) * VALOR_ACAO; grandTotal += pTotal;
-                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`); if (cell) cell.textContent = `R$ ${pTotal}`;
+                const b = p.bi?1:0, r = (p.rb||[]).filter(Boolean).length, a = p.ao?1:0;
+                tBI += b; tRB += r; tAO += a;
+                const pT = (b+r+a)*VALOR_ACAO; gT += pT;
+                const cell = document.querySelector(`[data-id="${p.id}"] .p-total`); if(cell) cell.textContent = `R$ ${pT}`;
             });
-            document.getElementById('count-bi').textContent = totalBI; document.getElementById('count-rb').textContent = totalRB; document.getElementById('count-ao').textContent = totalAO;
-            document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
-            
-            const styles = ['gold-border', 'silver-border', 'bronze-border'];
-            const icons = ['text-yellow-400', 'text-gray-300', 'text-orange-500'];
-            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
-                <div class="award-card p-6 rounded-3xl text-center shadow-xl ${styles[i]} flex flex-col items-center justify-center relative">
-                    <span class="absolute top-2 right-4 text-2xl ${icons[i]}">🏆</span>
-                    <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
-                    <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
-                </div>`).join('');
+            document.getElementById('count-bi').textContent = tBI; document.getElementById('count-rb').textContent = tRB; document.getElementById('count-ao').textContent = tAO;
+            document.getElementById('grand-total').textContent = `R$ ${gT}`;
 
-            const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
-            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
+            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
+                <div class="bg-white/5 p-5 rounded-3xl text-center border border-white/10 shadow-lg">
+                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">${i+1}º LUGAR</span>
+                    <div class="oswald text-3xl font-bold italic">R$ ${Math.floor((gT*pct)/100)}</div>
+                </div>`).join('');
+            
+            const elims = playersData.filter(p => p.eliminated).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
+            document.getElementById('elimination-log').innerHTML = elims.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5">#${playersData.length - elims.indexOf(p)}º ${p.name}</li>`).join('');
         };
 
         const renderTable = () => {
             const tbody = document.getElementById('player-table-body'); tbody.innerHTML = '';
             playersData.forEach(p => {
-                const tr = document.createElement('tr'); tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = p.id;
-                let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
+                const tr = document.createElement('tr'); tr.dataset.id = p.id; tr.className = p.eliminated ? 'player-row eliminated' : 'player-row';
+                let rbs = ''; for(let i=0; i<15; i++) rbs += `<td><div class="chip-container rebuy"><input type="checkbox" class="chip-input rb-cb" ${p.rb?.[i]?'checked':''}> <div class="chip-design"></div></div></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="p-name bg-transparent outline-none w-full font-bold ${!isAdmin?'pointer-events-none':''}"></td>
+                <td><div class="chip-container buyin"><input type="checkbox" class="chip-input bi-cb" ${p.bi?'checked':''}> <div class="chip-design"></div></div></td>
+                ${rbs}
+                <td><div class="chip-container addon"><input type="checkbox" class="chip-input ao-cb" ${p.ao?'checked':''}> <div class="chip-design"></div></div></td>
+                <td class="p-4 text-right oswald font-bold p-total text-lg">R$ 0</td>
+                <td class="p-4"><button class="elim-btn text-2xl hover:scale-110 transition">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateUI();
         };
 
-        onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
-            if (s.exists()) {
-                const oldLvl = timerState.currentLevel; timerState = s.data();
-                if (timerState.isRunning && timerState.lastUpdate) {
-                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
-                    if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); } else { clearInterval(localTimer); localTimer = null; if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() }); } }, 1000);
+        onSnapshot(docTimer, (s) => {
+            if(s.exists()){
+                const oldL = timerState.currentLevel; timerState = s.data();
+                if(timerState.isRunning && timerState.lastUpdate){
+                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis())/1000);
+                    timerState.timeLeft = Math.max(0, (timerState.timeLeftBase || 900) - diff);
+                    if(!localTimer) localTimer = setInterval(() => { if(timerState.timeLeft > 0){ timerState.timeLeft--; updateUI(); } }, 1000);
                 } else { clearInterval(localTimer); localTimer = null; }
-                if(oldLvl !== timerState.currentLevel) {
-                    const l = blindLevels[timerState.currentLevel];
-                    let txt = l.isBreak ? "Pausa iniciada" : `Blinds subiram para ${l.blinds}`;
-                    if(timerState.currentLevel === 8) txt += ". Atenção: a partir de agora será cobrado Big Blind Ante";
-                    falar(txt);
-                }
+                if(oldL !== timerState.currentLevel) falar(blindLevels[timerState.currentLevel].isBreak ? "Pausa iniciada" : "Blinds subiram");
                 updateUI();
             }
         });
 
-        onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
-
-        document.getElementById('player-table-body').addEventListener('click', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('eliminate-btn')) { p.eliminated = !p.eliminated; p.eliminatedAt = p.eliminated ? Date.now() : null; setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); }
-        });
+        onSnapshot(docPlayers, (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
 
         document.getElementById('player-table-body').addEventListener('change', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
-            if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) { const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target); if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false); p.rebuysChecked[idx] = e.target.checked; }
-            if(e.target.classList.contains('player-name')) p.name = e.target.value;
-            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+            if(!isAdmin){ alert("Modo Admin necessário!"); e.target.checked = !e.target.checked; return; }
+            const p = playersData.find(x => x.id === e.target.closest('tr').dataset.id);
+            if(e.target.classList.contains('bi-cb')) p.bi = e.target.checked;
+            if(e.target.classList.contains('ao-cb')) p.ao = e.target.checked;
+            if(e.target.classList.contains('rb-cb')){
+                const idx = Array.from(e.target.closest('tr').querySelectorAll('.rb-cb')).indexOf(e.target);
+                if(!p.rb) p.rb = Array(15).fill(false); p.rb[idx] = e.target.checked;
+            }
+            if(e.target.classList.contains('p-name')) p.name = e.target.value;
+            setDoc(docPlayers, { players: playersData });
         });
 
-        document.getElementById('admin-login-btn').onclick = () => { const pwd = prompt("Senha:"); if(pwd === "poker") { document.getElementById('game-controls').classList.toggle('hidden'); document.getElementById('logout-btn').classList.toggle('hidden'); document.getElementById('admin-login-btn').classList.toggle('hidden'); } };
-        document.getElementById('logout-btn').onclick = () => { document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
-        document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('next-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('prev-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.max(0, timerState.currentLevel-1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); };
-        document.getElementById('reset-game-btn').onclick = () => { if(confirm("Resetar?")) { const r = []; for(let i=1; i<=10; i++) r.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: 0, timeLeft: 900, isRunning: false, lastUpdate: serverTimestamp() }); } };
+        document.getElementById('player-table-body').addEventListener('click', (e) => {
+            if(!isAdmin) return;
+            if(e.target.classList.contains('elim-btn')){
+                const p = playersData.find(x => x.id === e.target.closest('tr').dataset.id);
+                p.eliminated = !p.eliminated; p.eliminatedAt = p.eliminated ? Date.now() : null;
+                setDoc(docPlayers, { players: playersData });
+            }
+        });
+
+        document.getElementById('admin-login-btn').onclick = () => {
+            if(prompt("Senha do Admin:") === "poker"){
+                isAdmin = true;
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                document.getElementById('admin-status').textContent = "ADMINISTRADOR";
+                document.getElementById('admin-status').classList.replace('text-gray-500', 'text-green-500');
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('admin-login-btn').classList.add('hidden');
+                renderTable();
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => location.reload();
+        
+        document.getElementById('timer-control-btn').onclick = () => {
+            setDoc(docTimer, { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp(), timeLeftBase: timerState.timeLeft }, { merge: true });
+        };
+
+        document.getElementById('next-level-btn').onclick = () => {
+            setDoc(docTimer, { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeftBase: 900, lastUpdate: serverTimestamp(), isRunning: true });
+        };
+
+        document.getElementById('prev-level-btn').onclick = () => {
+            setDoc(docTimer, { currentLevel: Math.max(0, timerState.currentLevel-1), timeLeftBase: 900, lastUpdate: serverTimestamp(), isRunning: false });
+        };
+
+        document.getElementById('add-player-btn').onclick = () => {
+            playersData.push({ id: Date.now().toString(), name: 'Jogador ' + (playersData.length + 1), bi: false, rb: Array(15).fill(false), ao: false, eliminated: false });
+            setDoc(docPlayers, { players: playersData });
+        };
+
+        document.getElementById('reset-game-btn').onclick = () => {
+            if(confirm("Deseja resetar todos os dados desta mesa?")) {
+                setDoc(docPlayers, { players: [] });
+                setDoc(docTimer, { currentLevel: 0, timeLeftBase: 900, isRunning: false, lastUpdate: null });
+            }
+        };
+
         signInAnonymously(auth);
     </script>
 </body>
