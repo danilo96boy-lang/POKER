@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER ON JACK TALL BACK</title>
+    <title>POKER ON JACK TALL BACK - SECURE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         body { background-color: #000000 !important; background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%) !important; font-family: 'Segoe UI', sans-serif; color: #f5f5f5; overflow-x: hidden; }
         .oswald { font-family: 'Oswald', sans-serif; }
         .mono { font-family: 'Roboto Mono', monospace; }
-        
-        /* Fichas PokerStars */
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
@@ -21,19 +19,13 @@
         .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
         .addon .chip-design { border-color: #3b82f6; }
         .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
-        
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
-
-        /* Estilização dos Cards de Premiação Premium */
         .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); transition: transform 0.3s; }
         .award-card:hover { transform: translateY(-5px); }
         .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
         .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
         .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
-
-        /* Badge de Ante Ativo no Timer */
         #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 15px; border-radius: 6px; font-weight: 800; font-size: 1.2rem; position: absolute; right: 10%; top: 45%; transform: rotate(5deg); box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); }
-
         @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
     </style>
@@ -55,9 +47,7 @@
             <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl relative">
                 <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
                 <div id="timer-display" class="huge-timer mono text-white">15:00</div>
-                
                 <div id="ante-badge" class="oswald uppercase italic">ANTE ATIVO</div>
-
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
                     <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
                     <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
@@ -125,6 +115,17 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // --- SEGURANÇA: FUNÇÃO DE HASH PARA SENHA ---
+        async function checkPass(input) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hash));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            // Hash da palavra "poker"
+            return hashHex === "8526509424606f3640b372f883f3e1f37e199d2146e4c703b44b822d56d11394";
+        }
+
         const VALOR_ACAO = 30;
         const blindLevels = [
             { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 },
@@ -135,7 +136,7 @@
         let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
 
         function falar(texto) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
-        function playBeep() { try { const ctx = new AudioContext(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
+        function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
 
         const updateUI = () => {
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
@@ -146,8 +147,6 @@
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            
-            // Visual do Ante Ativo (Nível 9 em diante)
             document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
@@ -192,10 +191,10 @@
                     timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
                     if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); } else { clearInterval(localTimer); localTimer = null; if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() }); } }, 1000);
                 } else { clearInterval(localTimer); localTimer = null; }
-                if(oldLvl !== timerState.currentLevel) {
+                if(oldLvl !== timerState.currentLevel && oldLvl !== undefined) {
                     const l = blindLevels[timerState.currentLevel];
                     let txt = l.isBreak ? "Pausa iniciada" : `Blinds subiram para ${l.blinds}`;
-                    if(timerState.currentLevel === 8) txt += ". Atenção: a partir de agora será cobrado Big Blind Ante";
+                    if(timerState.currentLevel === 8) txt += ". Atenção: Big Blind Ante ativo.";
                     falar(txt);
                 }
                 updateUI();
@@ -218,13 +217,25 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        document.getElementById('admin-login-btn').onclick = () => { const pwd = prompt("Senha:"); if(pwd === "poker") { document.getElementById('game-controls').classList.toggle('hidden'); document.getElementById('logout-btn').classList.toggle('hidden'); document.getElementById('admin-login-btn').classList.toggle('hidden'); } };
+        // LOGIN COM HASH SEGURO
+        document.getElementById('admin-login-btn').onclick = async () => { 
+            const pwd = prompt("Chave de Segurança:"); 
+            if(await checkPass(pwd)) { 
+                document.getElementById('game-controls').classList.toggle('hidden'); 
+                document.getElementById('logout-btn').classList.toggle('hidden'); 
+                document.getElementById('admin-login-btn').classList.toggle('hidden'); 
+            } else {
+                alert("Acesso Negado!");
+            }
+        };
+
         document.getElementById('logout-btn').onclick = () => { document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
         document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
         document.getElementById('next-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
         document.getElementById('prev-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.max(0, timerState.currentLevel-1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
         document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); };
         document.getElementById('reset-game-btn').onclick = () => { if(confirm("Resetar?")) { const r = []; for(let i=1; i<=10; i++) r.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: 0, timeLeft: 900, isRunning: false, lastUpdate: serverTimestamp() }); } };
+        
         signInAnonymously(auth);
     </script>
 </body>
