@@ -122,8 +122,8 @@
             const hash = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hash));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            // Hash da palavra "poker"
-            return hashHex === "8526509424606f3640b372f883f3e1f37e199d2146e4c703b44b822d56d11394";
+            // Hash da senha "190620"
+            return hashHex === "e165427d113f8907316973e7208d1f27402f1a6f0223f06c13883a99859f518e";
         }
 
         const VALOR_ACAO = 30;
@@ -217,7 +217,7 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // LOGIN COM HASH SEGURO
+        // LOGIN COM NOVO HASH PARA SENHA "190620"
         document.getElementById('admin-login-btn').onclick = async () => { 
             const pwd = prompt("Chave de Segurança:"); 
             if(await checkPass(pwd)) { 
