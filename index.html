@@ -2,235 +2,397 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKER ON JACK TALL BACK - SECURE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+
+    <title>Gestão Financeira Corporativa</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: { slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' } }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { background-color: #000000 !important; background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%) !important; font-family: 'Segoe UI', sans-serif; color: #f5f5f5; overflow-x: hidden; }
-        .oswald { font-family: 'Oswald', sans-serif; }
-        .mono { font-family: 'Roboto Mono', monospace; }
-        .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
-        .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
-        .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
-        .buyin .chip-design { border-color: #ef4444; }
-        .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
-        .rebuy .chip-design { border-color: #22c55e; }
-        .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
-        .addon .chip-design { border-color: #3b82f6; }
-        .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
-        .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
-        .award-card { border-width: 2px; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); transition: transform 0.3s; }
-        .award-card:hover { transform: translateY(-5px); }
-        .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
-        .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
-        .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
-        #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 15px; border-radius: 6px; font-weight: 800; font-size: 1.2rem; position: absolute; right: 10%; top: 45%; transform: rotate(5deg); box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); }
-        @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
-        @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
+        :root { --bg-body: #0f172a; --card-bg: #1e293b; --border-color: #334155; --text-main: #f8fafc; }
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100dvh; overflow-x: hidden; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-corp { background: #020617; border: 1px solid var(--border-color); color: white; font-size: 16px; outline: none; transition: border 0.2s; }
+        .input-corp:focus { border-color: #3b82f6; }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(59, 130, 246, 0.3); border-radius: 50%; border-top-color: #3b82f6; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen">
-    <div class="w-full px-4 py-4 text-white">
-        <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg font-bold">S</div>
-                <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
+<body class="antialiased">
+
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-6">
+        <div class="w-full max-w-sm">
+            <div class="mb-8 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-blue-600 mb-4 shadow-lg shadow-blue-900/40">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Financial Vault</h2>
+                <p class="text-slate-400 text-sm mt-2">Acesso restrito à diretoria</p>
             </div>
-            <div class="flex gap-2">
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
-                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Identificador</label>
+                    <input type="text" id="user" class="w-full p-3 input-corp rounded-lg" autocapitalize="none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Chave de Segurança</label>
+                    <input type="password" id="pass" class="w-full p-3 input-corp rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/30 text-sm uppercase tracking-wider">Desbloquear Sistema</button>
+            </form>
+            <p id="login-msg" class="text-red-400 text-center mt-4 hidden text-xs bg-red-950/30 border border-red-900/50 py-2 rounded">Credenciais inválidas.</p>
+        </div>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="spinner mb-4"></div>
+        <p class="text-slate-400 text-sm font-medium">Sincronizando...</p>
+    </div>
+
+    <div id="app-container" class="max-w-7xl mx-auto w-full opacity-0 hidden transition-opacity duration-500 pb-10 px-4 lg:px-8">
+        
+        <header class="flex flex-col md:flex-row justify-between items-center py-6 border-b border-slate-800 mb-6 gap-4">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-inner">
+                    <span class="font-black text-white text-xl">F</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Painel Executivo</h1>
+                    <p class="text-slate-500 text-xs font-medium">Controle de Fluxo • <span id="user-display" class="capitalize text-blue-400"></span></p>
+                </div>
             </div>
+
+            <div class="flex items-center gap-2 bg-slate-900 rounded-xl p-1.5 border border-slate-800 shadow-xl">
+                <button id="prev-month" class="p-2 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="current-month" class="px-4 font-mono text-xs font-bold text-slate-200 min-w-[150px] text-center uppercase tracking-tighter"></span>
+                <button id="next-month" class="p-2 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+            
+            <button id="logout-btn" class="text-xs text-slate-500 hover:text-red-400 flex items-center gap-2 px-4 py-2 rounded-lg transition hover:bg-red-950/10 border border-transparent hover:border-red-900/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span>Sair</span>
+            </button>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl relative">
-                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
-                <div id="timer-display" class="huge-timer mono text-white">15:00</div>
-                <div id="ante-badge" class="oswald uppercase italic">ANTE ATIVO</div>
-                <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
-                </div>
-                <div class="mt-10 flex gap-4">
-                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏮</button>
-                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
-                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏭</button>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl">
-                    <div class="grid grid-cols-3 gap-2 mb-8 border-b border-white/10 pb-6">
-                        <div class="text-center border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Buy-ins</span>
-                            <span id="count-bi" class="oswald text-4xl font-bold text-[#c8102e] italic">0</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="card rounded-2xl p-6">
+                    <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Receita Mensal</h3>
+                    <div class="space-y-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-slate-400 ml-1">Fonte Gabi</label>
+                            <input type="number" id="income1" placeholder="0.00" step="0.01" class="w-full bg-slate-950 p-3 rounded-lg text-white font-mono text-sm border border-slate-800 focus:border-blue-500 outline-none transition">
                         </div>
-                        <div class="text-center border-r border-white/10">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Rebuys</span>
-                            <span id="count-rb" class="oswald text-4xl font-bold text-[#22c55e] italic">0</span>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-slate-400 ml-1">Fonte Danilo</label>
+                            <input type="number" id="income2" placeholder="0.00" step="0.01" class="w-full bg-slate-950 p-3 rounded-lg text-white font-mono text-sm border border-slate-800 focus:border-blue-500 outline-none transition">
                         </div>
-                        <div class="text-center">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Add-ons</span>
-                            <span id="count-ao" class="oswald text-4xl font-bold text-[#3b82f6] italic">0</span>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <span class="text-[14px] text-gray-500 uppercase font-bold tracking-[0.2em] block mb-2">Pote Total</span>
-                        <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                        <button id="save-income" class="w-full bg-blue-600 hover:bg-blue-500 text-xs font-bold py-2.5 rounded-lg transition uppercase tracking-widest text-white shadow-lg shadow-blue-900/20">Salvar Receitas</button>
                     </div>
                 </div>
-                <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden">
-                    <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4 text-center">Últimas Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
+
+                <div id="summary-display" class="grid grid-cols-1 gap-4"></div>
+
+                <div class="card rounded-2xl p-6">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 text-center">Distribuição de Gastos Reais</h4>
+                    <div class="relative h-64 w-full"><canvas id="expenseChart"></canvas></div>
                 </div>
             </div>
-        </div>
 
-        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
-
-        <div id="game-controls" class="hidden">
-            <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto text-white">
-                    <table class="w-full text-[13px] text-center">
-                        <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
-                        <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
-                    </table>
+            <div class="lg:col-span-8 card rounded-2xl p-0 flex flex-col relative overflow-hidden shadow-2xl">
+                <div class="p-6 border-b border-slate-800 bg-slate-900/30 flex flex-col gap-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <h3 class="font-bold text-xl text-white">Transações</h3>
+                        <div class="flex items-center gap-3">
+                            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition shadow-lg shadow-blue-900/40 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Novo Lançamento
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="Filtrar por descrição ou categoria..." class="w-full bg-slate-950 border border-slate-800 rounded-xl text-sm text-white py-3 pl-11 pr-4 focus:border-blue-500 outline-none transition placeholder-slate-600">
+                        <svg class="absolute left-4 top-3.5 w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Reset Geral</button>
+                
+                <div class="flex-1 overflow-y-auto custom-scroll min-h-[500px]">
+                    <div id="expense-list" class="divide-y divide-slate-800/50"></div>
+                </div>
+
+                <div class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <span id="total-items-count">0 registros</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <div id="expense-modal" class="fixed inset-0 bg-black/90 hidden z-50 items-center justify-center p-4 backdrop-blur-md">
+        <div class="card w-full max-w-lg rounded-2xl shadow-2xl flex flex-col">
+            <div class="flex justify-between items-center p-6 border-b border-slate-800">
+                <h3 class="font-bold text-white uppercase tracking-widest text-sm" id="modal-title">Lançamento</h3>
+                <button onclick="closeModal('expense-modal')" class="text-slate-500 hover:text-white transition">✕</button>
+            </div>
+            <form id="expense-form" class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Data</label>
+                        <input type="date" id="form-date" class="w-full p-3 input-corp rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Categoria</label>
+                        <select id="form-cat" class="w-full p-3 input-corp rounded-xl text-sm"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Histórico</label>
+                    <input type="text" id="form-desc" class="w-full p-3 input-corp rounded-xl text-sm" placeholder="Ex: Mercado Atacadão">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Valor</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3.5 text-slate-500 font-mono text-sm">R$</span>
+                        <input type="number" step="0.01" id="form-val" class="w-full p-3 pl-12 input-corp rounded-xl text-sm font-mono font-bold" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-4">
+                    <button type="button" id="delete-btn" onclick="deleteItem()" class="text-red-500 text-[10px] font-bold uppercase tracking-widest hover:bg-red-950/20 px-4 py-2 rounded-lg transition hidden">Excluir</button>
+                    <div class="flex gap-3 ml-auto">
+                        <button type="button" onclick="closeModal('expense-modal')" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold transition">Cancelar</button>
+                        <button type="submit" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-900/30">Gravar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBf1nzx6mH1lWckWQyXDnWZKLlh-5cfcv0",
+            authDomain: "controle-a9909.firebaseapp.com",
+            projectId: "controle-a9909",
+            storageBucket: "controle-a9909.appspot.com",
+            messagingSenderId: "43886457318",
+            appId: "1:43886457318:web:289e82579a38c28fefa627"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        const firebaseConfig = { apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c", authDomain: "pokerti-633ba.firebaseapp.com", projectId: "pokerti-633ba", storageBucket: "pokerti-633ba.firebasestorage.app", messagingSenderId: "883744429166", appId: "1:883744429166:web:7e091d7e8fcae6251c827f" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        const userId = 'casal_principal';
+        const CATEGORIES = ['Mercado', 'Contas', 'Cartões', 'Apartamento', 'Carro', 'Lazer', 'Delivery', 'Posto', 'Farmácia', 'Roupa', 'Escola', 'Poupança Maria Luisa', 'Reserva', 'Outros'];
+        const COLORS = { 'Mercado': '#f59e0b', 'Contas': '#ef4444', 'Cartões': '#3b82f6', 'Apartamento': '#6366f1', 'Carro': '#0ea5e9', 'Lazer': '#ec4899', 'Delivery': '#d946ef', 'Posto': '#f97316', 'Farmácia': '#84cc16', 'Roupa': '#14b8a6', 'Escola': '#8b5cf6', 'Poupança Maria Luisa': '#10b981', 'Reserva': '#22c55e', 'Outros': '#64748b' };
+        
+        // META ESTIPULADA
+        const GOAL = 3000;
 
-        // --- SEGURANÇA COMPATÍVEL COM QUALQUER AMBIENTE ---
-        async function checkPass(input) {
-            // Senha: 190620
-            return btoa(input) === "MTkwNjIw";
+        let expenses = [], incomeData = {}, currentDate = new Date(), currentEditId = null, mainChart = null;
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('user').value.toLowerCase().trim();
+            const p = document.getElementById('pass').value.trim();
+            if ((u === 'gabi' && p === '19071996') || (u === 'danilo' && p === '08042020')) {
+                auth.signInAnonymously().then(() => {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('app-container').classList.remove('opacity-0'), 50);
+                    document.getElementById('user-display').innerText = u;
+                    init();
+                });
+            } else { document.getElementById('login-msg').classList.remove('hidden'); }
+        };
+
+        function init() {
+            document.getElementById('form-cat').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+            loadData();
         }
 
-        const VALOR_ACAO = 30;
-        const blindLevels = [
-            { blinds: "100/100" }, { blinds: "100/200" }, { blinds: "200/400" }, { blinds: "300/600" }, { blinds: "400/800" }, { blinds: "500/1000" }, { blinds: "600/1200" }, { isBreak: true, duration: 15 },
-            { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1200/2400" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "2500/5000" }, { blinds: "3000/6000" }, 
-            { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
-        ];
+        async function loadData() {
+            toggleLoader(true);
+            try {
+                const snap = await db.collection('users').doc(userId).collection('expenses').get();
+                expenses = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                const incSnap = await db.collection('users').doc(userId).collection('income').get();
+                incomeData = {}; incSnap.forEach(d => incomeData[d.id] = d.data());
+                render();
+            } catch(e) { console.error(e); }
+            toggleLoader(false);
+        }
 
-        let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
-
-        function falar(texto) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
-        function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
-
-        const updateUI = () => {
-            const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
-            const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').textContent = `${m}:${s}`;
-            const lvl = blindLevels[timerState.currentLevel];
-            document.getElementById('level-indicator').textContent = `NÍVEL ${timerState.currentLevel + 1}`;
-            document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
-            document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
-            document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
-
-            let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
-            playersData.forEach(p => {
-                const b = p.buyInChecked ? 1 : 0, r = (p.rebuysChecked || []).filter(Boolean).length, a = p.addOnChecked ? 1 : 0;
-                totalBI += b; totalRB += r; totalAO += a;
-                const pTotal = (b + r + a) * VALOR_ACAO; grandTotal += pTotal;
-                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`); if (cell) cell.textContent = `R$ ${pTotal}`;
-            });
-            document.getElementById('count-bi').textContent = totalBI; document.getElementById('count-rb').textContent = totalRB; document.getElementById('count-ao').textContent = totalAO;
-            document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
+        function render(filter = '') {
+            const monthKey = currentDate.toISOString().slice(0, 7);
+            document.getElementById('current-month').innerText = currentDate.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
             
-            const styles = ['gold-border', 'silver-border', 'bronze-border'];
-            const icons = ['text-yellow-400', 'text-gray-300', 'text-orange-500'];
-            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
-                <div class="award-card p-6 rounded-3xl text-center shadow-xl ${styles[i]} flex flex-col items-center justify-center relative">
-                    <span class="absolute top-2 right-4 text-2xl ${icons[i]}">🏆</span>
-                    <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
-                    <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
-                </div>`).join('');
+            let curExp = expenses.filter(e => e.date.startsWith(monthKey)).sort((a,b) => new Date(b.date) - new Date(a.date));
+            if(filter) curExp = curExp.filter(e => e.description.toLowerCase().includes(filter.toLowerCase()) || e.category.toLowerCase().includes(filter.toLowerCase()));
 
-            const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
-            document.getElementById('elimination-log').innerHTML = eliminados.map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white">#${playersData.length - eliminados.indexOf(p)}º - ${p.name}</li>`).join('');
+            const inc = incomeData[monthKey] || {s1:'', s2:''};
+            document.getElementById('income1').value = inc.s1;
+            document.getElementById('income2').value = inc.s2;
+
+            // --- LÓGICA DE CÁLCULO CORRIGIDA ---
+            const gastosReais = curExp.filter(item => item.category !== 'Reserva');
+            const reserveItems = curExp.filter(item => item.category === 'Reserva');
+
+            const totalEntradas = (parseFloat(inc.s1)||0) + (parseFloat(inc.s2)||0);
+            const totalSaidas = gastosReais.reduce((acc, item) => acc + item.value, 0);
+            const totalReservado = reserveItems.reduce((acc, item) => acc + item.value, 0);
+            
+            // LÍQUIDO É APENAS ENTRADAS - SAÍDAS (Ignora a reserva para não ficar negativo errado)
+            const saldoLivre = totalEntradas - totalSaidas;
+
+            // CÁLCULO DO PROGRESSO EM %
+            const progress = Math.min((totalReservado / GOAL) * 100, 100);
+
+            document.getElementById('summary-display').innerHTML = `
+                <div class="card p-5 rounded-2xl flex items-center justify-between border-l-4 border-emerald-500 bg-slate-900/20">
+                    <div><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Entradas</p><p class="text-xl font-mono font-bold text-white">${fmtMoney(totalEntradas)}</p></div>
+                    <div class="text-emerald-500 bg-emerald-500/10 p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+                </div>
+                <div class="card p-5 rounded-2xl flex items-center justify-between border-l-4 border-red-500 bg-slate-900/20">
+                    <div><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Saídas (Despesas)</p><p class="text-xl font-mono font-bold text-white">${fmtMoney(totalSaidas)}</p></div>
+                    <div class="text-red-500 bg-red-500/10 p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
+                </div>
+                
+                <div class="card p-5 rounded-2xl flex flex-col border-l-4 border-amber-500 bg-slate-900/20 gap-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Reservado (Meta ${fmtMoney(GOAL)})</p>
+                            <p class="text-xl font-mono font-bold text-white">${fmtMoney(totalReservado)}</p>
+                        </div>
+                        <div class="text-amber-500 bg-amber-500/10 p-2 rounded-lg">
+                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden shadow-inner">
+                        <div class="bg-amber-500 h-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(245,158,11,0.6)]" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[8px] text-amber-500/80 font-bold uppercase tracking-tighter">Status do Objetivo</span>
+                        <span class="text-[10px] text-white font-black font-mono">${progress.toFixed(1)}%</span>
+                    </div>
+                </div>
+
+                <div class="card p-5 rounded-2xl flex items-center justify-between border-l-4 border-blue-500 bg-slate-800">
+                    <div><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Saldo Livre (Líquido)</p><p class="text-xl font-mono font-bold ${saldoLivre>=0?'text-blue-400':'text-red-400'}">${fmtMoney(saldoLivre)}</p></div>
+                </div>
+            `;
+
+            const listEl = document.getElementById('expense-list');
+            listEl.innerHTML = curExp.map(item => `
+                <div onclick="openModal('${item.id}')" class="flex items-center justify-between px-6 py-4 hover:bg-slate-800/40 cursor-pointer transition group">
+                    <div class="flex items-center gap-4 overflow-hidden">
+                        <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${COLORS[item.category]}; box-shadow: 0 0 8px ${COLORS[item.category]}"></div>
+                        <div class="truncate">
+                            <p class="text-sm font-semibold text-slate-200 group-hover:text-white truncate">${item.description}</p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">${item.category} • ${item.date.split('-').reverse().join('/')}</p>
+                        </div>
+                    </div>
+                    <div class="text-right ml-4">
+                        <p class="font-mono text-sm font-bold text-slate-300 group-hover:text-white">${fmtMoney(item.value)}</p>
+                    </div>
+                </div>
+            `).join('') || '<p class="p-10 text-center text-slate-600 text-xs uppercase tracking-widest">Sem movimentações</p>';
+            
+            document.getElementById('total-items-count').innerText = `${curExp.length} Registros`;
+            updateMainChart(gastosReais);
+        }
+
+        document.getElementById('save-income').onclick = async () => {
+            const monthKey = currentDate.toISOString().slice(0, 7);
+            const s1 = document.getElementById('income1').value;
+            const s2 = document.getElementById('income2').value;
+            await db.collection('users').doc(userId).collection('income').doc(monthKey).set({s1, s2});
+            loadData();
         };
 
-        const renderTable = () => {
-            const tbody = document.getElementById('player-table-body'); tbody.innerHTML = '';
-            playersData.forEach(p => {
-                const tr = document.createElement('tr'); tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = p.id;
-                let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
-                tbody.appendChild(tr);
-            });
-            updateUI();
-        };
-
-        onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
-            if (s.exists()) {
-                const oldLvl = timerState.currentLevel; timerState = s.data();
-                if (timerState.isRunning && timerState.lastUpdate) {
-                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
-                    if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); } else { clearInterval(localTimer); localTimer = null; if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() }); } }, 1000);
-                } else { clearInterval(localTimer); localTimer = null; }
-                if(oldLvl !== timerState.currentLevel && oldLvl !== undefined) {
-                    const l = blindLevels[timerState.currentLevel];
-                    let txt = l.isBreak ? "Pausa iniciada" : `Blinds subiram para ${l.blinds}`;
-                    if(timerState.currentLevel === 8) txt += ". Atenção: Big Blind Ante ativo.";
-                    falar(txt);
-                }
-                updateUI();
-            }
-        });
-
-        onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
-
-        document.getElementById('player-table-body').addEventListener('click', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('eliminate-btn')) { p.eliminated = !p.eliminated; p.eliminatedAt = p.eliminated ? Date.now() : null; setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); }
-        });
-
-        document.getElementById('player-table-body').addEventListener('change', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
-            if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) { const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target); if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false); p.rebuysChecked[idx] = e.target.checked; }
-            if(e.target.classList.contains('player-name')) p.name = e.target.value;
-            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
-        });
-
-        document.getElementById('admin-login-btn').onclick = async () => { 
-            const pwd = prompt("Chave de Segurança:"); 
-            if(await checkPass(pwd)) { 
-                document.getElementById('game-controls').classList.remove('hidden'); 
-                document.getElementById('logout-btn').classList.remove('hidden'); 
-                document.getElementById('admin-login-btn').classList.add('hidden'); 
+        window.openModal = (id = null) => {
+            currentEditId = id;
+            document.getElementById('delete-btn').classList.toggle('hidden', !id);
+            if(id) {
+                const item = expenses.find(e => e.id === id);
+                document.getElementById('form-date').value = item.date;
+                document.getElementById('form-desc').value = item.description;
+                document.getElementById('form-cat').value = item.category;
+                document.getElementById('form-val').value = item.value;
             } else {
-                alert("Acesso Negado!");
+                document.getElementById('expense-form').reset();
+                document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
+            }
+            document.getElementById('expense-modal').classList.remove('hidden');
+            document.getElementById('expense-modal').classList.add('flex');
+        };
+
+        window.closeModal = (id) => { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); };
+
+        window.deleteItem = async () => {
+            if(confirm("Excluir definitivamente?")) {
+                await db.collection('users').doc(userId).collection('expenses').doc(currentEditId).delete();
+                closeModal('expense-modal'); loadData();
             }
         };
 
-        document.getElementById('logout-btn').onclick = () => { document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
-        document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('next-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('prev-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.max(0, timerState.currentLevel-1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); };
-        document.getElementById('reset-game-btn').onclick = () => { if(confirm("Resetar?")) { const r = []; for(let i=1; i<=10; i++) r.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: 0, timeLeft: 900, isRunning: false, lastUpdate: serverTimestamp() }); } };
-        
-        signInAnonymously(auth);
+        document.getElementById('expense-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                date: document.getElementById('form-date').value,
+                description: document.getElementById('form-desc').value,
+                category: document.getElementById('form-cat').value,
+                value: parseFloat(document.getElementById('form-val').value)
+            };
+            if(currentEditId) await db.collection('users').doc(userId).collection('expenses').doc(currentEditId).update(data);
+            else await db.collection('users').doc(userId).collection('expenses').add(data);
+            closeModal('expense-modal'); loadData();
+        };
+
+        function updateMainChart(data) {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            if(mainChart) mainChart.destroy();
+            const cats = {}; data.forEach(d => cats[d.category] = (cats[d.category]||0) + d.value);
+            mainChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: Object.keys(cats).map(k=>COLORS[k]), borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '80%' }
+            });
+        }
+
+        document.getElementById('prev-month').onclick = () => { currentDate.setMonth(currentDate.getMonth()-1); loadData(); };
+        document.getElementById('next-month').onclick = () => { currentDate.setMonth(currentDate.getMonth()+1); loadData(); };
+        document.getElementById('logout-btn').onclick = () => { auth.signOut(); location.reload(); };
+        document.getElementById('search-input').oninput = (e) => render(e.target.value);
+        function toggleLoader(s) { document.getElementById('loading-overlay').style.display = s ? 'flex' : 'none'; }
+        function fmtMoney(v) { return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+
     </script>
 </body>
 </html>
