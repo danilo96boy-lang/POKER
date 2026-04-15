@@ -110,22 +110,21 @@
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c", authDomain: "pokerti-633ba.firebaseapp.com", projectId: "pokerti-633ba", storageBucket: "pokerti-633ba.firebasestorage.app", messagingSenderId: "883744429166", appId: "1:883744429166:web:7e091d7e8fcae6251c827f" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA5HoMt3eYJgWZel8ka4SDdsVmvP62zj2c", 
+            authDomain: "pokerti-633ba.firebaseapp.com", 
+            projectId: "pokerti-633ba", 
+            storageBucket: "pokerti-633ba.firebasestorage.app", 
+            messagingSenderId: "883744429166", 
+            appId: "1:883744429166:web:7e091d7e8fcae6251c827f" 
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- SEGURANÇA: FUNÇÃO DE HASH ATUALIZADA ---
-        async function checkPass(input) {
-            if (!input) return false;
-            const encoder = new TextEncoder();
-            const data = encoder.encode(input);
-            const hash = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hash));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            // Hash atualizado para a senha "Pok@r"
-            return hashHex === "2873133854d90f2307525287f3945c75466a908070d663a890e0c034b07542d2";
-        }
+        // --- SISTEMA DE LOGIN SIMPLIFICADO ---
+        const SENHA_MESTRA = "Pok@r"; // Senha agora é verificada diretamente
 
         const VALOR_ACAO = 30;
         const blindLevels = [
@@ -218,15 +217,15 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // LOGIN COM HASH SEGURO - SENHA: Pok@r
-        document.getElementById('admin-login-btn').onclick = async () => { 
+        // --- LOGIN DIRETO ---
+        document.getElementById('admin-login-btn').onclick = () => { 
             const pwd = prompt("Chave de Segurança:"); 
-            if(await checkPass(pwd)) { 
+            if(pwd === SENHA_MESTRA) { 
                 document.getElementById('game-controls').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden'); 
                 document.getElementById('admin-login-btn').classList.add('hidden'); 
             } else {
-                alert("Acesso Negado! Verifique a senha.");
+                alert("Senha incorreta!");
             }
         };
 
