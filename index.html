@@ -115,15 +115,16 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- SEGURANÇA: FUNÇÃO DE HASH PARA SENHA ---
+        // --- SEGURANÇA: FUNÇÃO DE HASH ATUALIZADA ---
         async function checkPass(input) {
+            if (!input) return false;
             const encoder = new TextEncoder();
             const data = encoder.encode(input);
             const hash = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hash));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            // Hash da palavra "poker"
-            return hashHex === "8526509424606f3640b372f883f3e1f37e199d2146e4c703b44b822d56d11394";
+            // Hash atualizado para a senha "Pok@r"
+            return hashHex === "2873133854d90f2307525287f3945c75466a908070d663a890e0c034b07542d2";
         }
 
         const VALOR_ACAO = 30;
@@ -217,15 +218,15 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // LOGIN COM HASH SEGURO
+        // LOGIN COM HASH SEGURO - SENHA: Pok@r
         document.getElementById('admin-login-btn').onclick = async () => { 
             const pwd = prompt("Chave de Segurança:"); 
             if(await checkPass(pwd)) { 
-                document.getElementById('game-controls').classList.toggle('hidden'); 
-                document.getElementById('logout-btn').classList.toggle('hidden'); 
-                document.getElementById('admin-login-btn').classList.toggle('hidden'); 
+                document.getElementById('game-controls').classList.remove('hidden'); 
+                document.getElementById('logout-btn').classList.remove('hidden'); 
+                document.getElementById('admin-login-btn').classList.add('hidden'); 
             } else {
-                alert("Acesso Negado!");
+                alert("Acesso Negado! Verifique a senha.");
             }
         };
 
