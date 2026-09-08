@@ -143,7 +143,7 @@
 
             <!-- CONTEÚDO DA ABA 2: SETUP & PREMIAÇÃO -->
             <div id="tab-content-setup" class="hidden space-y-8">
-                <!-- PREMIAÇÃO -->
+                <!-- PREMIAÇÃO COM VALIDAÇÃO RÍGIDA DE 100% -->
                 <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 shadow-2xl backdrop-blur-md">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
@@ -165,10 +165,11 @@
                     <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
 
                     <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="text-xs font-mono text-gray-400">
+                        <div class="text-sm font-mono">
                             Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span>
+                            <span id="prize-status-hint" class="ml-2 text-xs font-sans text-gray-400"></span>
                         </div>
-                        <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
+                        <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 disabled:opacity-30 disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
                     </div>
                 </div>
 
@@ -357,11 +358,11 @@
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
 
-        // Verifica se o torneio já passou do intervalo (inscrições/rebuys fechados)
         function isPostBreak() {
             return (breakIndex !== -1 && timerState.currentLevel > breakIndex);
         }
 
+        // --- SISTEMA DE PREMIAÇÃO COM VALIDAÇÃO RÍGIDA DE 100% ---
         function renderPrizeInputs() {
             const container = document.getElementById('prize-percentage-inputs');
             const count = parseInt(document.getElementById('cfg-prize-places').value, 10);
@@ -379,23 +380,59 @@
                 container.appendChild(div);
             }
 
-            updatePrizeSum();
+            const inputs = container.querySelectorAll('.prize-pct-input');
+            inputs.forEach((inp, idx) => {
+                // Impede ultrapassar 100% durante a digitação
+                inp.addEventListener('input', () => {
+                    let currentVal = parseInt(inp.value, 10);
+                    if (isNaN(currentVal) || currentVal < 0) currentVal = 0;
 
-            container.querySelectorAll('.prize-pct-input').forEach(inp => {
-                inp.addEventListener('input', updatePrizeSum);
+                    let otherSum = 0;
+                    inputs.forEach((other, oIdx) => {
+                        if (oIdx !== idx) {
+                            otherSum += (parseInt(other.value, 10) || 0);
+                        }
+                    });
+
+                    // Limita ao máximo que falta para 100%
+                    const maxAllowed = Math.max(0, 100 - otherSum);
+                    if (currentVal > maxAllowed) {
+                        inp.value = maxAllowed;
+                    }
+
+                    updatePrizeSum();
+                });
             });
+
+            updatePrizeSum();
         }
 
         function updatePrizeSum() {
             const inputs = document.querySelectorAll('.prize-pct-input');
             let sum = 0;
             inputs.forEach(inp => sum += Number(inp.value) || 0);
+
             const sumEl = document.getElementById('prize-sum-indicator');
+            const hintEl = document.getElementById('prize-status-hint');
+            const saveBtn = document.getElementById('save-prizes-btn');
+
             sumEl.textContent = `${sum}%`;
+
             if (sum === 100) {
                 sumEl.className = "font-bold text-emerald-400";
-            } else {
+                hintEl.textContent = "(Perfeito para salvar)";
+                hintEl.className = "ml-2 text-xs font-sans text-emerald-400";
+                saveBtn.disabled = false;
+            } else if (sum < 100) {
                 sumEl.className = "font-bold text-amber-500";
+                hintEl.textContent = `(Faltam ${100 - sum}% para fechar 100%)`;
+                hintEl.className = "ml-2 text-xs font-sans text-amber-400";
+                saveBtn.disabled = true;
+            } else {
+                sumEl.className = "font-bold text-red-500";
+                hintEl.textContent = `(Ultrapassou em ${sum - 100}%)`;
+                hintEl.className = "ml-2 text-xs font-sans text-red-400";
+                saveBtn.disabled = true;
             }
         }
 
@@ -471,7 +508,6 @@
 
             updateSetupLockUI();
 
-            // Bloqueio visual do período de Rebuys / Add-ons / Adicionar Jogador
             const lockedRebuys = isPostBreak();
             const rebuyNotice = document.getElementById('rebuy-lock-notice');
             if (rebuyNotice) rebuyNotice.classList.toggle('hidden', !lockedRebuys);
@@ -479,7 +515,6 @@
             const addBtn = document.getElementById('add-player-btn');
             if (addBtn) addBtn.disabled = lockedRebuys;
 
-            // Desabilita checkboxes de rebuys/addon caso esteja pós-break
             document.querySelectorAll('.buyin-cb, .rebuy-cb, .addon-cb').forEach(cb => {
                 cb.disabled = lockedRebuys;
                 const container = cb.closest('.chip-container');
@@ -618,7 +653,6 @@
         document.getElementById('player-table-body').addEventListener('change', (e) => {
             const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
             
-            // Impede alterações nos checkboxes se as inscrições/rebuys estiverem encerradas
             if (isPostBreak() && !e.target.classList.contains('player-name')) {
                 e.target.checked = !e.target.checked;
                 return;
@@ -653,7 +687,7 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Premiação (Aba Setup)
+        // Salvar Premiação com Bloqueio Rígido de 100%
         document.getElementById('save-prizes-btn').onclick = () => {
             const inputs = document.querySelectorAll('.prize-pct-input');
             const newPrizes = [];
@@ -665,10 +699,10 @@
                 sum += val;
             });
 
+            // Validação estrita: Não salva de jeito nenhum se não for exatamente 100%
             if (sum !== 100) {
-                if (!confirm(`Atenção: A soma das porcentagens está em ${sum}% (o ideal é 100%). Deseja salvar mesmo assim?`)) {
-                    return;
-                }
+                alert(`Erro de Validação: A soma dos prêmios deve ser EXATAMENTE 100% (atual: ${sum}%). Ajuste os valores antes de salvar.`);
+                return;
             }
 
             gameConfig.prizes = newPrizes;
@@ -678,10 +712,10 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Grade de premiação atualizada!");
+            alert("Grade de premiação validada e atualizada com sucesso!");
         };
 
-        // Salvar Setup Inicial (Aba Setup)
+        // Salvar Setup Inicial
         document.getElementById('save-config-btn').onclick = () => {
             if (timerState.hasStarted) {
                 alert("O jogo já foi iniciado! Para alterar tempo e estrutura de blinds é necessário realizar um Reset Geral.");
