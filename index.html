@@ -23,7 +23,9 @@
         .mono { font-family: 'Roboto Mono', monospace; }
         .chip-container { display: inline-block; position: relative; width: 34px; height: 34px; margin: 1px; }
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
+        .chip-input:disabled { cursor: not-allowed !important; pointer-events: none; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
+        .chip-locked { opacity: 0.25; filter: grayscale(1); cursor: not-allowed !important; }
         .buyin .chip-design { border-color: #ef4444; }
         .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
         .rebuy .chip-design { border-color: #22c55e; }
@@ -120,6 +122,11 @@
 
             <!-- CONTEÚDO DA ABA 1: TABELA DE JOGADORES -->
             <div id="tab-content-players" class="space-y-6">
+                <!-- AVISO DE REBUY BLOQUEADO (EXIBIDO PÓS-BREAK) -->
+                <div id="rebuy-lock-notice" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span>🔒</span> Período de Buy-ins, Rebuys e Add-ons Encerrado (Pós-Intervalo). Apenas eliminações ativas.
+                </div>
+
                 <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto text-white">
                         <table class="w-full text-[13px] text-center">
@@ -129,14 +136,14 @@
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
+                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 disabled:cursor-not-allowed px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
                     <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Reset Geral</button>
                 </div>
             </div>
 
             <!-- CONTEÚDO DA ABA 2: SETUP & PREMIAÇÃO -->
             <div id="tab-content-setup" class="hidden space-y-8">
-                <!-- 1. PREMIAÇÃO -->
+                <!-- PREMIAÇÃO -->
                 <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 shadow-2xl backdrop-blur-md">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
@@ -165,7 +172,7 @@
                     </div>
                 </div>
 
-                <!-- 2. ESTRUTURA DO JOGO -->
+                <!-- ESTRUTURA DO JOGO -->
                 <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 shadow-2xl backdrop-blur-md transition-all">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
@@ -350,6 +357,11 @@
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
 
+        // Verifica se o torneio já passou do intervalo (inscrições/rebuys fechados)
+        function isPostBreak() {
+            return (breakIndex !== -1 && timerState.currentLevel > breakIndex);
+        }
+
         function renderPrizeInputs() {
             const container = document.getElementById('prize-percentage-inputs');
             const count = parseInt(document.getElementById('cfg-prize-places').value, 10);
@@ -459,6 +471,24 @@
 
             updateSetupLockUI();
 
+            // Bloqueio visual do período de Rebuys / Add-ons / Adicionar Jogador
+            const lockedRebuys = isPostBreak();
+            const rebuyNotice = document.getElementById('rebuy-lock-notice');
+            if (rebuyNotice) rebuyNotice.classList.toggle('hidden', !lockedRebuys);
+            
+            const addBtn = document.getElementById('add-player-btn');
+            if (addBtn) addBtn.disabled = lockedRebuys;
+
+            // Desabilita checkboxes de rebuys/addon caso esteja pós-break
+            document.querySelectorAll('.buyin-cb, .rebuy-cb, .addon-cb').forEach(cb => {
+                cb.disabled = lockedRebuys;
+                const container = cb.closest('.chip-container');
+                if (container) {
+                    if (lockedRebuys) container.classList.add('chip-locked');
+                    else container.classList.remove('chip-locked');
+                }
+            });
+
             const actionPrice = Number(gameConfig.actionValue) || 30;
             document.getElementById('entry-value-badge').textContent = `(R$ ${actionPrice}/ação)`;
 
@@ -489,10 +519,14 @@
 
         const renderTable = () => {
             const tbody = document.getElementById('player-table-body'); tbody.innerHTML = '';
+            const lockedRebuys = isPostBreak();
+            const lockClass = lockedRebuys ? 'chip-locked' : '';
+            const disAttr = lockedRebuys ? 'disabled' : '';
+
             playersData.forEach(p => {
                 const tr = document.createElement('tr'); tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = p.id;
-                let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy"><input type="checkbox" class="chip-input rebuy-cb" ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin"><input type="checkbox" class="chip-input buyin-cb" ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon"><input type="checkbox" class="chip-input addon-cb" ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
+                let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy ${lockClass}"><input type="checkbox" class="chip-input rebuy-cb" ${disAttr} ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
+                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin ${lockClass}"><input type="checkbox" class="chip-input buyin-cb" ${disAttr} ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon ${lockClass}"><input type="checkbox" class="chip-input addon-cb" ${disAttr} ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
                 tbody.appendChild(tr);
             });
             updateUI();
@@ -583,6 +617,13 @@
 
         document.getElementById('player-table-body').addEventListener('change', (e) => {
             const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
+            
+            // Impede alterações nos checkboxes se as inscrições/rebuys estiverem encerradas
+            if (isPostBreak() && !e.target.classList.contains('player-name')) {
+                e.target.checked = !e.target.checked;
+                return;
+            }
+
             if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
             if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
             if(e.target.classList.contains('rebuy-cb')) { 
@@ -600,7 +641,7 @@
                 document.getElementById('game-controls').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden'); 
                 document.getElementById('admin-login-btn').classList.add('hidden'); 
-                tabBtnPlayers.click(); // Abre direto na aba jogadores
+                tabBtnPlayers.click();
             } else if (pwd !== null) {
                 alert("Senha incorreta!");
             }
@@ -706,6 +747,10 @@
         };
 
         document.getElementById('add-player-btn').onclick = () => { 
+            if (isPostBreak()) {
+                alert("As inscrições estão encerradas pós-intervalo!");
+                return;
+            }
             playersData.push({ 
                 id: Date.now().toString(), 
                 name: 'Jogador', 
