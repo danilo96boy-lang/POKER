@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Poker Clock">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/807/807241.png">
 
-    <!-- MANIFEST PWA EMBUTIDO VIA DATA-URI -->
+    <!-- MANIFEST PWA EMBUTIDO -->
     <link rel="manifest" href='data:application/manifest+json,{"name":"Poker On Jack Tall Back","short_name":"PokerClock","start_url":".","display":"standalone","background_color":"#000000","theme_color":"#c8102e","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/807/807241.png","sizes":"512x512","type":"image/png"}]}'>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -103,6 +103,7 @@
 
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
+            <!-- PAINEL DE SETUP INICIAL DO JOGO -->
             <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md transition-all">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                     <div class="flex items-center gap-3">
@@ -114,7 +115,11 @@
                     </div>
                 </div>
                 
-                <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (Antes do Break)</label>
+                        <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                    </div>
                     <div>
                         <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Intervalo Após o Nível</label>
                         <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
@@ -125,8 +130,8 @@
                         <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Níveis Pós-Break (min)</label>
-                        <input type="number" id="cfg-post-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                        <label class="block text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Intervalo (min)</label>
+                        <input type="number" id="cfg-post-break-time" min="1" max="120" value="12" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none disabled:opacity-30 disabled:cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Big Blind Ante</label>
@@ -157,9 +162,8 @@
         </div>
     </div>
 
-    <!-- REGISTRO DO SERVICE WORKER & WAKE LOCK (NÃO DEIXA A TELA APAGAR) -->
+    <!-- PWA & WAKE LOCK -->
     <script>
-        // 1. Service Worker Dummy Inline (Habilita critérios PWA no Chrome/Safari)
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', (e) => self.skipWaiting());
@@ -171,7 +175,6 @@
             navigator.serviceWorker.register(swUrl).catch(err => console.log('SW PWA:', err));
         }
 
-        // 2. Botão de Instalação Nativo do PWA
         let deferredPrompt;
         const installBtn = document.getElementById('pwa-install-btn');
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -188,7 +191,6 @@
             }
         });
 
-        // 3. Screen Wake Lock API (Evita tela de dormir no meio do jogo)
         let wakeLock = null;
         async function requestWakeLock() {
             try {
@@ -233,11 +235,11 @@
         ];
 
         let gameConfig = {
-            levelDurationMin: 20,
-            breakAfterLevel: 7,
-            breakDurationMin: 15,
-            postBreakDurationMin: 15,
-            anteStartLevel: 9
+            levelDurationMin: 20,       // Tempo inicial (antes do break)
+            breakAfterLevel: 7,         // Onde o break acontece
+            breakDurationMin: 15,       // Tempo do break
+            postBreakDurationMin: 12,   // Tempo que passa a valer DEPOIS do break
+            anteStartLevel: 9           // Nível do Ante
         };
 
         let blindLevels = [];
@@ -280,13 +282,14 @@
             }
         }
 
+        // Determina dinamicamente a duração: antes do break, intervalo, ou pós-break
         function getLevelDurationSeconds(levelIndex) {
             const level = blindLevels[levelIndex];
             if (level && level.isBreak) {
                 return (Number(gameConfig.breakDurationMin) || 15) * 60;
             }
             if (breakIndex !== -1 && levelIndex > breakIndex) {
-                return (Number(gameConfig.postBreakDurationMin) || 15) * 60;
+                return (Number(gameConfig.postBreakDurationMin) || 12) * 60;
             }
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
@@ -301,6 +304,7 @@
 
         function updateSetupLockUI() {
             const isLocked = !!timerState.hasStarted;
+            document.getElementById('cfg-level-time').disabled = isLocked;
             document.getElementById('cfg-break-after').disabled = isLocked;
             document.getElementById('cfg-break-time').disabled = isLocked;
             document.getElementById('cfg-post-break-time').disabled = isLocked;
@@ -378,9 +382,10 @@
                 if (data.config) {
                     gameConfig = { ...gameConfig, ...data.config };
                     rebuildBlindLevels();
+                    document.getElementById('cfg-level-time').value = gameConfig.levelDurationMin || 20;
                     document.getElementById('cfg-break-after').value = gameConfig.breakAfterLevel || 7;
                     document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin || 15;
-                    document.getElementById('cfg-post-break-time').value = gameConfig.postBreakDurationMin || 15;
+                    document.getElementById('cfg-post-break-time').value = gameConfig.postBreakDurationMin || 12;
                     document.getElementById('cfg-ante-level').value = gameConfig.anteStartLevel || 9;
                 }
 
@@ -460,7 +465,6 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // Login Admin
         document.getElementById('admin-login-btn').onclick = () => { 
             const pwd = prompt("Chave de Segurança:"); 
             if(pwd === SENHA_MESTRA) { 
@@ -478,20 +482,20 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Setup
         document.getElementById('save-config-btn').onclick = () => {
             if (timerState.hasStarted) {
                 alert("O jogo já foi iniciado! Para alterar as configurações é necessário realizar um Reset Geral.");
                 return;
             }
 
+            const initialTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 20;
             const breakAfter = parseInt(document.getElementById('cfg-break-after').value, 10) || 7;
             const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 15;
-            const postBrkTime = parseInt(document.getElementById('cfg-post-break-time').value, 10) || 15;
+            const postBrkTime = parseInt(document.getElementById('cfg-post-break-time').value, 10) || 12;
             const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 9;
 
             gameConfig = {
-                levelDurationMin: 20,
+                levelDurationMin: initialTime,
                 breakAfterLevel: breakAfter,
                 breakDurationMin: brkTime,
                 postBreakDurationMin: postBrkTime,
@@ -508,10 +512,9 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Configurações iniciais salvas com sucesso!");
+            alert("Configurações salvas com sucesso!");
         };
 
-        // Iniciar / Pausar
         document.getElementById('timer-control-btn').onclick = () => {
             const nextRunning = !timerState.isRunning;
             setDoc(doc(db, 'pokerGame', 'timerState'), { 
@@ -555,7 +558,6 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
         };
 
-        // Reset Geral
         document.getElementById('reset-game-btn').onclick = () => { 
             if(confirm("Deseja realmente resetar o jogo? Todos os jogadores serão reiniciados e o Setup será liberado para alteração.")) { 
                 const r = []; 
