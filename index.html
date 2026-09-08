@@ -103,13 +103,13 @@
             </div>
         </div>
 
-        <!-- GRADE DE PREMIAÇÃO PÚBLICA (DINÂMICA) -->
+        <!-- GRADE DE PREMIAÇÃO PÚBLICA -->
         <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
 
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
             
-            <!-- 1. PAINEL DE CONTROLE DE PREMIAÇÃO (EDITÁVEL A QUALQUER MOMENTO) -->
+            <!-- CONTROLE DE PREMIAÇÃO -->
             <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 mb-8 shadow-2xl backdrop-blur-md">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                     <div class="flex items-center gap-3">
@@ -129,7 +129,6 @@
                 </div>
 
                 <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                    <!-- Gerado dinamicamente via JS de acordo com as posições -->
                 </div>
 
                 <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -140,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- 2. PAINEL DE SETUP INICIAL DO JOGO (BLOQUEADO APÓS START) -->
+            <!-- SETUP INICIAL DO JOGO -->
             <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md transition-all">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                     <div class="flex items-center gap-3">
@@ -187,7 +186,7 @@
                 </div>
             </div>
 
-            <!-- 3. TABELA DE JOGADORES -->
+            <!-- TABELA DE JOGADORES -->
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto text-white">
                     <table class="w-full text-[13px] text-center">
@@ -268,10 +267,13 @@
 
         const SENHA_MESTRA = "Pok@r";
 
+        // GRADE COMPLETA COM 30 NÍVEIS
         const pureBlinds = [
             "100/100", "100/200", "200/400", "300/600", "400/800", "500/1000", "600/1200",
             "800/1600", "1000/2000", "1200/2400", "1500/3000", "2000/4000", "2500/5000", "3000/6000", 
-            "4000/8000", "5000/10000", "6000/12000", "8000/16000", "10000/20000", "15000/30000", "20000/40000", "30000/60000", "50000/100000", "100K/200K"
+            "4000/8000", "5000/10000", "6000/12000", "8000/16000", "10000/20000", "15000/30000",
+            "20000/40000", "30000/60000", "40000/80000", "50000/100000", "75000/150000", 
+            "100K/200K", "150K/300K", "200K/400K", "300K/600K", "500K/1M"
         ];
 
         let gameConfig = {
@@ -281,7 +283,7 @@
             breakDurationMin: 15,
             postBreakDurationMin: 12,
             anteStartLevel: 9,
-            prizes: [50, 30, 20] // Porcentagens customizáveis padrão
+            prizes: [50, 30, 20]
         };
 
         let blindLevels = [];
@@ -309,14 +311,16 @@
             selectBreak.innerHTML = '';
             selectAnte.innerHTML = '';
 
-            for (let i = 3; i <= 10; i++) {
+            // Opções de intervalo até o nível 15
+            for (let i = 3; i <= 15; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = `Após Nível ${i} (${pureBlinds[i-1] || ''})`;
                 selectBreak.appendChild(opt);
             }
 
-            for (let i = 1; i <= 15; i++) {
+            // Opções de Ante até o nível 25
+            for (let i = 1; i <= 25; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = `Nível ${i}`;
@@ -335,7 +339,6 @@
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
 
-        // Renderiza os inputs de porcentagem da premiação no Admin
         function renderPrizeInputs() {
             const container = document.getElementById('prize-percentage-inputs');
             const count = parseInt(document.getElementById('cfg-prize-places').value, 10);
@@ -437,7 +440,6 @@
             document.getElementById('count-bi').textContent = totalBI; document.getElementById('count-rb').textContent = totalRB; document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
             
-            // Premiações dinâmicas renderizadas na grade pública
             const prizesList = gameConfig.prizes || [50, 30, 20];
             const borderStyles = ['gold-border', 'silver-border', 'bronze-border', 'iron-border', 'iron-border'];
             const icons = ['text-yellow-400', 'text-gray-300', 'text-amber-600', 'text-slate-400', 'text-slate-500'];
@@ -579,7 +581,7 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Premiação (LIVRE - PODE SALVAR A QUALQUER MOMENTO DO JOGO)
+        // Salvar Premiação
         document.getElementById('save-prizes-btn').onclick = () => {
             const inputs = document.querySelectorAll('.prize-pct-input');
             const newPrizes = [];
@@ -607,7 +609,7 @@
             alert("Grade de premiação atualizada com sucesso!");
         };
 
-        // Salvar Setup Inicial (BLOQUEADO APÓS INÍCIO)
+        // Salvar Setup Inicial
         document.getElementById('save-config-btn').onclick = () => {
             if (timerState.hasStarted) {
                 alert("O jogo já foi iniciado! Para alterar tempo e estrutura de blinds é necessário realizar um Reset Geral.");
