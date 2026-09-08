@@ -38,8 +38,8 @@
                 <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
             </div>
             <div class="flex gap-2">
-                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase">Admin</button>
-                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase">Sair</button>
+                <button id="admin-login-btn" class="bg-white/10 px-5 py-1 rounded text-[10px] font-bold uppercase hover:bg-white/20 transition">Admin</button>
+                <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1 rounded text-[10px] font-bold uppercase hover:bg-[#a00d25] transition">Sair</button>
             </div>
         </header>
 
@@ -53,9 +53,9 @@
                     <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
                 </div>
                 <div class="mt-10 flex gap-4">
-                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏮</button>
+                    <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl hover:bg-white/10 transition">⏮</button>
                     <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
-                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl">⏭</button>
+                    <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl hover:bg-white/10 transition">⏭</button>
                 </div>
             </div>
 
@@ -89,7 +89,38 @@
 
         <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
 
+        <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
+            <!-- PAINEL DE SETUP INICIAL DO JOGO -->
+            <div class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md">
+                <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                    <span class="text-2xl text-[#c8102e]">⚙️</span>
+                    <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup Inicial do Torneio</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo dos Níveis (minutos)</label>
+                        <input type="number" id="cfg-level-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo do Intervalo (minutos)</label>
+                        <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Big Blind Ante</label>
+                        <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
+                            <!-- Opções carregadas via script -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Configurações</button>
+                </div>
+            </div>
+
+            <!-- TABELA DE JOGADORES -->
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto text-white">
                     <table class="w-full text-[13px] text-center">
@@ -99,8 +130,8 @@
                 </div>
             </div>
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase">Reset Geral</button>
+                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
+                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Reset Geral</button>
             </div>
         </div>
     </div>
@@ -124,7 +155,7 @@
         const auth = getAuth(app);
 
         // --- SISTEMA DE LOGIN SIMPLIFICADO ---
-        const SENHA_MESTRA = "Pok@r"; // Senha agora é verificada diretamente
+        const SENHA_MESTRA = "Pok@r";
 
         const VALOR_ACAO = 30;
         const blindLevels = [
@@ -132,6 +163,31 @@
             { blinds: "800/1600" }, { blinds: "1000/2000" }, { blinds: "1200/2400" }, { blinds: "1500/3000" }, { blinds: "2000/4000" }, { blinds: "2500/5000" }, { blinds: "3000/6000" }, 
             { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
         ];
+
+        // Configuração Padrão do Jogo
+        let gameConfig = {
+            levelDurationMin: 15,
+            breakDurationMin: 15,
+            anteStartLevel: 9 // Nível 9 padrão (índice 8)
+        };
+
+        // Popula as opções do Select de Ante
+        const anteSelect = document.getElementById('cfg-ante-level');
+        blindLevels.forEach((lvl, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx + 1;
+            opt.textContent = `Nível ${idx + 1} (${lvl.isBreak ? 'Intervalo' : lvl.blinds})`;
+            anteSelect.appendChild(opt);
+        });
+
+        // Função utilitária para obter a duração do nível atual em segundos
+        function getLevelDurationSeconds(levelIndex) {
+            const level = blindLevels[levelIndex];
+            if (level && level.isBreak) {
+                return (gameConfig.breakDurationMin || 15) * 60;
+            }
+            return (gameConfig.levelDurationMin || 15) * 60;
+        }
 
         let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
 
@@ -142,12 +198,15 @@
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
             const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
             document.getElementById('timer-display').textContent = `${m}:${s}`;
-            const lvl = blindLevels[timerState.currentLevel];
+            const lvl = blindLevels[timerState.currentLevel] || { blinds: "FIM" };
             document.getElementById('level-indicator').textContent = `NÍVEL ${timerState.currentLevel + 1}`;
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
-            document.getElementById('ante-badge').style.display = (timerState.currentLevel >= 8) ? 'block' : 'none';
+            
+            // Controle dinâmico do Ante Badge baseado na configuração
+            const anteStart = Number(gameConfig.anteStartLevel) || 9;
+            document.getElementById('ante-badge').style.display = ((timerState.currentLevel + 1) >= anteStart) ? 'block' : 'none';
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
             playersData.forEach(p => {
@@ -183,58 +242,202 @@
             updateUI();
         };
 
+        // Ouvinte do Timer & Configurações
         onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
             if (s.exists()) {
-                const oldLvl = timerState.currentLevel; timerState = s.data();
+                const data = s.data();
+                const oldLvl = timerState.currentLevel;
+
+                // Carrega e reflete configurações existentes
+                if (data.config) {
+                    gameConfig = { ...gameConfig, ...data.config };
+                    document.getElementById('cfg-level-time').value = gameConfig.levelDurationMin;
+                    document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin;
+                    document.getElementById('cfg-ante-level').value = gameConfig.anteStartLevel;
+                }
+
+                timerState = data;
+                const currentDuration = getLevelDurationSeconds(timerState.currentLevel);
+
                 if (timerState.isRunning && timerState.lastUpdate) {
                     const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, Math.min(900, timerState.timeLeft - diff));
-                    if (!localTimer) localTimer = setInterval(() => { if (timerState.timeLeft > 0) { timerState.timeLeft--; if (timerState.timeLeft <= 15) playBeep(); updateUI(); } else { clearInterval(localTimer); localTimer = null; if(timerState.currentLevel < blindLevels.length - 1) setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: timerState.currentLevel + 1, timeLeft: 900, isRunning: true, lastUpdate: serverTimestamp() }); } }, 1000);
-                } else { clearInterval(localTimer); localTimer = null; }
+                    timerState.timeLeft = Math.max(0, Math.min(currentDuration, timerState.timeLeft - diff));
+                    
+                    if (!localTimer) {
+                        localTimer = setInterval(() => { 
+                            if (timerState.timeLeft > 0) { 
+                                timerState.timeLeft--; 
+                                if (timerState.timeLeft <= 15) playBeep(); 
+                                updateUI(); 
+                            } else { 
+                                clearInterval(localTimer); 
+                                localTimer = null; 
+                                if(timerState.currentLevel < blindLevels.length - 1) {
+                                    const nextLvl = timerState.currentLevel + 1;
+                                    setDoc(doc(db, 'pokerGame', 'timerState'), { 
+                                        currentLevel: nextLvl, 
+                                        timeLeft: getLevelDurationSeconds(nextLvl), 
+                                        isRunning: true, 
+                                        lastUpdate: serverTimestamp(),
+                                        config: gameConfig
+                                    }); 
+                                }
+                            } 
+                        }, 1000);
+                    }
+                } else { 
+                    clearInterval(localTimer); 
+                    localTimer = null; 
+                }
+
                 if(oldLvl !== timerState.currentLevel && oldLvl !== undefined) {
                     const l = blindLevels[timerState.currentLevel];
                     let txt = l.isBreak ? "Pausa iniciada" : `Blinds subiram para ${l.blinds}`;
-                    if(timerState.currentLevel === 8) txt += ". Atenção: Big Blind Ante ativo.";
+                    if((timerState.currentLevel + 1) === Number(gameConfig.anteStartLevel)) {
+                        txt += ". Atenção: Big Blind Ante ativo.";
+                    }
                     falar(txt);
                 }
                 updateUI();
             }
         });
 
-        onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { if(s.exists()){ playersData = s.data().players || []; renderTable(); }});
+        // Ouvinte da Lista de Jogadores
+        onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { 
+            if(s.exists()){ 
+                playersData = s.data().players || []; 
+                renderTable(); 
+            }
+        });
 
+        // Ações da Tabela
         document.getElementById('player-table-body').addEventListener('click', (e) => {
             const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('eliminate-btn')) { p.eliminated = !p.eliminated; p.eliminatedAt = p.eliminated ? Date.now() : null; setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); }
+            if(e.target.classList.contains('eliminate-btn')) { 
+                p.eliminated = !p.eliminated; 
+                p.eliminatedAt = p.eliminated ? Date.now() : null; 
+                setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
+            }
         });
 
         document.getElementById('player-table-body').addEventListener('change', (e) => {
             const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
             if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
             if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) { const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target); if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false); p.rebuysChecked[idx] = e.target.checked; }
+            if(e.target.classList.contains('rebuy-cb')) { 
+                const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target); 
+                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false); 
+                p.rebuysChecked[idx] = e.target.checked; 
+            }
             if(e.target.classList.contains('player-name')) p.name = e.target.value;
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // --- LOGIN DIRETO ---
+        // --- SISTEMA DE LOGIN ADMIN ---
         document.getElementById('admin-login-btn').onclick = () => { 
             const pwd = prompt("Chave de Segurança:"); 
             if(pwd === SENHA_MESTRA) { 
                 document.getElementById('game-controls').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden'); 
                 document.getElementById('admin-login-btn').classList.add('hidden'); 
-            } else {
+            } else if (pwd !== null) {
                 alert("Senha incorreta!");
             }
         };
 
-        document.getElementById('logout-btn').onclick = () => { document.getElementById('game-controls').classList.add('hidden'); document.getElementById('logout-btn').classList.add('hidden'); document.getElementById('admin-login-btn').classList.remove('hidden'); };
-        document.getElementById('timer-control-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { isRunning: !timerState.isRunning, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('next-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.min(blindLevels.length-1, timerState.currentLevel+1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('prev-level-btn').onclick = () => setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: Math.max(0, timerState.currentLevel-1), timeLeft: 900, lastUpdate: serverTimestamp() }, { merge: true });
-        document.getElementById('add-player-btn').onclick = () => { playersData.push({ id: Date.now().toString(), name: 'Jogador', buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); };
-        document.getElementById('reset-game-btn').onclick = () => { if(confirm("Resetar?")) { const r = []; for(let i=1; i<=10; i++) r.push({ id: 'p'+i+Date.now(), name: 'Jogador '+i, buyInChecked: false, rebuysChecked: Array(15).fill(false), addOnChecked: false, eliminated: false }); setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); setDoc(doc(db, 'pokerGame', 'timerState'), { currentLevel: 0, timeLeft: 900, isRunning: false, lastUpdate: serverTimestamp() }); } };
+        document.getElementById('logout-btn').onclick = () => { 
+            document.getElementById('game-controls').classList.add('hidden'); 
+            document.getElementById('logout-btn').classList.add('hidden'); 
+            document.getElementById('admin-login-btn').classList.remove('hidden'); 
+        };
+
+        // --- SALVAR SETUP DE CONFIGURAÇÃO (ADMIN) ---
+        document.getElementById('save-config-btn').onclick = () => {
+            const lvlTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 15;
+            const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 15;
+            const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 9;
+
+            gameConfig = {
+                levelDurationMin: lvlTime,
+                breakDurationMin: brkTime,
+                anteStartLevel: anteLvl
+            };
+
+            const newTotalTime = getLevelDurationSeconds(timerState.currentLevel);
+
+            setDoc(doc(db, 'pokerGame', 'timerState'), {
+                config: gameConfig,
+                timeLeft: timerState.isRunning ? Math.min(timerState.timeLeft, newTotalTime) : newTotalTime,
+                lastUpdate: serverTimestamp()
+            }, { merge: true });
+
+            alert("Configurações salvas com sucesso!");
+        };
+
+        // Controles do Timer e Níveis
+        document.getElementById('timer-control-btn').onclick = () => {
+            setDoc(doc(db, 'pokerGame', 'timerState'), { 
+                isRunning: !timerState.isRunning, 
+                lastUpdate: serverTimestamp(),
+                config: gameConfig 
+            }, { merge: true });
+        };
+
+        document.getElementById('next-level-btn').onclick = () => {
+            const nextIdx = Math.min(blindLevels.length - 1, timerState.currentLevel + 1);
+            setDoc(doc(db, 'pokerGame', 'timerState'), { 
+                currentLevel: nextIdx, 
+                timeLeft: getLevelDurationSeconds(nextIdx), 
+                lastUpdate: serverTimestamp(),
+                config: gameConfig 
+            }, { merge: true });
+        };
+
+        document.getElementById('prev-level-btn').onclick = () => {
+            const prevIdx = Math.max(0, timerState.currentLevel - 1);
+            setDoc(doc(db, 'pokerGame', 'timerState'), { 
+                currentLevel: prevIdx, 
+                timeLeft: getLevelDurationSeconds(prevIdx), 
+                lastUpdate: serverTimestamp(),
+                config: gameConfig 
+            }, { merge: true });
+        };
+
+        document.getElementById('add-player-btn').onclick = () => { 
+            playersData.push({ 
+                id: Date.now().toString(), 
+                name: 'Jogador', 
+                buyInChecked: false, 
+                rebuysChecked: Array(15).fill(false), 
+                addOnChecked: false, 
+                eliminated: false 
+            }); 
+            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
+        };
+
+        document.getElementById('reset-game-btn').onclick = () => { 
+            if(confirm("Deseja realmente resetar o jogo e todos os jogadores?")) { 
+                const r = []; 
+                for(let i=1; i<=10; i++) {
+                    r.push({ 
+                        id: 'p' + i + Date.now(), 
+                        name: 'Jogador ' + i, 
+                        buyInChecked: false, 
+                        rebuysChecked: Array(15).fill(false), 
+                        addOnChecked: false, 
+                        eliminated: false 
+                    }); 
+                }
+                setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); 
+                setDoc(doc(db, 'pokerGame', 'timerState'), { 
+                    currentLevel: 0, 
+                    timeLeft: getLevelDurationSeconds(0), 
+                    isRunning: false, 
+                    lastUpdate: serverTimestamp(),
+                    config: gameConfig 
+                }); 
+            } 
+        };
         
         signInAnonymously(auth);
     </script>
