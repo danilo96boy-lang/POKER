@@ -108,96 +108,109 @@
 
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
-            
-            <!-- CONTROLE DE PREMIAÇÃO -->
-            <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 mb-8 shadow-2xl backdrop-blur-md">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl text-amber-400">🏆</span>
-                        <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
-                        <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-1 text-white font-mono text-sm outline-none">
-                            <option value="1">1 Lugar</option>
-                            <option value="2">2 Lugares</option>
-                            <option value="3" selected>3 Lugares</option>
-                            <option value="4">4 Lugares</option>
-                            <option value="5">5 Lugares</option>
-                        </select>
+            <!-- NAVEGAÇÃO ENTRE ABAS DO ADMIN -->
+            <div class="flex gap-3 mb-6 border-b border-white/10 pb-4">
+                <button id="tab-btn-players" class="bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2">
+                    <span>👥</span> Jogadores & Mesa
+                </button>
+                <button id="tab-btn-setup" class="bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2">
+                    <span>⚙️</span> Setup & Premiação
+                </button>
+            </div>
+
+            <!-- CONTEÚDO DA ABA 1: TABELA DE JOGADORES -->
+            <div id="tab-content-players" class="space-y-6">
+                <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto text-white">
+                        <table class="w-full text-[13px] text-center">
+                            <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
+                            <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
+                        </table>
                     </div>
                 </div>
-
-                <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                </div>
-
-                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-xs font-mono text-gray-400">
-                        Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span>
-                    </div>
-                    <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
+                <div class="flex flex-col sm:flex-row justify-center gap-6 pb-10">
+                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
+                    <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Reset Geral</button>
                 </div>
             </div>
 
-            <!-- SETUP INICIAL DO JOGO -->
-            <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md transition-all">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl text-[#c8102e]">⚙️</span>
-                        <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup Inicial do Torneio</h2>
+            <!-- CONTEÚDO DA ABA 2: SETUP & PREMIAÇÃO -->
+            <div id="tab-content-setup" class="hidden space-y-8">
+                <!-- 1. PREMIAÇÃO -->
+                <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 shadow-2xl backdrop-blur-md">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl text-amber-400">🏆</span>
+                            <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
+                            <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-1 text-white font-mono text-sm outline-none">
+                                <option value="1">1 Lugar</option>
+                                <option value="2">2 Lugares</option>
+                                <option value="3" selected>3 Lugares</option>
+                                <option value="4">4 Lugares</option>
+                                <option value="5">5 Lugares</option>
+                            </select>
+                        </div>
                     </div>
-                    <div id="setup-status-badge" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
-                        ● Editável (Jogo Não Iniciado)
-                    </div>
-                </div>
-                
-                <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <div>
-                        <label class="block text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
-                        <input type="number" id="cfg-action-value" min="1" max="10000" value="30" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
-                        <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Break Após Nível</label>
-                        <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Intervalo (min)</label>
-                        <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Break (min)</label>
-                        <input type="number" id="cfg-post-break-time" min="1" max="120" value="12" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Ante</label>
-                        <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
-                        </select>
+
+                    <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="text-xs font-mono text-gray-400">
+                            Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span>
+                        </div>
+                        <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
                     </div>
                 </div>
 
-                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações de tempo e blind bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
-                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
-                </div>
-            </div>
+                <!-- 2. ESTRUTURA DO JOGO -->
+                <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 shadow-2xl backdrop-blur-md transition-all">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl text-[#c8102e]">⚙️</span>
+                            <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup de Blinds e Tempos</h2>
+                        </div>
+                        <div id="setup-status-badge" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
+                            ● Editável (Jogo Não Iniciado)
+                        </div>
+                    </div>
+                    
+                    <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                        <div>
+                            <label class="block text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
+                            <input type="number" id="cfg-action-value" min="1" max="10000" value="30" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
+                            <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Break Após Nível</label>
+                            <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Intervalo (min)</label>
+                            <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Break (min)</label>
+                            <input type="number" id="cfg-post-break-time" min="1" max="120" value="12" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Ante</label>
+                            <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- TABELA DE JOGADORES -->
-            <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto text-white">
-                    <table class="w-full text-[13px] text-center">
-                        <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
-                        <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
-                    </table>
+                    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações de tempo e blind bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
+                        <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
-                <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Reset Geral</button>
             </div>
         </div>
     </div>
@@ -267,7 +280,7 @@
 
         const SENHA_MESTRA = "Pok@r";
 
-        // GRADE COMPLETA COM 30 NÍVEIS
+        // GRADE DE 30 NÍVEIS
         const pureBlinds = [
             "100/100", "100/200", "200/400", "300/600", "400/800", "500/1000", "600/1200",
             "800/1600", "1000/2000", "1200/2400", "1500/3000", "2000/4000", "2500/5000", "3000/6000", 
@@ -311,7 +324,6 @@
             selectBreak.innerHTML = '';
             selectAnte.innerHTML = '';
 
-            // Opções de intervalo até o nível 15
             for (let i = 3; i <= 15; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
@@ -319,7 +331,6 @@
                 selectBreak.appendChild(opt);
             }
 
-            // Opções de Ante até o nível 25
             for (let i = 1; i <= 25; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
@@ -379,6 +390,27 @@
         document.getElementById('cfg-prize-places').addEventListener('change', () => {
             renderPrizeInputs();
         });
+
+        // NAVEGAÇÃO DE ABAS
+        const tabBtnPlayers = document.getElementById('tab-btn-players');
+        const tabBtnSetup = document.getElementById('tab-btn-setup');
+        const tabContentPlayers = document.getElementById('tab-content-players');
+        const tabContentSetup = document.getElementById('tab-content-setup');
+
+        tabBtnPlayers.onclick = () => {
+            tabBtnPlayers.className = "bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabBtnSetup.className = "bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabContentPlayers.classList.remove('hidden');
+            tabContentSetup.classList.add('hidden');
+        };
+
+        tabBtnSetup.onclick = () => {
+            tabBtnSetup.className = "bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabBtnPlayers.className = "bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabContentSetup.classList.remove('hidden');
+            tabContentPlayers.classList.add('hidden');
+            renderPrizeInputs();
+        };
 
         populateSelects();
         rebuildBlindLevels();
@@ -483,7 +515,6 @@
 
                     if (gameConfig.prizes && gameConfig.prizes.length) {
                         document.getElementById('cfg-prize-places').value = gameConfig.prizes.length;
-                        renderPrizeInputs();
                     }
                 }
 
@@ -569,7 +600,7 @@
                 document.getElementById('game-controls').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden'); 
                 document.getElementById('admin-login-btn').classList.add('hidden'); 
-                renderPrizeInputs();
+                tabBtnPlayers.click(); // Abre direto na aba jogadores
             } else if (pwd !== null) {
                 alert("Senha incorreta!");
             }
@@ -581,7 +612,7 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Premiação
+        // Salvar Premiação (Aba Setup)
         document.getElementById('save-prizes-btn').onclick = () => {
             const inputs = document.querySelectorAll('.prize-pct-input');
             const newPrizes = [];
@@ -606,10 +637,10 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Grade de premiação atualizada com sucesso!");
+            alert("Grade de premiação atualizada!");
         };
 
-        // Salvar Setup Inicial
+        // Salvar Setup Inicial (Aba Setup)
         document.getElementById('save-config-btn').onclick = () => {
             if (timerState.hasStarted) {
                 alert("O jogo já foi iniciado! Para alterar tempo e estrutura de blinds é necessário realizar um Reset Geral.");
