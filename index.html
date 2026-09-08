@@ -36,6 +36,7 @@
         .gold-border { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
         .silver-border { border-color: #e2e8f0; box-shadow: 0 0 20px rgba(226, 232, 240, 0.2); }
         .bronze-border { border-color: #d97706; box-shadow: 0 0 20px rgba(217, 119, 6, 0.2); }
+        .iron-border { border-color: #94a3b8; box-shadow: 0 0 15px rgba(148, 163, 184, 0.2); }
         #ante-badge { display: none; background: #c8102e; color: white; padding: 4px 15px; border-radius: 6px; font-weight: 800; font-size: 1.2rem; position: absolute; right: 10%; top: 45%; transform: rotate(5deg); box-shadow: 0 0 15px rgba(200, 16, 46, 0.8); }
         @media (min-width: 1024px) { .huge-timer { font-size: 15rem; line-height: 1; } .huge-blinds { font-size: 5rem; } }
         @media (max-width: 1023px) { .huge-timer { font-size: 6rem; } .huge-blinds { font-size: 2.5rem; } }
@@ -102,11 +103,44 @@
             </div>
         </div>
 
-        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"></div>
+        <!-- GRADE DE PREMIAÇÃO PÚBLICA (DINÂMICA) -->
+        <div id="public-prize-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
 
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
-            <!-- PAINEL DE SETUP INICIAL DO JOGO -->
+            
+            <!-- 1. PAINEL DE CONTROLE DE PREMIAÇÃO (EDITÁVEL A QUALQUER MOMENTO) -->
+            <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 mb-8 shadow-2xl backdrop-blur-md">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl text-amber-400">🏆</span>
+                        <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
+                        <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-1 text-white font-mono text-sm outline-none">
+                            <option value="1">1 Lugar</option>
+                            <option value="2">2 Lugares</option>
+                            <option value="3" selected>3 Lugares</option>
+                            <option value="4">4 Lugares</option>
+                            <option value="5">5 Lugares</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    <!-- Gerado dinamicamente via JS de acordo com as posições -->
+                </div>
+
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-xs font-mono text-gray-400">
+                        Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span>
+                    </div>
+                    <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
+                </div>
+            </div>
+
+            <!-- 2. PAINEL DE SETUP INICIAL DO JOGO (BLOQUEADO APÓS START) -->
             <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md transition-all">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                     <div class="flex items-center gap-3">
@@ -148,12 +182,12 @@
                 </div>
 
                 <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
-                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Configurações</button>
+                    <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações de tempo e blind bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
+                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
                 </div>
             </div>
 
-            <!-- TABELA DE JOGADORES -->
+            <!-- 3. TABELA DE JOGADORES -->
             <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto text-white">
                     <table class="w-full text-[13px] text-center">
@@ -240,14 +274,14 @@
             "4000/8000", "5000/10000", "6000/12000", "8000/16000", "10000/20000", "15000/30000", "20000/40000", "30000/60000", "50000/100000", "100K/200K"
         ];
 
-        // Configuração Padrão do Jogo (Agora com actionValue configurável)
         let gameConfig = {
-            actionValue: 30,            // Valor da ação (BI, Rebuy, Add-on)
-            levelDurationMin: 20,       // Tempo inicial (antes do break)
-            breakAfterLevel: 7,         // Onde o break acontece
-            breakDurationMin: 15,       // Tempo do break
-            postBreakDurationMin: 12,   // Tempo pós-break
-            anteStartLevel: 9           // Nível do Ante
+            actionValue: 30,
+            levelDurationMin: 20,
+            breakAfterLevel: 7,
+            breakDurationMin: 15,
+            postBreakDurationMin: 12,
+            anteStartLevel: 9,
+            prizes: [50, 30, 20] // Porcentagens customizáveis padrão
         };
 
         let blindLevels = [];
@@ -301,6 +335,48 @@
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
 
+        // Renderiza os inputs de porcentagem da premiação no Admin
+        function renderPrizeInputs() {
+            const container = document.getElementById('prize-percentage-inputs');
+            const count = parseInt(document.getElementById('cfg-prize-places').value, 10);
+            container.innerHTML = '';
+
+            const currentPrizes = gameConfig.prizes || [50, 30, 20];
+
+            for (let i = 0; i < count; i++) {
+                const val = currentPrizes[i] !== undefined ? currentPrizes[i] : 0;
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">${i + 1}º Lugar (%)</label>
+                    <input type="number" min="0" max="100" value="${val}" class="prize-pct-input w-full bg-black/40 border border-white/20 rounded-xl p-2.5 text-white font-mono text-base focus:border-amber-400 outline-none">
+                `;
+                container.appendChild(div);
+            }
+
+            updatePrizeSum();
+
+            container.querySelectorAll('.prize-pct-input').forEach(inp => {
+                inp.addEventListener('input', updatePrizeSum);
+            });
+        }
+
+        function updatePrizeSum() {
+            const inputs = document.querySelectorAll('.prize-pct-input');
+            let sum = 0;
+            inputs.forEach(inp => sum += Number(inp.value) || 0);
+            const sumEl = document.getElementById('prize-sum-indicator');
+            sumEl.textContent = `${sum}%`;
+            if (sum === 100) {
+                sumEl.className = "font-bold text-emerald-400";
+            } else {
+                sumEl.className = "font-bold text-amber-500";
+            }
+        }
+
+        document.getElementById('cfg-prize-places').addEventListener('change', () => {
+            renderPrizeInputs();
+        });
+
         populateSelects();
         rebuildBlindLevels();
 
@@ -348,7 +424,6 @@
 
             updateSetupLockUI();
 
-            // Usa o valor configurável da ação
             const actionPrice = Number(gameConfig.actionValue) || 30;
             document.getElementById('entry-value-badge').textContent = `(R$ ${actionPrice}/ação)`;
 
@@ -362,11 +437,14 @@
             document.getElementById('count-bi').textContent = totalBI; document.getElementById('count-rb').textContent = totalRB; document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
             
-            const styles = ['gold-border', 'silver-border', 'bronze-border'];
-            const icons = ['text-yellow-400', 'text-gray-300', 'text-orange-500'];
-            document.getElementById('public-prize-grid').innerHTML = [50, 30, 20].map((pct, i) => `
-                <div class="award-card p-6 rounded-3xl text-center shadow-xl ${styles[i]} flex flex-col items-center justify-center relative">
-                    <span class="absolute top-2 right-4 text-2xl ${icons[i]}">🏆</span>
+            // Premiações dinâmicas renderizadas na grade pública
+            const prizesList = gameConfig.prizes || [50, 30, 20];
+            const borderStyles = ['gold-border', 'silver-border', 'bronze-border', 'iron-border', 'iron-border'];
+            const icons = ['text-yellow-400', 'text-gray-300', 'text-amber-600', 'text-slate-400', 'text-slate-500'];
+
+            document.getElementById('public-prize-grid').innerHTML = prizesList.map((pct, i) => `
+                <div class="award-card p-6 rounded-3xl text-center shadow-xl ${borderStyles[i] || 'iron-border'} flex flex-col items-center justify-center relative">
+                    <span class="absolute top-2 right-4 text-2xl ${icons[i] || 'text-gray-400'}">🏆</span>
                     <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
                     <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
                 </div>`).join('');
@@ -400,6 +478,11 @@
                     document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin || 15;
                     document.getElementById('cfg-post-break-time').value = gameConfig.postBreakDurationMin || 12;
                     document.getElementById('cfg-ante-level').value = gameConfig.anteStartLevel || 9;
+
+                    if (gameConfig.prizes && gameConfig.prizes.length) {
+                        document.getElementById('cfg-prize-places').value = gameConfig.prizes.length;
+                        renderPrizeInputs();
+                    }
                 }
 
                 timerState = data;
@@ -484,6 +567,7 @@
                 document.getElementById('game-controls').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden'); 
                 document.getElementById('admin-login-btn').classList.add('hidden'); 
+                renderPrizeInputs();
             } else if (pwd !== null) {
                 alert("Senha incorreta!");
             }
@@ -495,10 +579,38 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Setup (com novo campo de valor de ação)
+        // Salvar Premiação (LIVRE - PODE SALVAR A QUALQUER MOMENTO DO JOGO)
+        document.getElementById('save-prizes-btn').onclick = () => {
+            const inputs = document.querySelectorAll('.prize-pct-input');
+            const newPrizes = [];
+            let sum = 0;
+
+            inputs.forEach(inp => {
+                const val = Number(inp.value) || 0;
+                newPrizes.push(val);
+                sum += val;
+            });
+
+            if (sum !== 100) {
+                if (!confirm(`Atenção: A soma das porcentagens está em ${sum}% (o ideal é 100%). Deseja salvar mesmo assim?`)) {
+                    return;
+                }
+            }
+
+            gameConfig.prizes = newPrizes;
+
+            setDoc(doc(db, 'pokerGame', 'timerState'), {
+                config: gameConfig,
+                lastUpdate: serverTimestamp()
+            }, { merge: true });
+
+            alert("Grade de premiação atualizada com sucesso!");
+        };
+
+        // Salvar Setup Inicial (BLOQUEADO APÓS INÍCIO)
         document.getElementById('save-config-btn').onclick = () => {
             if (timerState.hasStarted) {
-                alert("O jogo já foi iniciado! Para alterar as configurações é necessário realizar um Reset Geral.");
+                alert("O jogo já foi iniciado! Para alterar tempo e estrutura de blinds é necessário realizar um Reset Geral.");
                 return;
             }
 
@@ -509,14 +621,12 @@
             const postBrkTime = parseInt(document.getElementById('cfg-post-break-time').value, 10) || 12;
             const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 9;
 
-            gameConfig = {
-                actionValue: actionVal,
-                levelDurationMin: initialTime,
-                breakAfterLevel: breakAfter,
-                breakDurationMin: brkTime,
-                postBreakDurationMin: postBrkTime,
-                anteStartLevel: anteLvl
-            };
+            gameConfig.actionValue = actionVal;
+            gameConfig.levelDurationMin = initialTime;
+            gameConfig.breakAfterLevel = breakAfter;
+            gameConfig.breakDurationMin = brkTime;
+            gameConfig.postBreakDurationMin = postBrkTime;
+            gameConfig.anteStartLevel = anteLvl;
 
             rebuildBlindLevels();
             const newTotalTime = getLevelDurationSeconds(timerState.currentLevel);
@@ -528,7 +638,7 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Configurações salvas com sucesso!");
+            alert("Setup inicial salvo com sucesso!");
         };
 
         document.getElementById('timer-control-btn').onclick = () => {
