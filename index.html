@@ -92,31 +92,37 @@
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
             <!-- PAINEL DE SETUP INICIAL DO JOGO -->
-            <div class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md">
-                <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-                    <span class="text-2xl text-[#c8102e]">⚙️</span>
-                    <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup Inicial do Torneio</h2>
+            <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 mb-8 shadow-2xl backdrop-blur-md transition-all">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl text-[#c8102e]">⚙️</span>
+                        <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup Inicial do Torneio</h2>
+                    </div>
+                    <div id="setup-status-badge" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
+                        ● Editável (Jogo Não Iniciado)
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo dos Níveis (minutos)</label>
-                        <input type="number" id="cfg-level-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                        <input type="number" id="cfg-level-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo do Intervalo (minutos)</label>
-                        <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                        <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Big Blind Ante</label>
-                        <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
+                        <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
                             <!-- Opções carregadas via script -->
                         </select>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Configurações</button>
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
+                    <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Configurações</button>
                 </div>
             </div>
 
@@ -164,11 +170,11 @@
             { blinds: "4000/8000" }, { blinds: "5000/10000" }, { blinds: "6000/12000" }, { blinds: "8000/16000" }, { blinds: "10000/20000" }, { blinds: "15000/30000" }, { blinds: "20000/40000" }, { blinds: "30000/60000" }, { blinds: "50000/100000" }, { blinds: "100K/200K" }
         ];
 
-        // Configuração Padrão do Jogo
+        // Configuração Padrão
         let gameConfig = {
             levelDurationMin: 15,
             breakDurationMin: 15,
-            anteStartLevel: 9 // Nível 9 padrão (índice 8)
+            anteStartLevel: 9
         };
 
         // Popula as opções do Select de Ante
@@ -180,7 +186,6 @@
             anteSelect.appendChild(opt);
         });
 
-        // Função utilitária para obter a duração do nível atual em segundos
         function getLevelDurationSeconds(levelIndex) {
             const level = blindLevels[levelIndex];
             if (level && level.isBreak) {
@@ -189,10 +194,32 @@
             return (gameConfig.levelDurationMin || 15) * 60;
         }
 
-        let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null }, localTimer = null;
+        let playersData = [], timerState = { timeLeft: 900, currentLevel: 0, isRunning: false, lastUpdate: null, hasStarted: false }, localTimer = null;
 
         function falar(texto) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
         function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
+
+        // Atualiza trava visual da interface de Setup
+        function updateSetupLockUI() {
+            const isLocked = !!timerState.hasStarted;
+            document.getElementById('cfg-level-time').disabled = isLocked;
+            document.getElementById('cfg-break-time').disabled = isLocked;
+            document.getElementById('cfg-ante-level').disabled = isLocked;
+            document.getElementById('save-config-btn').disabled = isLocked;
+
+            const badge = document.getElementById('setup-status-badge');
+            const msg = document.getElementById('setup-lock-msg');
+
+            if (isLocked) {
+                badge.className = "text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 w-fit";
+                badge.textContent = "🔒 Bloqueado (Jogo em Andamento)";
+                msg.classList.remove('hidden');
+            } else {
+                badge.className = "text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit";
+                badge.textContent = "● Editável (Jogo Não Iniciado)";
+                msg.classList.add('hidden');
+            }
+        }
 
         const updateUI = () => {
             const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
@@ -204,9 +231,12 @@
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
             
-            // Controle dinâmico do Ante Badge baseado na configuração
+            // Exibição dinâmica do Ante
             const anteStart = Number(gameConfig.anteStartLevel) || 9;
             document.getElementById('ante-badge').style.display = ((timerState.currentLevel + 1) >= anteStart) ? 'block' : 'none';
+
+            // Atualiza trava de setup
+            updateSetupLockUI();
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
             playersData.forEach(p => {
@@ -242,13 +272,13 @@
             updateUI();
         };
 
-        // Ouvinte do Timer & Configurações
+        // Ouvinte do Firestore para o Timer
         onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
             if (s.exists()) {
                 const data = s.data();
                 const oldLvl = timerState.currentLevel;
 
-                // Carrega e reflete configurações existentes
+                // Carrega setup salvo
                 if (data.config) {
                     gameConfig = { ...gameConfig, ...data.config };
                     document.getElementById('cfg-level-time').value = gameConfig.levelDurationMin;
@@ -278,6 +308,7 @@
                                         currentLevel: nextLvl, 
                                         timeLeft: getLevelDurationSeconds(nextLvl), 
                                         isRunning: true, 
+                                        hasStarted: true,
                                         lastUpdate: serverTimestamp(),
                                         config: gameConfig
                                     }); 
@@ -302,7 +333,6 @@
             }
         });
 
-        // Ouvinte da Lista de Jogadores
         onSnapshot(doc(db, 'pokerGame', 'gameState'), (s) => { 
             if(s.exists()){ 
                 playersData = s.data().players || []; 
@@ -310,7 +340,7 @@
             }
         });
 
-        // Ações da Tabela
+        // Eventos da Tabela de Jogadores
         document.getElementById('player-table-body').addEventListener('click', (e) => {
             const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
             if(e.target.classList.contains('eliminate-btn')) { 
@@ -333,7 +363,7 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
         });
 
-        // --- SISTEMA DE LOGIN ADMIN ---
+        // Login Admin
         document.getElementById('admin-login-btn').onclick = () => { 
             const pwd = prompt("Chave de Segurança:"); 
             if(pwd === SENHA_MESTRA) { 
@@ -351,8 +381,13 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // --- SALVAR SETUP DE CONFIGURAÇÃO (ADMIN) ---
+        // Salvar Setup de Configuração (com trava de segurança)
         document.getElementById('save-config-btn').onclick = () => {
+            if (timerState.hasStarted) {
+                alert("O jogo já foi iniciado! Para alterar as configurações é necessário realizar um Reset Geral.");
+                return;
+            }
+
             const lvlTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 15;
             const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 15;
             const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 9;
@@ -367,17 +402,20 @@
 
             setDoc(doc(db, 'pokerGame', 'timerState'), {
                 config: gameConfig,
-                timeLeft: timerState.isRunning ? Math.min(timerState.timeLeft, newTotalTime) : newTotalTime,
+                timeLeft: newTotalTime,
+                hasStarted: false,
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Configurações salvas com sucesso!");
+            alert("Configurações iniciais salvas com sucesso!");
         };
 
-        // Controles do Timer e Níveis
+        // Iniciar / Pausar (ativa flag hasStarted se der play)
         document.getElementById('timer-control-btn').onclick = () => {
+            const nextRunning = !timerState.isRunning;
             setDoc(doc(db, 'pokerGame', 'timerState'), { 
-                isRunning: !timerState.isRunning, 
+                isRunning: nextRunning, 
+                hasStarted: timerState.hasStarted || nextRunning, // Trava o setup assim que der play
                 lastUpdate: serverTimestamp(),
                 config: gameConfig 
             }, { merge: true });
@@ -388,6 +426,7 @@
             setDoc(doc(db, 'pokerGame', 'timerState'), { 
                 currentLevel: nextIdx, 
                 timeLeft: getLevelDurationSeconds(nextIdx), 
+                hasStarted: true, // Avançar nível também conta como jogo iniciado
                 lastUpdate: serverTimestamp(),
                 config: gameConfig 
             }, { merge: true });
@@ -415,8 +454,9 @@
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
         };
 
+        // Reset Geral: É aqui que o setup volta a ficar liberado para edição!
         document.getElementById('reset-game-btn').onclick = () => { 
-            if(confirm("Deseja realmente resetar o jogo e todos os jogadores?")) { 
+            if(confirm("Deseja realmente resetar o jogo? Todos os jogadores serão reiniciados e o Setup será liberado para alteração.")) { 
                 const r = []; 
                 for(let i=1; i<=10; i++) {
                     r.push({ 
@@ -433,6 +473,7 @@
                     currentLevel: 0, 
                     timeLeft: getLevelDurationSeconds(0), 
                     isRunning: false, 
+                    hasStarted: false, // Libera o setup novamente
                     lastUpdate: serverTimestamp(),
                     config: gameConfig 
                 }); 
