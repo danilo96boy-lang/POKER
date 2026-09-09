@@ -93,7 +93,7 @@
                     <div class="text-center">
                         <div class="flex items-center justify-center gap-2 mb-2">
                             <span class="text-[14px] text-gray-500 uppercase font-bold tracking-[0.2em] block">Pote Total</span>
-                            <span id="entry-value-badge" class="text-[10px] bg-white/10 text-gray-300 font-mono px-2 py-0.5 rounded-full">(R$ 30/ação)</span>
+                            <span id="entry-value-badge" class="text-[10px] bg-white/10 text-gray-300 font-mono px-2 py-0.5 rounded-full">(R$ 50/ação)</span>
                         </div>
                         <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
                     </div>
@@ -173,50 +173,50 @@
                     </div>
                 </div>
 
-                <!-- ESTRUTURA DO JOGO -->
+                <!-- ESTRUTURA DO JOGO (TOTALMENTE EDITÁVEL VIA BOTÕES E SELECTS) -->
                 <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 shadow-2xl backdrop-blur-md transition-all">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl text-[#c8102e]">⚙️</span>
                             <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup de Blinds e Tempos</h2>
                         </div>
-                        <div id="setup-status-badge" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
-                            ● Editável (Jogo Não Iniciado)
+                        <div class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
+                            ● Painel Totalmente Editável
                         </div>
                     </div>
                     
                     <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <div>
                             <label class="block text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
-                            <input type="number" id="cfg-action-value" min="1" max="10000" value="30" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <input type="number" id="cfg-action-value" min="1" max="10000" value="50" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
                             <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
-                            <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
                             <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Break Após Nível</label>
-                            <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Intervalo (min)</label>
-                            <input type="number" id="cfg-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <input type="number" id="cfg-break-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
                             <label class="block text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Break (min)</label>
-                            <input type="number" id="cfg-post-break-time" min="1" max="120" value="12" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <input type="number" id="cfg-post-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Ante</label>
-                            <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none disabled:opacity-30 disabled:cursor-not-allowed">
+                            <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
                             </select>
                         </div>
                     </div>
 
                     <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p id="setup-lock-msg" class="text-xs text-yellow-500/80 italic hidden">🔒 Configurações de tempo e blind bloqueadas após o início do jogo. Realize um Reset Geral para reconfigurar.</p>
-                        <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] disabled:opacity-30 disabled:hover:bg-[#c8102e] disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
+                        <span class="text-xs text-gray-400 italic">Altere qualquer parâmetro e clique em Salvar para atualizar imediatamente todos os dispositivos.</span>
+                        <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
                     </div>
                 </div>
             </div>
@@ -288,22 +288,21 @@
 
         const SENHA_MESTRA = "Pok@r";
 
-        // GRADE DE 30 NÍVEIS
+        // GRADE DE NÍVEIS
         const pureBlinds = [
-            "100/100", "100/200", "200/400", "300/600", "400/800", "500/1000", "600/1200",
-            "800/1600", "1000/2000", "1200/2400", "1500/3000", "2000/4000", "2500/5000", "3000/6000", 
-            "4000/8000", "5000/10000", "6000/12000", "8000/16000", "10000/20000", "15000/30000",
-            "20000/40000", "30000/60000", "40000/80000", "50000/100000", "75000/150000", 
-            "100K/200K", "150K/300K", "200K/400K", "300K/600K", "500K/1M"
+            "100/100", "100/200", "200/400", "250/500", "300/600", "400/800", "500/1000", "600/1200",
+            "1000/2000", "1500/3000", "2000/4000", "2500/5000", "3000/6000", "4000/8000", "5000/10000",
+            "6000/12000", "8000/16000", "10000/20000", "15000/30000", "20000/40000", "25000/50000",
+            "30000/60000", "40000/80000"
         ];
 
         let gameConfig = {
-            actionValue: 30,
+            actionValue: 50,
             levelDurationMin: 20,
-            breakAfterLevel: 7,
-            breakDurationMin: 15,
-            postBreakDurationMin: 12,
-            anteStartLevel: 9,
+            breakAfterLevel: 8,
+            breakDurationMin: 20,
+            postBreakDurationMin: 15,
+            anteStartLevel: 6,
             prizes: [50, 30, 20]
         };
 
@@ -312,7 +311,7 @@
 
         function rebuildBlindLevels() {
             blindLevels = [];
-            const breakAfter = Number(gameConfig.breakAfterLevel) || 7;
+            const breakAfter = Number(gameConfig.breakAfterLevel) || 8;
             let blindCount = 0;
 
             for (let i = 0; i < pureBlinds.length; i++) {
@@ -339,7 +338,7 @@
                 selectBreak.appendChild(opt);
             }
 
-            for (let i = 1; i <= 25; i++) {
+            for (let i = 1; i <= 20; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = `Nível ${i}`;
@@ -350,10 +349,10 @@
         function getLevelDurationSeconds(levelIndex) {
             const level = blindLevels[levelIndex];
             if (level && level.isBreak) {
-                return (Number(gameConfig.breakDurationMin) || 15) * 60;
+                return (Number(gameConfig.breakDurationMin) || 20) * 60;
             }
             if (breakIndex !== -1 && levelIndex > breakIndex) {
-                return (Number(gameConfig.postBreakDurationMin) || 12) * 60;
+                return (Number(gameConfig.postBreakDurationMin) || 15) * 60;
             }
             return (Number(gameConfig.levelDurationMin) || 20) * 60;
         }
@@ -362,7 +361,7 @@
             return (breakIndex !== -1 && timerState.currentLevel > breakIndex);
         }
 
-        // --- SISTEMA DE PREMIAÇÃO COM VALIDAÇÃO RÍGIDA DE 100% ---
+        // SISTEMA DE PREMIAÇÃO
         function renderPrizeInputs() {
             const container = document.getElementById('prize-percentage-inputs');
             const count = parseInt(document.getElementById('cfg-prize-places').value, 10);
@@ -382,23 +381,17 @@
 
             const inputs = container.querySelectorAll('.prize-pct-input');
             inputs.forEach((inp, idx) => {
-                // Impede ultrapassar 100% durante a digitação
                 inp.addEventListener('input', () => {
                     let currentVal = parseInt(inp.value, 10);
                     if (isNaN(currentVal) || currentVal < 0) currentVal = 0;
 
                     let otherSum = 0;
                     inputs.forEach((other, oIdx) => {
-                        if (oIdx !== idx) {
-                            otherSum += (parseInt(other.value, 10) || 0);
-                        }
+                        if (oIdx !== idx) otherSum += (parseInt(other.value, 10) || 0);
                     });
 
-                    // Limita ao máximo que falta para 100%
                     const maxAllowed = Math.max(0, 100 - otherSum);
-                    if (currentVal > maxAllowed) {
-                        inp.value = maxAllowed;
-                    }
+                    if (currentVal > maxAllowed) inp.value = maxAllowed;
 
                     updatePrizeSum();
                 });
@@ -464,49 +457,43 @@
         populateSelects();
         rebuildBlindLevels();
 
-        let playersData = [], timerState = { timeLeft: 1200, currentLevel: 0, isRunning: false, lastUpdate: null, hasStarted: false }, localTimer = null;
+        let playersData = [];
+        let timerState = { timeLeft: 1200, currentLevel: 0, isRunning: false, lastUpdate: null, hasStarted: false };
+        let localTimer = null;
 
-        function falar(texto) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(texto); msg.lang = 'pt-BR'; window.speechSynthesis.speak(msg); }
-        function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); } catch(e){} }
-
-        function updateSetupLockUI() {
-            const isLocked = !!timerState.hasStarted;
-            document.getElementById('cfg-action-value').disabled = isLocked;
-            document.getElementById('cfg-level-time').disabled = isLocked;
-            document.getElementById('cfg-break-after').disabled = isLocked;
-            document.getElementById('cfg-break-time').disabled = isLocked;
-            document.getElementById('cfg-post-break-time').disabled = isLocked;
-            document.getElementById('cfg-ante-level').disabled = isLocked;
-            document.getElementById('save-config-btn').disabled = isLocked;
-
-            const badge = document.getElementById('setup-status-badge');
-            const msg = document.getElementById('setup-lock-msg');
-
-            if (isLocked) {
-                badge.className = "text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 w-fit";
-                badge.textContent = "🔒 Bloqueado (Jogo em Andamento)";
-                msg.classList.remove('hidden');
-            } else {
-                badge.className = "text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit";
-                badge.textContent = "● Editável (Jogo Não Iniciado)";
-                msg.classList.add('hidden');
-            }
+        function falar(texto) { 
+            try {
+                window.speechSynthesis.cancel(); 
+                const msg = new SpeechSynthesisUtterance(texto); 
+                msg.lang = 'pt-BR'; 
+                window.speechSynthesis.speak(msg); 
+            } catch(e){}
+        }
+        
+        function playBeep() { 
+            try { 
+                const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+                const o = ctx.createOscillator(); 
+                o.connect(ctx.destination); 
+                o.start(); 
+                o.stop(ctx.currentTime + 0.1); 
+            } catch(e){} 
         }
 
         const updateUI = () => {
-            const m = Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0');
-            const s = (timerState.timeLeft % 60).toString().padStart(2, '0');
+            const displaySeconds = Math.max(0, Math.floor(timerState.timeLeft));
+            const m = Math.floor(displaySeconds / 60).toString().padStart(2, '0');
+            const s = (displaySeconds % 60).toString().padStart(2, '0');
             document.getElementById('timer-display').textContent = `${m}:${s}`;
+            
             const lvl = blindLevels[timerState.currentLevel] || { blinds: "FIM" };
-            document.getElementById('level-indicator').textContent = `NÍVEL ${timerState.currentLevel + 1}`;
+            document.getElementById('level-indicator').textContent = lvl.isBreak ? "INTERVALO (ADD-ON)" : `NÍVEL ${timerState.currentLevel + 1}`;
             document.getElementById('current-blinds').textContent = lvl.isBreak ? "PAUSA" : lvl.blinds;
             document.getElementById('next-blinds').textContent = blindLevels[timerState.currentLevel + 1]?.blinds || "FIM";
             document.getElementById('timer-control-btn').textContent = timerState.isRunning ? "Pausar" : "Iniciar";
             
-            const anteStart = Number(gameConfig.anteStartLevel) || 9;
-            document.getElementById('ante-badge').style.display = ((timerState.currentLevel + 1) >= anteStart) ? 'block' : 'none';
-
-            updateSetupLockUI();
+            const anteStart = Number(gameConfig.anteStartLevel) || 6;
+            document.getElementById('ante-badge').style.display = (!lvl.isBreak && (timerState.currentLevel + 1) >= anteStart) ? 'block' : 'none';
 
             const lockedRebuys = isPostBreak();
             const rebuyNotice = document.getElementById('rebuy-lock-notice');
@@ -524,7 +511,7 @@
                 }
             });
 
-            const actionPrice = Number(gameConfig.actionValue) || 30;
+            const actionPrice = Number(gameConfig.actionValue) || 50;
             document.getElementById('entry-value-badge').textContent = `(R$ ${actionPrice}/ação)`;
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
@@ -567,6 +554,7 @@
             updateUI();
         };
 
+        // Snapshot Sincronizado do Firestore
         onSnapshot(doc(db, 'pokerGame', 'timerState'), (s) => {
             if (s.exists()) {
                 const data = s.data();
@@ -575,12 +563,12 @@
                 if (data.config) {
                     gameConfig = { ...gameConfig, ...data.config };
                     rebuildBlindLevels();
-                    document.getElementById('cfg-action-value').value = gameConfig.actionValue || 30;
+                    document.getElementById('cfg-action-value').value = gameConfig.actionValue || 50;
                     document.getElementById('cfg-level-time').value = gameConfig.levelDurationMin || 20;
-                    document.getElementById('cfg-break-after').value = gameConfig.breakAfterLevel || 7;
-                    document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin || 15;
-                    document.getElementById('cfg-post-break-time').value = gameConfig.postBreakDurationMin || 12;
-                    document.getElementById('cfg-ante-level').value = gameConfig.anteStartLevel || 9;
+                    document.getElementById('cfg-break-after').value = gameConfig.breakAfterLevel || 8;
+                    document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin || 20;
+                    document.getElementById('cfg-post-break-time').value = gameConfig.postBreakDurationMin || 15;
+                    document.getElementById('cfg-ante-level').value = gameConfig.anteStartLevel || 6;
 
                     if (gameConfig.prizes && gameConfig.prizes.length) {
                         document.getElementById('cfg-prize-places').value = gameConfig.prizes.length;
@@ -588,17 +576,20 @@
                 }
 
                 timerState = data;
-                const currentDuration = getLevelDurationSeconds(timerState.currentLevel);
 
                 if (timerState.isRunning && timerState.lastUpdate) {
-                    const diff = Math.floor((Date.now() - timerState.lastUpdate.toMillis()) / 1000);
-                    timerState.timeLeft = Math.max(0, Math.min(currentDuration, timerState.timeLeft - diff));
+                    const serverMillis = timerState.lastUpdate.toMillis ? timerState.lastUpdate.toMillis() : Date.now();
+                    const elapsed = Math.floor((Date.now() - serverMillis) / 1000);
                     
+                    if (elapsed >= 0) {
+                        timerState.timeLeft = Math.max(0, timerState.timeLeft - elapsed);
+                    }
+
                     if (!localTimer) {
                         localTimer = setInterval(() => { 
                             if (timerState.timeLeft > 0) { 
                                 timerState.timeLeft--; 
-                                if (timerState.timeLeft <= 15) playBeep(); 
+                                if (timerState.timeLeft <= 10) playBeep(); 
                                 updateUI(); 
                             } else { 
                                 clearInterval(localTimer); 
@@ -612,7 +603,7 @@
                                         hasStarted: true,
                                         lastUpdate: serverTimestamp(),
                                         config: gameConfig
-                                    }); 
+                                    }, { merge: true }); 
                                 }
                             } 
                         }, 1000);
@@ -624,7 +615,7 @@
 
                 if(oldLvl !== timerState.currentLevel && oldLvl !== undefined) {
                     const l = blindLevels[timerState.currentLevel];
-                    let txt = l.isBreak ? "Pausa iniciada" : `Blinds subiram para ${l.blinds}`;
+                    let txt = l.isBreak ? "Intervalo iniciado. Fim de rebuys e realização de add-on." : `Blinds subiram para ${l.blinds}`;
                     if((timerState.currentLevel + 1) === Number(gameConfig.anteStartLevel)) {
                         txt += ". Atenção: Big Blind Ante ativo.";
                     }
@@ -666,7 +657,7 @@
                 p.rebuysChecked[idx] = e.target.checked; 
             }
             if(e.target.classList.contains('player-name')) p.name = e.target.value;
-            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+            setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
         });
 
         document.getElementById('admin-login-btn').onclick = () => { 
@@ -687,7 +678,6 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
-        // Salvar Premiação com Bloqueio Rígido de 100%
         document.getElementById('save-prizes-btn').onclick = () => {
             const inputs = document.querySelectorAll('.prize-pct-input');
             const newPrizes = [];
@@ -699,7 +689,6 @@
                 sum += val;
             });
 
-            // Validação estrita: Não salva de jeito nenhum se não for exatamente 100%
             if (sum !== 100) {
                 alert(`Erro de Validação: A soma dos prêmios deve ser EXATAMENTE 100% (atual: ${sum}%). Ajuste os valores antes de salvar.`);
                 return;
@@ -715,19 +704,14 @@
             alert("Grade de premiação validada e atualizada com sucesso!");
         };
 
-        // Salvar Setup Inicial
+        // BOTÃO DE SALVAR SETUP: NUNCA TRAVADO, SEMPRE LIVRE
         document.getElementById('save-config-btn').onclick = () => {
-            if (timerState.hasStarted) {
-                alert("O jogo já foi iniciado! Para alterar tempo e estrutura de blinds é necessário realizar um Reset Geral.");
-                return;
-            }
-
-            const actionVal = parseInt(document.getElementById('cfg-action-value').value, 10) || 30;
+            const actionVal = parseInt(document.getElementById('cfg-action-value').value, 10) || 50;
             const initialTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 20;
-            const breakAfter = parseInt(document.getElementById('cfg-break-after').value, 10) || 7;
-            const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 15;
-            const postBrkTime = parseInt(document.getElementById('cfg-post-break-time').value, 10) || 12;
-            const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 9;
+            const breakAfter = parseInt(document.getElementById('cfg-break-after').value, 10) || 8;
+            const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 20;
+            const postBrkTime = parseInt(document.getElementById('cfg-post-break-time').value, 10) || 15;
+            const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 6;
 
             gameConfig.actionValue = actionVal;
             gameConfig.levelDurationMin = initialTime;
@@ -737,23 +721,24 @@
             gameConfig.anteStartLevel = anteLvl;
 
             rebuildBlindLevels();
-            const newTotalTime = getLevelDurationSeconds(timerState.currentLevel);
 
             setDoc(doc(db, 'pokerGame', 'timerState'), {
                 config: gameConfig,
-                timeLeft: newTotalTime,
-                hasStarted: false,
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Setup inicial salvo com sucesso!");
+            alert("Setup de tempos e blinds atualizado com sucesso em todos os dispositivos!");
         };
 
+        // CONTROLE DO TIMER: CONGELA O SEGUNDO EXATO AO PAUSAR
         document.getElementById('timer-control-btn').onclick = () => {
-            const nextRunning = !timerState.isRunning;
+            const willRun = !timerState.isRunning;
+            const currentTimeLeft = Math.max(0, Math.floor(timerState.timeLeft));
+
             setDoc(doc(db, 'pokerGame', 'timerState'), { 
-                isRunning: nextRunning, 
-                hasStarted: timerState.hasStarted || nextRunning,
+                isRunning: willRun, 
+                timeLeft: currentTimeLeft,
+                hasStarted: true,
                 lastUpdate: serverTimestamp(),
                 config: gameConfig 
             }, { merge: true });
@@ -797,7 +782,7 @@
         };
 
         document.getElementById('reset-game-btn').onclick = () => { 
-            if(confirm("Deseja realmente resetar o jogo? Todos os jogadores serão reiniciados e o Setup será liberado para alteração.")) { 
+            if(confirm("Deseja realmente resetar o jogo?")) { 
                 const r = []; 
                 for(let i=1; i<=10; i++) {
                     r.push({ 
