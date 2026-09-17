@@ -156,9 +156,11 @@
                         <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
                     </table>
                 </div>
+                
                 <div class="flex flex-col sm:flex-row justify-center gap-4 pb-10">
-                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 disabled:cursor-not-allowed px-8 py-4 rounded-2xl font-bold oswald text-lg uppercase transition w-full sm:w-auto">Adicionar Jogador</button>
-                    <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-8 py-4 rounded-2xl font-bold oswald text-lg uppercase transition w-full sm:w-auto">Reset Geral</button>
+                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed px-6 py-4 rounded-2xl font-bold oswald text-sm sm:text-base uppercase transition w-full sm:w-auto">+ 1 Jogador</button>
+                    <button id="open-import-btn" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 disabled:opacity-30 disabled:cursor-not-allowed px-6 py-4 rounded-2xl font-bold oswald text-sm sm:text-base uppercase transition w-full sm:w-auto flex items-center justify-center gap-2">📋 Importar Lista</button>
+                    <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-6 py-4 rounded-2xl font-bold oswald text-sm sm:text-base uppercase transition w-full sm:w-auto">Reset Geral</button>
                 </div>
             </div>
 
@@ -247,6 +249,19 @@
                         <button id="save-config-btn" class="w-full sm:w-auto bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Setup</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE IMPORTAÇÃO DE LISTA -->
+    <div id="import-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#1a1a1a] border border-white/10 p-6 rounded-[2rem] shadow-2xl w-full max-w-md flex flex-col gap-4 relative">
+            <h3 class="oswald text-2xl font-bold text-white uppercase tracking-wider">Importar Jogadores</h3>
+            <p class="text-xs text-gray-400">Cole a lista do WhatsApp. Linhas vazias ou que contenham apenas números serão ignoradas automaticamente.</p>
+            <textarea id="import-textarea" rows="8" class="bg-black/50 border border-white/20 rounded-xl p-3 text-white font-mono text-sm focus:border-blue-500 outline-none resize-none w-full shadow-inner" placeholder="Exemplo:&#10;1- Raphael&#10;2- Danilo&#10;3-"></textarea>
+            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-2">
+                <button id="close-import-btn" class="px-5 py-3 rounded-xl text-sm font-bold uppercase bg-white/5 hover:bg-white/10 text-gray-300 transition w-full sm:w-auto">Cancelar</button>
+                <button id="confirm-import-btn" class="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-xl text-sm font-bold uppercase transition text-white shadow-lg w-full sm:w-auto">Adicionar à Mesa</button>
             </div>
         </div>
     </div>
@@ -528,7 +543,9 @@
             if (adminLockedPanel) adminLockedPanel.classList.toggle('hidden', !lockedRebuys);
             
             const addBtn = document.getElementById('add-player-btn');
+            const importBtn = document.getElementById('open-import-btn');
             if (addBtn) addBtn.disabled = lockedRebuys;
+            if (importBtn) importBtn.disabled = lockedRebuys;
 
             document.querySelectorAll('.buyin-cb, .addon-cb').forEach(cb => {
                 cb.disabled = lockedRebuys;
@@ -771,6 +788,50 @@
             document.getElementById('admin-login-btn').classList.remove('hidden'); 
         };
 
+        // LÓGICA DO MODAL DE IMPORTAÇÃO
+        const importModal = document.getElementById('import-modal');
+        const importTextarea = document.getElementById('import-textarea');
+
+        document.getElementById('open-import-btn').onclick = () => {
+            if (isPostBreak()) return;
+            importTextarea.value = '';
+            importModal.classList.remove('hidden');
+        };
+
+        document.getElementById('close-import-btn').onclick = () => {
+            importModal.classList.add('hidden');
+        };
+
+        document.getElementById('confirm-import-btn').onclick = () => {
+            const text = importTextarea.value;
+            const lines = text.split('\n');
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                // Remove qualquer número, traço, ponto, parêntese e espaço do INÍCIO da linha
+                let name = line.replace(/^[\d\s\-\.\)]+/, '').trim();
+                
+                // Se sobrou algum texto (nome válido), cria o jogador
+                if (name) {
+                    playersData.push({
+                        id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5),
+                        name: name,
+                        buyInChecked: false,
+                        rebuysChecked: Array(15).fill(false),
+                        addOnChecked: false,
+                        eliminated: false
+                    });
+                    addedCount++;
+                }
+            });
+
+            if (addedCount > 0) {
+                setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                alert(`${addedCount} jogador(es) adicionado(s) com sucesso à mesa!`);
+            }
+            importModal.classList.add('hidden');
+        };
+
         document.getElementById('save-prizes-btn').onclick = () => {
             const inputs = document.querySelectorAll('.prize-pct-input');
             const newPrizes = [];
@@ -877,18 +938,7 @@
 
         document.getElementById('reset-game-btn').onclick = () => { 
             if(confirm("Deseja realmente resetar o jogo? Todos os dados atuais serão apagados.")) { 
-                const r = []; 
-                for(let i=1; i<=10; i++) {
-                    r.push({ 
-                        id: 'p' + i + Date.now(), 
-                        name: 'Jogador ' + i, 
-                        buyInChecked: false, 
-                        rebuysChecked: Array(15).fill(false), 
-                        addOnChecked: false, 
-                        eliminated: false 
-                    }); 
-                }
-                setDoc(doc(db, 'pokerGame', 'gameState'), { players: r }); 
+                setDoc(doc(db, 'pokerGame', 'gameState'), { players: [] }); 
                 setDoc(doc(db, 'pokerGame', 'timerState'), { 
                     currentLevel: 0, 
                     timeLeft: getLevelDurationSeconds(0), 
