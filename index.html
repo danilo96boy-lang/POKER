@@ -94,10 +94,8 @@
                         </div>
                         <div id="grand-total" class="oswald text-4xl font-bold text-gray-300 italic mb-2">R$ 0</div>
                         
-                        <div class="flex items-center justify-center gap-3 text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-3 py-1.5 rounded-full mb-4">
-                            <span>Ação: <span id="entry-value-badge" class="text-white">R$ 50</span></span>
-                            <span>|</span>
-                            <span>Gastos: <span id="expenses-badge" class="text-red-400">R$ 0</span></span>
+                        <div class="flex items-center justify-center gap-3 text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-4 py-1.5 rounded-full mb-4">
+                            <span>Ação do Jogo: <span id="entry-value-badge" class="text-white font-bold">R$ 50</span></span>
                         </div>
 
                         <div class="w-full border-t border-emerald-500/30 pt-4 mt-2">
@@ -158,22 +156,29 @@
 
             <!-- CONTEÚDO DA ABA 2: SETUP & PREMIAÇÃO -->
             <div id="tab-content-setup" class="hidden space-y-8">
-                <!-- PREMIAÇÃO COM VALIDAÇÃO RÍGIDA DE 100% -->
+                
+                <!-- PREMIAÇÃO E GASTOS (ADMIN) -->
                 <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-4 sm:p-6 shadow-2xl backdrop-blur-md">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl text-amber-400">🏆</span>
-                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
+                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Premiação & Gastos</h2>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] sm:text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
-                            <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-2 text-white font-mono text-sm outline-none">
-                                <option value="1">1 Lugar</option>
-                                <option value="2">2 Lugares</option>
-                                <option value="3" selected>3 Lugares</option>
-                                <option value="4">4 Lugares</option>
-                                <option value="5">5 Lugares</option>
-                            </select>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="flex items-center gap-2 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">
+                                <span class="text-[10px] sm:text-xs uppercase text-red-400 font-bold">Despesas (R$):</span>
+                                <input type="number" id="cfg-expenses" min="0" value="0" placeholder="Ex: 180" class="bg-transparent border-b border-red-500/50 text-white font-mono text-sm w-16 focus:border-red-400 outline-none text-center">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] sm:text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
+                                <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-2 text-white font-mono text-sm outline-none">
+                                    <option value="1">1 Lugar</option>
+                                    <option value="2">2 Lugares</option>
+                                    <option value="3" selected>3 Lugares</option>
+                                    <option value="4">4 Lugares</option>
+                                    <option value="5">5 Lugares</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -188,23 +193,19 @@
                     </div>
                 </div>
 
-                <!-- ESTRUTURA DO JOGO (TOTALMENTE EDITÁVEL VIA BOTÕES E SELECTS) -->
+                <!-- ESTRUTURA DO JOGO -->
                 <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-4 sm:p-6 shadow-2xl backdrop-blur-md transition-all">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl text-[#c8102e]">⚙️</span>
-                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Setup e Valores</h2>
+                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Setup de Tempos</h2>
                         </div>
                     </div>
                     
-                    <div id="setup-fields" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div id="setup-fields" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <div>
                             <label class="block text-[10px] sm:text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
                             <input type="number" id="cfg-action-value" min="1" max="10000" value="50" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-[#c8102e] outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] sm:text-xs uppercase text-red-400 font-bold mb-2">Gastos / Despesas (R$)</label>
-                            <input type="number" id="cfg-expenses" min="0" max="100000" value="0" placeholder="Ex: 180" class="w-full bg-black/40 border border-red-500/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-red-400 outline-none">
                         </div>
                         <div>
                             <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
@@ -530,7 +531,6 @@
             const actionPrice = Number(gameConfig.actionValue) || 50;
             const expensesValue = Number(gameConfig.expenses) || 0;
             document.getElementById('entry-value-badge').textContent = `R$ ${actionPrice}`;
-            document.getElementById('expenses-badge').textContent = `R$ ${expensesValue}`;
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
             playersData.forEach(p => {
@@ -549,7 +549,7 @@
             document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
 
-            // Calculando Premiação Líquida
+            // Calculando Premiação Líquida (Gastos são Ocultos do painel público)
             const netTotal = Math.max(0, grandTotal - expensesValue);
             document.getElementById('net-total').textContent = `R$ ${netTotal}`;
             
@@ -768,19 +768,21 @@
                 return;
             }
 
+            const expensesVal = parseInt(document.getElementById('cfg-expenses').value, 10) || 0;
+
             gameConfig.prizes = newPrizes;
+            gameConfig.expenses = expensesVal;
 
             setDoc(doc(db, 'pokerGame', 'timerState'), {
                 config: gameConfig,
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Grade de premiação validada e atualizada com sucesso!");
+            alert("Premiação e Gastos validados e atualizados com sucesso!");
         };
 
         document.getElementById('save-config-btn').onclick = () => {
             const actionVal = parseInt(document.getElementById('cfg-action-value').value, 10) || 50;
-            const expensesVal = parseInt(document.getElementById('cfg-expenses').value, 10) || 0;
             const initialTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 20;
             const breakAfter = parseInt(document.getElementById('cfg-break-after').value, 10) || 8;
             const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 20;
@@ -788,7 +790,6 @@
             const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 6;
 
             gameConfig.actionValue = actionVal;
-            gameConfig.expenses = expensesVal;
             gameConfig.levelDurationMin = initialTime;
             gameConfig.breakAfterLevel = breakAfter;
             gameConfig.breakDurationMin = brkTime;
@@ -802,7 +803,7 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Setup e Valores atualizados com sucesso em todos os dispositivos!");
+            alert("Setup de Tempos atualizado com sucesso em todos os dispositivos!");
         };
 
         document.getElementById('timer-control-btn').onclick = () => {
