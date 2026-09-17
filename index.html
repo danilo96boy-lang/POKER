@@ -93,7 +93,7 @@
                     </div>
                     <div class="text-center flex flex-col items-center">
                         <div class="flex items-center justify-center gap-3 text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-4 py-1.5 rounded-full mb-4">
-                            <span>Ação do Jogo: <span id="entry-value-badge" class="text-white font-bold">R$ 50</span></span>
+                            <span>Buy-in / Ação: <span id="entry-value-badge" class="text-white font-bold">R$ 50</span></span>
                         </div>
 
                         <div class="w-full pt-2">
@@ -215,7 +215,7 @@
                     
                     <div id="setup-fields" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <div>
-                            <label class="block text-[10px] sm:text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
+                            <label class="block text-[10px] sm:text-xs uppercase text-[#c8102e] font-bold mb-2">Buy-in / Ação (R$)</label>
                             <input type="number" id="cfg-action-value" min="1" max="10000" value="50" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
@@ -618,7 +618,7 @@
             document.getElementById('elimination-log').innerHTML = eliminados
                 .map((p, index) => ({ name: p.name, pos: totalP - index }))
                 .sort((a, b) => a.pos - b.pos) // Ordena para a melhor posição (menor número) ficar no topo
-                .map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white"><span class="font-bold text-gray-400 w-8 inline-block">#${p.pos}º</span> ${p.name}</li>`)
+                .map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white"><span class="font-bold text-gray-400 w-8 inline-block">#${p.pos}º</span> ${p.name || 'Jogador sem nome'}</li>`)
                 .join('');
         };
 
