@@ -149,6 +149,7 @@
                                 <th class="p-2 text-[#3b82f6]">Addon</th>
                                 <th class="p-3 sm:p-5 text-right whitespace-nowrap">Total</th>
                                 <th class="p-3 sm:p-5">💀</th>
+                                <th class="p-3 sm:p-5 text-emerald-500">Pago</th>
                             </tr>
                         </thead>
                         <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
@@ -617,7 +618,7 @@
             
             document.getElementById('elimination-log').innerHTML = eliminados
                 .map((p, index) => ({ name: p.name, pos: totalP - index }))
-                .sort((a, b) => a.pos - b.pos) // Ordena para a melhor posição (menor número) ficar no topo
+                .sort((a, b) => a.pos - b.pos) 
                 .map(p => `<li class="border-l-2 border-[#c8102e] pl-3 py-1 bg-white/5 text-white"><span class="font-bold text-gray-400 w-8 inline-block">#${p.pos}º</span> ${p.name || 'Jogador sem nome'}</li>`)
                 .join('');
         };
@@ -652,6 +653,7 @@
                     <td class="p-1"><div class="chip-container addon ${lockClass}"><input type="checkbox" class="chip-input addon-cb" ${disAttr} ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>
                     <td class="p-2 sm:p-4 text-right oswald font-bold player-total whitespace-nowrap text-sm">R$ 0</td>
                     <td class="p-2 sm:p-4"><button class="eliminate-btn text-xl sm:text-2xl hover:scale-125 transition">💀</button></td>
+                    <td class="p-2 sm:p-4 text-center"><input type="checkbox" class="paid-cb w-5 h-5 accent-emerald-500 cursor-pointer" ${p.paidChecked ? 'checked' : ''}></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -770,19 +772,21 @@
             }
         });
 
-        // Eventos delegados na tabela para inputs (texto nome e checkboxes BI/AO)
+        // Eventos delegados na tabela para inputs (texto nome e checkboxes BI/AO/Pago)
         document.getElementById('player-table-body').addEventListener('change', (e) => {
             const row = e.target.closest('tr'); if(!row) return; 
             const p = playersData.find(x => x.id === row.dataset.playerId);
             if(!p) return;
             
-            if (isPostBreak() && !e.target.classList.contains('player-name')) {
+            // Permite edição do nome e do botão "Pago" mesmo após o break
+            if (isPostBreak() && !e.target.classList.contains('player-name') && !e.target.classList.contains('paid-cb')) {
                 e.target.checked = !e.target.checked;
                 return;
             }
 
             if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
             if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
+            if(e.target.classList.contains('paid-cb')) p.paidChecked = e.target.checked;
             if(e.target.classList.contains('player-name')) p.name = e.target.value;
             
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
@@ -868,6 +872,7 @@
                         buyInChecked: false,
                         rebuysChecked: Array(15).fill(false),
                         addOnChecked: false,
+                        paidChecked: false,
                         eliminated: false
                     });
                     addedCount++;
@@ -987,6 +992,7 @@
                 buyInChecked: false, 
                 rebuysChecked: Array(15).fill(false), 
                 addOnChecked: false, 
+                paidChecked: false,
                 eliminated: false 
             }); 
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
