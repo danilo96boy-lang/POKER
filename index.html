@@ -99,7 +99,7 @@
                         </div>
 
                         <div class="w-full border-t border-emerald-500/30 pt-4 mt-2">
-                            <span class="text-[13px] text-emerald-500 uppercase font-bold tracking-[0.2em] block mb-1">Premiação Líquida</span>
+                            <span class="text-[13px] text-emerald-500 uppercase font-bold tracking-[0.2em] block mb-1">Premiação</span>
                             <div id="net-total" class="oswald text-5xl sm:text-6xl font-bold text-emerald-400 italic drop-shadow-lg">R$ 0</div>
                         </div>
                     </div>
@@ -128,9 +128,17 @@
 
             <!-- CONTEÚDO DA ABA 1: TABELA DE JOGADORES -->
             <div id="tab-content-players" class="space-y-6">
-                <!-- AVISO DE REBUY BLOQUEADO (EXIBIDO PÓS-BREAK) -->
-                <div id="rebuy-lock-notice" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    <span>🔒</span> Período de Buy-ins, Rebuys e Add-ons Encerrado. Apenas eliminações.
+                
+                <!-- PAINEL DE TRAVAMENTO E RESUMO FINANCEIRO (EXIBIDO PÓS-BREAK) -->
+                <div id="admin-locked-panel" class="hidden flex flex-col gap-3">
+                    <div class="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                        <span>🔒</span> Inscrições, Rebuys e Add-ons Encerrados. Apenas eliminações.
+                    </div>
+                    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-5 py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+                        <span>Arrecadado: <span id="admin-gross-total" class="text-white">R$ 0</span></span>
+                        <span>Despesas: <span id="admin-expenses-total" class="text-white">R$ 0</span></span>
+                        <span class="text-emerald-300 text-sm sm:text-base">Premiação Final: <span id="admin-net-total" class="text-white drop-shadow-md text-lg">R$ 0</span></span>
+                    </div>
                 </div>
 
                 <div class="bg-white/5 rounded-[1.5rem] border border-white/10 overflow-x-auto shadow-2xl">
@@ -177,6 +185,9 @@
                                     <option value="3" selected>3 Lugares</option>
                                     <option value="4">4 Lugares</option>
                                     <option value="5">5 Lugares</option>
+                                    <option value="6">6 Lugares</option>
+                                    <option value="7">7 Lugares</option>
+                                    <option value="8">8 Lugares</option>
                                 </select>
                             </div>
                         </div>
@@ -513,8 +524,8 @@
             document.getElementById('ante-badge').style.display = (!lvl.isBreak && (timerState.currentLevel + 1) >= anteStart) ? 'block' : 'none';
 
             const lockedRebuys = isPostBreak();
-            const rebuyNotice = document.getElementById('rebuy-lock-notice');
-            if (rebuyNotice) rebuyNotice.classList.toggle('hidden', !lockedRebuys);
+            const adminLockedPanel = document.getElementById('admin-locked-panel');
+            if (adminLockedPanel) adminLockedPanel.classList.toggle('hidden', !lockedRebuys);
             
             const addBtn = document.getElementById('add-player-btn');
             if (addBtn) addBtn.disabled = lockedRebuys;
@@ -549,13 +560,21 @@
             document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
 
-            // Calculando Premiação Líquida (Gastos são Ocultos do painel público)
+            // Calculando Premiação Líquida (Gastos Ocultos do painel público)
             const netTotal = Math.max(0, grandTotal - expensesValue);
             document.getElementById('net-total').textContent = `R$ ${netTotal}`;
+
+            // Atualiza Resumo no Painel Admin (quando os rebuys travam)
+            const adminGross = document.getElementById('admin-gross-total');
+            const adminExp = document.getElementById('admin-expenses-total');
+            const adminNet = document.getElementById('admin-net-total');
+            if(adminGross) adminGross.textContent = `R$ ${grandTotal}`;
+            if(adminExp) adminExp.textContent = `R$ ${expensesValue}`;
+            if(adminNet) adminNet.textContent = `R$ ${netTotal}`;
             
             const prizesList = gameConfig.prizes || [50, 30, 20];
-            const borderStyles = ['gold-border', 'silver-border', 'bronze-border', 'iron-border', 'iron-border'];
-            const icons = ['text-yellow-400', 'text-gray-300', 'text-amber-600', 'text-slate-400', 'text-slate-500'];
+            const borderStyles = ['gold-border', 'silver-border', 'bronze-border', 'iron-border', 'iron-border', 'iron-border', 'iron-border', 'iron-border'];
+            const icons = ['text-yellow-400', 'text-gray-300', 'text-amber-600', 'text-slate-400', 'text-slate-500', 'text-slate-500', 'text-slate-500', 'text-slate-500'];
 
             document.getElementById('public-prize-grid').innerHTML = prizesList.map((pct, i) => `
                 <div class="award-card p-6 rounded-3xl text-center shadow-xl ${borderStyles[i] || 'iron-border'} flex flex-col items-center justify-center relative">
