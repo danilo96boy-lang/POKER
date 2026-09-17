@@ -92,18 +92,13 @@
                         </div>
                     </div>
                     <div class="text-center flex flex-col items-center">
-                        <div class="flex items-center justify-center gap-2 mb-1">
-                            <span class="text-[12px] text-gray-500 uppercase font-bold tracking-[0.2em] block">Arrecadado</span>
-                        </div>
-                        <div id="grand-total" class="oswald text-4xl font-bold text-gray-300 italic mb-2">R$ 0</div>
-                        
                         <div class="flex items-center justify-center gap-3 text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-4 py-1.5 rounded-full mb-4">
                             <span>Ação do Jogo: <span id="entry-value-badge" class="text-white font-bold">R$ 50</span></span>
                         </div>
 
-                        <div class="w-full border-t border-emerald-500/30 pt-4 mt-2">
-                            <span class="text-[13px] text-emerald-500 uppercase font-bold tracking-[0.2em] block mb-1">Premiação</span>
-                            <div id="net-total" class="oswald text-5xl sm:text-6xl font-bold text-emerald-400 italic drop-shadow-lg">R$ 0</div>
+                        <div class="w-full pt-2">
+                            <span class="text-[14px] text-emerald-500 uppercase font-bold tracking-[0.2em] block mb-1">Premiação Total</span>
+                            <div id="net-total" class="oswald text-6xl sm:text-7xl font-bold text-emerald-400 italic drop-shadow-lg">R$ 0</div>
                         </div>
                     </div>
                 </div>
@@ -592,7 +587,6 @@
             document.getElementById('count-bi').textContent = totalBI; 
             document.getElementById('count-rb').textContent = totalRB; 
             document.getElementById('count-ao').textContent = totalAO;
-            document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
 
             // Calculando Premiação Líquida (Gastos Ocultos do painel público)
             const netTotal = Math.max(0, grandTotal - expensesValue);
