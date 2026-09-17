@@ -25,11 +25,9 @@
         .chip-input { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
         .chip-input:disabled { cursor: not-allowed !important; pointer-events: none; }
         .chip-design { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; }
-        .chip-locked { opacity: 0.25; filter: grayscale(1); cursor: not-allowed !important; }
+        .chip-locked, .rebuy-locked button { opacity: 0.25; filter: grayscale(1); cursor: not-allowed !important; pointer-events: none; }
         .buyin .chip-design { border-color: #ef4444; }
         .buyin .chip-input:checked + .chip-design { background-color: #c8102e; border-color: #fff; box-shadow: 0 0 12px #c8102e; }
-        .rebuy .chip-design { border-color: #22c55e; }
-        .rebuy .chip-input:checked + .chip-design { background-color: #15803d; border-color: #fff; box-shadow: 0 0 12px #22c55e; }
         .addon .chip-design { border-color: #3b82f6; }
         .addon .chip-input:checked + .chip-design { background-color: #1d4ed8; border-color: #fff; box-shadow: 0 0 12px #3b82f6; }
         .player-row.eliminated { opacity: 0.2; filter: grayscale(1); }
@@ -45,62 +43,72 @@
     </style>
 </head>
 <body class="min-h-screen select-none">
-    <div class="w-full px-4 py-4 text-white">
+    <div class="w-full px-2 sm:px-4 py-4 text-white">
         <header class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-[#c8102e] transform rotate-45 flex items-center justify-center shadow-lg font-bold">S</div>
-                <h1 class="oswald text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
+                <h1 class="oswald text-xl sm:text-2xl font-bold tracking-tighter uppercase italic">POKER ON <span class="text-[#c8102e]">JACK TALL BACK</span></h1>
             </div>
             <div class="flex items-center gap-2">
-                <button id="pwa-install-btn" class="hidden bg-emerald-600 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 transition">📲 Instalar App</button>
+                <button id="pwa-install-btn" class="hidden bg-emerald-600 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 transition">📲 App</button>
                 <button id="admin-login-btn" class="bg-white/10 px-5 py-1.5 rounded-xl text-xs font-bold uppercase hover:bg-white/20 transition">Admin</button>
                 <button id="logout-btn" class="bg-[#c8102e] hidden px-5 py-1.5 rounded-xl text-xs font-bold uppercase hover:bg-[#a00d25] transition">Sair</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-10 flex flex-col items-center justify-center shadow-2xl relative">
-                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-2xl uppercase tracking-[0.4em] mb-4">Nível 1</div>
+            <div class="lg:col-span-3 bg-black/40 rounded-[3rem] border-2 border-white/5 p-6 sm:p-10 flex flex-col items-center justify-center shadow-2xl relative">
+                <div id="level-indicator" class="oswald text-[#c8102e] font-bold text-xl sm:text-2xl uppercase tracking-[0.4em] mb-4 text-center">Nível 1</div>
                 <div id="timer-display" class="huge-timer mono text-white">20:00</div>
-                <div id="ante-badge" class="oswald uppercase italic">ANTE ATIVO</div>
+                <div id="ante-badge" class="oswald uppercase italic text-sm sm:text-xl">ANTE ATIVO</div>
                 <div class="w-full flex justify-around items-center mt-6 border-t border-white/10 pt-8">
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
-                    <div><span class="oswald text-gray-500 text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
+                    <div><span class="oswald text-gray-500 text-xs sm:text-base uppercase block tracking-widest font-bold text-center">Atual</span><span id="current-blinds" class="huge-blinds oswald font-bold text-white uppercase tracking-tighter">100/100</span></div>
+                    <div><span class="oswald text-gray-500 text-xs sm:text-base uppercase block tracking-widest font-bold text-center">Próximo</span><span id="next-blinds" class="huge-blinds oswald font-bold text-white/20 uppercase tracking-tighter">100/200</span></div>
                 </div>
-                <div class="mt-10 flex gap-4">
+                <div class="mt-10 flex flex-wrap justify-center gap-4">
                     <button id="prev-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl hover:bg-white/10 transition">⏮</button>
-                    <button id="timer-control-btn" class="bg-[#c8102e] px-16 py-4 rounded-2xl font-bold oswald text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition">Iniciar</button>
+                    <button id="timer-control-btn" class="bg-[#c8102e] px-12 sm:px-16 py-4 rounded-2xl font-bold oswald text-2xl sm:text-3xl uppercase shadow-xl hover:bg-[#a00d25] transition w-full sm:w-auto">Iniciar</button>
                     <button id="next-level-btn" class="bg-white/5 px-6 py-4 rounded-2xl text-xl hover:bg-white/10 transition">⏭</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-4">
                 <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 shadow-xl">
-                    <div class="grid grid-cols-3 gap-2 mb-8 border-b border-white/10 pb-6">
+                    <div class="grid grid-cols-3 gap-2 mb-6 border-b border-white/10 pb-6">
                         <div class="text-center border-r border-white/10">
                             <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Buy-ins</span>
-                            <span id="count-bi" class="oswald text-4xl font-bold text-[#c8102e] italic">0</span>
+                            <span id="count-bi" class="oswald text-3xl font-bold text-[#c8102e] italic">0</span>
                         </div>
                         <div class="text-center border-r border-white/10">
                             <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Rebuys</span>
-                            <span id="count-rb" class="oswald text-4xl font-bold text-[#22c55e] italic">0</span>
+                            <span id="count-rb" class="oswald text-3xl font-bold text-[#22c55e] italic">0</span>
                         </div>
                         <div class="text-center">
                             <span class="text-[10px] uppercase text-gray-500 font-bold block mb-1">Add-ons</span>
-                            <span id="count-ao" class="oswald text-4xl font-bold text-[#3b82f6] italic">0</span>
+                            <span id="count-ao" class="oswald text-3xl font-bold text-[#3b82f6] italic">0</span>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <span class="text-[14px] text-gray-500 uppercase font-bold tracking-[0.2em] block">Pote Total</span>
-                            <span id="entry-value-badge" class="text-[10px] bg-white/10 text-gray-300 font-mono px-2 py-0.5 rounded-full">(R$ 50/ação)</span>
+                    <div class="text-center flex flex-col items-center">
+                        <div class="flex items-center justify-center gap-2 mb-1">
+                            <span class="text-[12px] text-gray-500 uppercase font-bold tracking-[0.2em] block">Arrecadado</span>
                         </div>
-                        <div id="grand-total" class="oswald text-7xl font-bold text-white italic drop-shadow-lg">R$ 0</div>
+                        <div id="grand-total" class="oswald text-4xl font-bold text-gray-300 italic mb-2">R$ 0</div>
+                        
+                        <div class="flex items-center justify-center gap-3 text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-3 py-1.5 rounded-full mb-4">
+                            <span>Ação: <span id="entry-value-badge" class="text-white">R$ 50</span></span>
+                            <span>|</span>
+                            <span>Gastos: <span id="expenses-badge" class="text-red-400">R$ 0</span></span>
+                        </div>
+
+                        <div class="w-full border-t border-emerald-500/30 pt-4 mt-2">
+                            <span class="text-[13px] text-emerald-500 uppercase font-bold tracking-[0.2em] block mb-1">Premiação Líquida</span>
+                            <div id="net-total" class="oswald text-5xl sm:text-6xl font-bold text-emerald-400 italic drop-shadow-lg">R$ 0</div>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/5 flex-1 overflow-hidden">
                     <span class="text-[10px] text-[#c8102e] font-bold uppercase tracking-widest block mb-4 text-center">Últimas Saídas</span>
-                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[250px] pr-2"></ul>
+                    <ul id="elimination-log" class="text-sm space-y-3 oswald italic overflow-y-auto max-h-[200px] pr-2"></ul>
                 </div>
             </div>
         </div>
@@ -111,11 +119,11 @@
         <!-- ÁREA EXCLUSIVA DE ADMINISTRAÇÃO -->
         <div id="game-controls" class="hidden">
             <!-- NAVEGAÇÃO ENTRE ABAS DO ADMIN -->
-            <div class="flex gap-3 mb-6 border-b border-white/10 pb-4">
-                <button id="tab-btn-players" class="bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row gap-3 mb-6 border-b border-white/10 pb-4">
+                <button id="tab-btn-players" class="bg-[#c8102e] text-white px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto">
                     <span>👥</span> Jogadores & Mesa
                 </button>
-                <button id="tab-btn-setup" class="bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2">
+                <button id="tab-btn-setup" class="bg-white/5 hover:bg-white/10 text-gray-300 px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto">
                     <span>⚙️</span> Setup & Premiação
                 </button>
             </div>
@@ -123,36 +131,43 @@
             <!-- CONTEÚDO DA ABA 1: TABELA DE JOGADORES -->
             <div id="tab-content-players" class="space-y-6">
                 <!-- AVISO DE REBUY BLOQUEADO (EXIBIDO PÓS-BREAK) -->
-                <div id="rebuy-lock-notice" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    <span>🔒</span> Período de Buy-ins, Rebuys e Add-ons Encerrado (Pós-Intervalo). Apenas eliminações ativas.
+                <div id="rebuy-lock-notice" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span>🔒</span> Período de Buy-ins, Rebuys e Add-ons Encerrado. Apenas eliminações.
                 </div>
 
-                <div class="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                    <div class="overflow-x-auto text-white">
-                        <table class="w-full text-[13px] text-center">
-                            <thead><tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold"><th class="p-5 text-left min-w-[150px]">Jogador</th><th class="p-2 text-[#c8102e]">BI</th><th class="p-2 bg-black/20" colspan="15">Rebuys</th><th class="p-2">Addon</th><th class="p-5 text-right">Total</th><th class="p-5">💀</th></tr></thead>
-                            <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
-                        </table>
-                    </div>
+                <div class="bg-white/5 rounded-[1.5rem] border border-white/10 overflow-x-auto shadow-2xl">
+                    <table class="w-full text-[12px] sm:text-[13px] text-center min-w-[500px]">
+                        <thead>
+                            <tr class="bg-white/5 oswald text-gray-400 uppercase tracking-widest font-bold">
+                                <th class="p-3 sm:p-5 text-left w-1/3">Jogador</th>
+                                <th class="p-2 text-[#c8102e]">BI</th>
+                                <th class="p-2 bg-black/20">Rebuys</th>
+                                <th class="p-2 text-[#3b82f6]">Addon</th>
+                                <th class="p-3 sm:p-5 text-right whitespace-nowrap">Total</th>
+                                <th class="p-3 sm:p-5">💀</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-table-body" class="divide-y divide-white/5"></tbody>
+                    </table>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-center gap-6 pb-10">
-                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 disabled:cursor-not-allowed px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Adicionar Jogador</button>
-                    <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-12 py-5 rounded-2xl font-bold oswald text-xl uppercase transition">Reset Geral</button>
+                <div class="flex flex-col sm:flex-row justify-center gap-4 pb-10">
+                    <button id="add-player-btn" class="bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 disabled:cursor-not-allowed px-8 py-4 rounded-2xl font-bold oswald text-lg uppercase transition w-full sm:w-auto">Adicionar Jogador</button>
+                    <button id="reset-game-btn" class="bg-[#c8102e]/20 hover:bg-[#c8102e] px-8 py-4 rounded-2xl font-bold oswald text-lg uppercase transition w-full sm:w-auto">Reset Geral</button>
                 </div>
             </div>
 
             <!-- CONTEÚDO DA ABA 2: SETUP & PREMIAÇÃO -->
             <div id="tab-content-setup" class="hidden space-y-8">
                 <!-- PREMIAÇÃO COM VALIDAÇÃO RÍGIDA DE 100% -->
-                <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-6 shadow-2xl backdrop-blur-md">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                <div class="bg-white/5 rounded-[2rem] border border-amber-500/20 p-4 sm:p-6 shadow-2xl backdrop-blur-md">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl text-amber-400">🏆</span>
-                            <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
+                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Configuração da Premiação</h2>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
-                            <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-1 text-white font-mono text-sm outline-none">
+                            <span class="text-[10px] sm:text-xs uppercase text-gray-400 font-bold">Posições Pagas:</span>
+                            <select id="cfg-prize-places" class="bg-neutral-900 border border-white/20 rounded-xl px-3 py-2 text-white font-mono text-sm outline-none">
                                 <option value="1">1 Lugar</option>
                                 <option value="2">2 Lugares</option>
                                 <option value="3" selected>3 Lugares</option>
@@ -165,58 +180,59 @@
                     <div id="prize-percentage-inputs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
 
                     <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="text-sm font-mono">
-                            Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span>
-                            <span id="prize-status-hint" class="ml-2 text-xs font-sans text-gray-400"></span>
+                        <div class="text-sm font-mono text-center sm:text-left">
+                            Soma total: <span id="prize-sum-indicator" class="font-bold text-emerald-400">100%</span><br>
+                            <span id="prize-status-hint" class="text-xs font-sans text-gray-400"></span>
                         </div>
-                        <button id="save-prizes-btn" class="bg-amber-600 hover:bg-amber-700 disabled:opacity-30 disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
+                        <button id="save-prizes-btn" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 disabled:opacity-30 disabled:cursor-not-allowed px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Premiação</button>
                     </div>
                 </div>
 
                 <!-- ESTRUTURA DO JOGO (TOTALMENTE EDITÁVEL VIA BOTÕES E SELECTS) -->
-                <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-6 shadow-2xl backdrop-blur-md transition-all">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-white/10 pb-4">
+                <div id="setup-panel" class="bg-white/5 rounded-[2rem] border border-white/10 p-4 sm:p-6 shadow-2xl backdrop-blur-md transition-all">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl text-[#c8102e]">⚙️</span>
-                            <h2 class="oswald text-2xl font-bold uppercase tracking-wider text-white">Setup de Blinds e Tempos</h2>
-                        </div>
-                        <div class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
-                            ● Painel Totalmente Editável
+                            <h2 class="oswald text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">Setup e Valores</h2>
                         </div>
                     </div>
                     
-                    <div id="setup-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <div id="setup-fields" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
-                            <input type="number" id="cfg-action-value" min="1" max="10000" value="50" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-[#c8102e] font-bold mb-2">Valor da Ação (R$)</label>
+                            <input type="number" id="cfg-action-value" min="1" max="10000" value="50" class="w-full bg-black/40 border border-[#c8102e]/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
-                            <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-red-400 font-bold mb-2">Gastos / Despesas (R$)</label>
+                            <input type="number" id="cfg-expenses" min="0" max="100000" value="0" placeholder="Ex: 180" class="w-full bg-black/40 border border-red-500/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-red-400 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Break Após Nível</label>
-                            <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-2">Tempo Inicial (min)</label>
+                            <input type="number" id="cfg-level-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-[#c8102e] outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-2">Break Após Nível</label>
+                            <select id="cfg-break-after" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-sm sm:text-base focus:border-[#c8102e] outline-none">
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Tempo Intervalo (min)</label>
-                            <input type="number" id="cfg-break-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-lg focus:border-[#c8102e] outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-2">Tempo Intervalo (min)</label>
+                            <input type="number" id="cfg-break-time" min="1" max="120" value="20" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-[#c8102e] outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Break (min)</label>
-                            <input type="number" id="cfg-post-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-lg focus:border-emerald-400 outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-emerald-400 font-bold mb-2">Tempo Pós-Break</label>
+                            <input type="number" id="cfg-post-break-time" min="1" max="120" value="15" class="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono text-base sm:text-lg focus:border-emerald-400 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs uppercase text-gray-400 font-bold mb-2">Início do Ante</label>
-                            <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-base focus:border-[#c8102e] outline-none">
+                            <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-2">Início do Ante</label>
+                            <select id="cfg-ante-level" class="w-full bg-neutral-900 border border-white/10 rounded-xl p-3 text-white font-mono text-sm sm:text-base focus:border-[#c8102e] outline-none">
                             </select>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <span class="text-xs text-gray-400 italic">Altere qualquer parâmetro e clique em Salvar para atualizar imediatamente todos os dispositivos.</span>
-                        <button id="save-config-btn" class="bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg ml-auto">Salvar Setup</button>
+                    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <span class="text-xs text-gray-400 italic text-center sm:text-left">Altere os parâmetros e clique em Salvar para atualizar tudo.</span>
+                        <button id="save-config-btn" class="w-full sm:w-auto bg-[#c8102e] hover:bg-[#a00d25] px-8 py-3 rounded-xl font-bold oswald text-base uppercase tracking-wider transition shadow-lg">Salvar Setup</button>
                     </div>
                 </div>
             </div>
@@ -298,6 +314,7 @@
 
         let gameConfig = {
             actionValue: 50,
+            expenses: 0,
             levelDurationMin: 20,
             breakAfterLevel: 8,
             breakDurationMin: 20,
@@ -317,7 +334,6 @@
             for (let i = 0; i < pureBlinds.length; i++) {
                 blindCount++;
                 blindLevels.push({ blinds: pureBlinds[i] });
-
                 if (blindCount === breakAfter) {
                     blindLevels.push({ isBreak: true });
                 }
@@ -373,7 +389,7 @@
                 const val = currentPrizes[i] !== undefined ? currentPrizes[i] : 0;
                 const div = document.createElement('div');
                 div.innerHTML = `
-                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">${i + 1}º Lugar (%)</label>
+                    <label class="block text-[10px] sm:text-xs uppercase text-gray-400 font-bold mb-1">${i + 1}º Lugar (%)</label>
                     <input type="number" min="0" max="100" value="${val}" class="prize-pct-input w-full bg-black/40 border border-white/20 rounded-xl p-2.5 text-white font-mono text-base focus:border-amber-400 outline-none">
                 `;
                 container.appendChild(div);
@@ -414,17 +430,17 @@
             if (sum === 100) {
                 sumEl.className = "font-bold text-emerald-400";
                 hintEl.textContent = "(Perfeito para salvar)";
-                hintEl.className = "ml-2 text-xs font-sans text-emerald-400";
+                hintEl.className = "text-xs font-sans text-emerald-400";
                 saveBtn.disabled = false;
             } else if (sum < 100) {
                 sumEl.className = "font-bold text-amber-500";
                 hintEl.textContent = `(Faltam ${100 - sum}% para fechar 100%)`;
-                hintEl.className = "ml-2 text-xs font-sans text-amber-400";
+                hintEl.className = "text-xs font-sans text-amber-400";
                 saveBtn.disabled = true;
             } else {
                 sumEl.className = "font-bold text-red-500";
                 hintEl.textContent = `(Ultrapassou em ${sum - 100}%)`;
-                hintEl.className = "ml-2 text-xs font-sans text-red-400";
+                hintEl.className = "text-xs font-sans text-red-400";
                 saveBtn.disabled = true;
             }
         }
@@ -440,15 +456,15 @@
         const tabContentSetup = document.getElementById('tab-content-setup');
 
         tabBtnPlayers.onclick = () => {
-            tabBtnPlayers.className = "bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
-            tabBtnSetup.className = "bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabBtnPlayers.className = "w-full sm:w-auto bg-[#c8102e] text-white px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2";
+            tabBtnSetup.className = "w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-300 px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2";
             tabContentPlayers.classList.remove('hidden');
             tabContentSetup.classList.add('hidden');
         };
 
         tabBtnSetup.onclick = () => {
-            tabBtnSetup.className = "bg-[#c8102e] text-white px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
-            tabBtnPlayers.className = "bg-white/5 hover:bg-white/10 text-gray-300 px-8 py-3 rounded-2xl font-bold oswald text-lg uppercase tracking-wider transition shadow-lg flex items-center gap-2";
+            tabBtnSetup.className = "w-full sm:w-auto bg-[#c8102e] text-white px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2";
+            tabBtnPlayers.className = "w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-300 px-6 py-3 rounded-2xl font-bold oswald text-base sm:text-lg uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2";
             tabContentSetup.classList.remove('hidden');
             tabContentPlayers.classList.add('hidden');
             renderPrizeInputs();
@@ -502,7 +518,7 @@
             const addBtn = document.getElementById('add-player-btn');
             if (addBtn) addBtn.disabled = lockedRebuys;
 
-            document.querySelectorAll('.buyin-cb, .rebuy-cb, .addon-cb').forEach(cb => {
+            document.querySelectorAll('.buyin-cb, .addon-cb').forEach(cb => {
                 cb.disabled = lockedRebuys;
                 const container = cb.closest('.chip-container');
                 if (container) {
@@ -512,17 +528,30 @@
             });
 
             const actionPrice = Number(gameConfig.actionValue) || 50;
-            document.getElementById('entry-value-badge').textContent = `(R$ ${actionPrice}/ação)`;
+            const expensesValue = Number(gameConfig.expenses) || 0;
+            document.getElementById('entry-value-badge').textContent = `R$ ${actionPrice}`;
+            document.getElementById('expenses-badge').textContent = `R$ ${expensesValue}`;
 
             let grandTotal = 0, totalBI = 0, totalRB = 0, totalAO = 0;
             playersData.forEach(p => {
-                const b = p.buyInChecked ? 1 : 0, r = (p.rebuysChecked || []).filter(Boolean).length, a = p.addOnChecked ? 1 : 0;
+                const b = p.buyInChecked ? 1 : 0;
+                const r = (p.rebuysChecked || []).filter(Boolean).length;
+                const a = p.addOnChecked ? 1 : 0;
                 totalBI += b; totalRB += r; totalAO += a;
-                const pTotal = (b + r + a) * actionPrice; grandTotal += pTotal;
-                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`); if (cell) cell.textContent = `R$ ${pTotal}`;
+                const pTotal = (b + r + a) * actionPrice; 
+                grandTotal += pTotal;
+                const cell = document.querySelector(`[data-player-id="${p.id}"] .player-total`); 
+                if (cell) cell.textContent = `R$ ${pTotal}`;
             });
-            document.getElementById('count-bi').textContent = totalBI; document.getElementById('count-rb').textContent = totalRB; document.getElementById('count-ao').textContent = totalAO;
+
+            document.getElementById('count-bi').textContent = totalBI; 
+            document.getElementById('count-rb').textContent = totalRB; 
+            document.getElementById('count-ao').textContent = totalAO;
             document.getElementById('grand-total').textContent = `R$ ${grandTotal}`;
+
+            // Calculando Premiação Líquida
+            const netTotal = Math.max(0, grandTotal - expensesValue);
+            document.getElementById('net-total').textContent = `R$ ${netTotal}`;
             
             const prizesList = gameConfig.prizes || [50, 30, 20];
             const borderStyles = ['gold-border', 'silver-border', 'bronze-border', 'iron-border', 'iron-border'];
@@ -532,7 +561,7 @@
                 <div class="award-card p-6 rounded-3xl text-center shadow-xl ${borderStyles[i] || 'iron-border'} flex flex-col items-center justify-center relative">
                     <span class="absolute top-2 right-4 text-2xl ${icons[i] || 'text-gray-400'}">🏆</span>
                     <span class="oswald text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">${i+1}º LUGAR (${pct}%)</span>
-                    <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((grandTotal * pct) / 100)}</div>
+                    <div class="oswald text-4xl font-bold text-white italic">R$ ${Math.floor((netTotal * pct) / 100)}</div>
                 </div>`).join('');
 
             const eliminados = playersData.filter(p => p.eliminated && p.eliminatedAt).sort((a,b) => b.eliminatedAt - a.eliminatedAt);
@@ -540,15 +569,36 @@
         };
 
         const renderTable = () => {
-            const tbody = document.getElementById('player-table-body'); tbody.innerHTML = '';
+            const tbody = document.getElementById('player-table-body'); 
+            tbody.innerHTML = '';
             const lockedRebuys = isPostBreak();
             const lockClass = lockedRebuys ? 'chip-locked' : '';
+            const rebuyLockClass = lockedRebuys ? 'rebuy-locked' : '';
             const disAttr = lockedRebuys ? 'disabled' : '';
 
             playersData.forEach(p => {
-                const tr = document.createElement('tr'); tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; tr.dataset.playerId = p.id;
-                let rb = ''; for(let i=0; i<15; i++) rb += `<td class="p-0.5"><div class="chip-container rebuy ${lockClass}"><input type="checkbox" class="chip-input rebuy-cb" ${disAttr} ${p.rebuysChecked?.[i] ? 'checked' : ''}><div class="chip-design"></div></div></td>`;
-                tr.innerHTML = `<td class="p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full text-white text-left"></td><td><div class="chip-container buyin ${lockClass}"><input type="checkbox" class="chip-input buyin-cb" ${disAttr} ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>${rb}<td><div class="chip-container addon ${lockClass}"><input type="checkbox" class="chip-input addon-cb" ${disAttr} ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td><td class="p-4 text-right oswald font-bold player-total">R$ 0</td><td class="p-4"><button class="eliminate-btn text-2xl hover:scale-125 transition">💀</button></td>`;
+                const tr = document.createElement('tr'); 
+                tr.className = `player-row ${p.eliminated ? 'eliminated' : ''}`; 
+                tr.dataset.playerId = p.id;
+                
+                const rbCount = (p.rebuysChecked || []).filter(Boolean).length;
+                
+                tr.innerHTML = `
+                    <td class="p-2 sm:p-4"><input type="text" value="${p.name}" class="player-name bg-transparent font-bold outline-none w-full min-w-[80px] text-white text-left text-xs sm:text-sm"></td>
+                    <td class="p-1"><div class="chip-container buyin ${lockClass}"><input type="checkbox" class="chip-input buyin-cb" ${disAttr} ${p.buyInChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>
+                    
+                    <td class="p-1 bg-black/20 ${rebuyLockClass}">
+                        <div class="flex items-center justify-center gap-1 sm:gap-3">
+                            <button class="rebuy-minus bg-white/10 text-white w-6 h-6 sm:w-8 sm:h-8 rounded-full font-bold text-sm sm:text-lg hover:bg-white/20 active:bg-white/30 transition flex items-center justify-center shadow-lg" ${disAttr}>-</button>
+                            <span class="font-bold w-3 sm:w-4 text-center oswald text-base sm:text-lg text-[#22c55e]">${rbCount}</span>
+                            <button class="rebuy-plus bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30 w-6 h-6 sm:w-8 sm:h-8 rounded-full font-bold text-sm sm:text-lg hover:bg-[#22c55e]/40 active:bg-[#22c55e]/50 transition flex items-center justify-center shadow-lg" ${disAttr}>+</button>
+                        </div>
+                    </td>
+                    
+                    <td class="p-1"><div class="chip-container addon ${lockClass}"><input type="checkbox" class="chip-input addon-cb" ${disAttr} ${p.addOnChecked ? 'checked' : ''}><div class="chip-design"></div></div></td>
+                    <td class="p-2 sm:p-4 text-right oswald font-bold player-total whitespace-nowrap text-sm">R$ 0</td>
+                    <td class="p-2 sm:p-4"><button class="eliminate-btn text-xl sm:text-2xl hover:scale-125 transition">💀</button></td>
+                `;
                 tbody.appendChild(tr);
             });
             updateUI();
@@ -564,6 +614,7 @@
                     gameConfig = { ...gameConfig, ...data.config };
                     rebuildBlindLevels();
                     document.getElementById('cfg-action-value').value = gameConfig.actionValue || 50;
+                    document.getElementById('cfg-expenses').value = gameConfig.expenses || 0;
                     document.getElementById('cfg-level-time').value = gameConfig.levelDurationMin || 20;
                     document.getElementById('cfg-break-after').value = gameConfig.breakAfterLevel || 8;
                     document.getElementById('cfg-break-time').value = gameConfig.breakDurationMin || 20;
@@ -632,17 +683,44 @@
             }
         });
 
+        // Eventos delegados na tabela para clique (eliminar, e botões +/- de rebuy)
         document.getElementById('player-table-body').addEventListener('click', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
-            if(e.target.classList.contains('eliminate-btn')) { 
+            const row = e.target.closest('tr'); if(!row) return; 
+            const p = playersData.find(x => x.id === row.dataset.playerId);
+            if(!p) return;
+
+            if(e.target.closest('.eliminate-btn')) { 
                 p.eliminated = !p.eliminated; 
                 p.eliminatedAt = p.eliminated ? Date.now() : null; 
                 setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
             }
+
+            if(e.target.closest('.rebuy-minus')) {
+                if (isPostBreak()) return;
+                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false);
+                const lastTrueIndex = p.rebuysChecked.lastIndexOf(true);
+                if(lastTrueIndex >= 0) {
+                    p.rebuysChecked[lastTrueIndex] = false;
+                    setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                }
+            }
+
+            if(e.target.closest('.rebuy-plus')) {
+                if (isPostBreak()) return;
+                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false);
+                const firstFalseIndex = p.rebuysChecked.indexOf(false);
+                if(firstFalseIndex >= 0) {
+                    p.rebuysChecked[firstFalseIndex] = true;
+                    setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData });
+                }
+            }
         });
 
+        // Eventos delegados na tabela para inputs (texto nome e checkboxes BI/AO)
         document.getElementById('player-table-body').addEventListener('change', (e) => {
-            const row = e.target.closest('tr'); if(!row) return; const p = playersData.find(x => x.id === row.dataset.playerId);
+            const row = e.target.closest('tr'); if(!row) return; 
+            const p = playersData.find(x => x.id === row.dataset.playerId);
+            if(!p) return;
             
             if (isPostBreak() && !e.target.classList.contains('player-name')) {
                 e.target.checked = !e.target.checked;
@@ -651,12 +729,8 @@
 
             if(e.target.classList.contains('buyin-cb')) p.buyInChecked = e.target.checked;
             if(e.target.classList.contains('addon-cb')) p.addOnChecked = e.target.checked;
-            if(e.target.classList.contains('rebuy-cb')) { 
-                const idx = Array.from(row.querySelectorAll('.rebuy-cb')).indexOf(e.target); 
-                if(!p.rebuysChecked) p.rebuysChecked = Array(15).fill(false); 
-                p.rebuysChecked[idx] = e.target.checked; 
-            }
             if(e.target.classList.contains('player-name')) p.name = e.target.value;
+            
             setDoc(doc(db, 'pokerGame', 'gameState'), { players: playersData }); 
         });
 
@@ -704,9 +778,9 @@
             alert("Grade de premiação validada e atualizada com sucesso!");
         };
 
-        // BOTÃO DE SALVAR SETUP: NUNCA TRAVADO, SEMPRE LIVRE
         document.getElementById('save-config-btn').onclick = () => {
             const actionVal = parseInt(document.getElementById('cfg-action-value').value, 10) || 50;
+            const expensesVal = parseInt(document.getElementById('cfg-expenses').value, 10) || 0;
             const initialTime = parseInt(document.getElementById('cfg-level-time').value, 10) || 20;
             const breakAfter = parseInt(document.getElementById('cfg-break-after').value, 10) || 8;
             const brkTime = parseInt(document.getElementById('cfg-break-time').value, 10) || 20;
@@ -714,6 +788,7 @@
             const anteLvl = parseInt(document.getElementById('cfg-ante-level').value, 10) || 6;
 
             gameConfig.actionValue = actionVal;
+            gameConfig.expenses = expensesVal;
             gameConfig.levelDurationMin = initialTime;
             gameConfig.breakAfterLevel = breakAfter;
             gameConfig.breakDurationMin = brkTime;
@@ -727,10 +802,9 @@
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            alert("Setup de tempos e blinds atualizado com sucesso em todos os dispositivos!");
+            alert("Setup e Valores atualizados com sucesso em todos os dispositivos!");
         };
 
-        // CONTROLE DO TIMER: CONGELA O SEGUNDO EXATO AO PAUSAR
         document.getElementById('timer-control-btn').onclick = () => {
             const willRun = !timerState.isRunning;
             const currentTimeLeft = Math.max(0, Math.floor(timerState.timeLeft));
@@ -782,7 +856,7 @@
         };
 
         document.getElementById('reset-game-btn').onclick = () => { 
-            if(confirm("Deseja realmente resetar o jogo?")) { 
+            if(confirm("Deseja realmente resetar o jogo? Todos os dados atuais serão apagados.")) { 
                 const r = []; 
                 for(let i=1; i<=10; i++) {
                     r.push({ 
